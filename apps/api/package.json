@@ -1,0 +1,12 @@
+{
+  "name": "@budgetflow/api",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "build": "echo 'api build placeholder'",
+    "dev": "echo 'api dev placeholder'",
+    "lint": "echo 'api lint placeholder'",
+    "test": "echo 'api test placeholder'",
+    "format": "echo 'api format placeholder'"
+  }
+}

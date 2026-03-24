@@ -1,0 +1,12 @@
+{
+  "name": "@budgetflow/shared",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "build": "echo 'shared build placeholder'",
+    "dev": "echo 'shared dev placeholder'",
+    "lint": "echo 'shared lint placeholder'",
+    "test": "echo 'shared test placeholder'",
+    "format": "echo 'shared format placeholder'"
+  }
+}

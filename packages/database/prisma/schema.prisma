@@ -1,0 +1,292 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum WorkspaceType {
+  COUPLE
+  FAMILY
+  ROOMMATE
+}
+
+enum WorkspaceMemberRole {
+  OWNER
+  MEMBER
+}
+
+enum WorkspaceMemberStatus {
+  INVITED
+  ACTIVE
+  LEFT
+}
+
+enum CategoryType {
+  INCOME
+  EXPENSE
+}
+
+enum TransactionVisibility {
+  SHARED
+  PERSONAL
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+enum ShareType {
+  EQUAL
+  FIXED
+  PERCENTAGE
+}
+
+enum RecurringRepeatUnit {
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+enum InsightStatus {
+  ACTIVE
+  DISMISSED
+}
+
+model User {
+  id                      String                   @id @default(uuid()) @db.Uuid
+  email                   String                   @unique
+  passwordHash            String?                  @map("password_hash")
+  name                    String
+  profileImageUrl         String?                  @map("profile_image_url")
+  locale                  String                   @default("ko-KR")
+  timezone                String                   @default("Asia/Seoul")
+  createdAt               DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime                 @updatedAt @map("updated_at") @db.Timestamptz(6)
+  ownedWorkspaces         Workspace[]              @relation("WorkspaceOwner")
+  workspaceMemberships    WorkspaceMember[]
+  createdTransactions     Transaction[]            @relation("TransactionCreatedBy")
+  paidTransactions        Transaction[]            @relation("TransactionPaidBy")
+  transactionParticipants TransactionParticipant[]
+  createdBudgetMonths     BudgetMonth[]
+  recurringPaidBy         RecurringTransaction[]   @relation("RecurringTransactionPaidBy")
+  recurringCreatedBy      RecurringTransaction[]   @relation("RecurringTransactionCreatedBy")
+  createdInvites          WorkspaceInvite[]        @relation("WorkspaceInviteCreatedBy")
+
+  @@map("users")
+}
+
+model Workspace {
+  id                    String                 @id @default(uuid()) @db.Uuid
+  name                  String
+  slug                  String?                @unique
+  type                  WorkspaceType
+  baseCurrency          String                 @default("KRW") @map("base_currency") @db.Char(3)
+  timezone              String                 @default("Asia/Seoul")
+  ownerUserId           String                 @map("owner_user_id") @db.Uuid
+  createdAt             DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
+  owner                 User                   @relation("WorkspaceOwner", fields: [ownerUserId], references: [id])
+  members               WorkspaceMember[]
+  invites               WorkspaceInvite[]
+  categories            Category[]
+  transactions          Transaction[]
+  budgetMonths          BudgetMonth[]
+  recurringTransactions RecurringTransaction[]
+  insights              Insight[]
+
+  @@index([ownerUserId])
+  @@map("workspaces")
+}
+
+model WorkspaceMember {
+  id          String                @id @default(uuid()) @db.Uuid
+  workspaceId String                @map("workspace_id") @db.Uuid
+  userId      String                @map("user_id") @db.Uuid
+  role        WorkspaceMemberRole
+  status      WorkspaceMemberStatus @default(INVITED)
+  nickname    String?
+  joinedAt    DateTime?             @map("joined_at") @db.Timestamptz(6)
+  createdAt   DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime              @updatedAt @map("updated_at") @db.Timestamptz(6)
+  workspace   Workspace             @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+  @@index([workspaceId, status])
+  @@index([userId, status])
+  @@map("workspace_members")
+}
+
+model WorkspaceInvite {
+  id              String                @id @default(uuid()) @db.Uuid
+  workspaceId     String                @map("workspace_id") @db.Uuid
+  email           String
+  role            WorkspaceMemberRole   @default(MEMBER)
+  token           String                @unique
+  status          WorkspaceMemberStatus @default(INVITED)
+  expiresAt       DateTime              @map("expires_at") @db.Timestamptz(6)
+  acceptedAt      DateTime?             @map("accepted_at") @db.Timestamptz(6)
+  createdByUserId String                @map("created_by_user_id") @db.Uuid
+  createdAt       DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime              @updatedAt @map("updated_at") @db.Timestamptz(6)
+  workspace       Workspace             @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdBy       User                  @relation("WorkspaceInviteCreatedBy", fields: [createdByUserId], references: [id])
+
+  @@index([workspaceId, status])
+  @@index([email, status])
+  @@map("workspace_invites")
+}
+
+model Category {
+  id                    String                 @id @default(uuid()) @db.Uuid
+  workspaceId           String                 @map("workspace_id") @db.Uuid
+  name                  String
+  type                  CategoryType
+  color                 String?
+  icon                  String?
+  sortOrder             Int                    @default(0) @map("sort_order")
+  isDefault             Boolean                @default(false) @map("is_default")
+  isArchived            Boolean                @default(false) @map("is_archived")
+  createdAt             DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
+  workspace             Workspace              @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  transactions          Transaction[]
+  budgetCategories      BudgetCategory[]
+  recurringTransactions RecurringTransaction[]
+
+  @@unique([workspaceId, type, name])
+  @@index([workspaceId, type, sortOrder])
+  @@map("categories")
+}
+
+model Transaction {
+  id                     String                   @id @default(uuid()) @db.Uuid
+  workspaceId            String                   @map("workspace_id") @db.Uuid
+  categoryId             String?                  @map("category_id") @db.Uuid
+  type                   TransactionType
+  visibility             TransactionVisibility
+  amount                 Decimal                  @db.Decimal(14, 2)
+  currency               String                   @db.Char(3)
+  transactionDate        DateTime                 @map("transaction_date") @db.Date
+  memo                   String?
+  createdByUserId        String                   @map("created_by_user_id") @db.Uuid
+  paidByUserId           String?                  @map("paid_by_user_id") @db.Uuid
+  recurringTransactionId String?                  @map("recurring_transaction_id") @db.Uuid
+  isDeleted              Boolean                  @default(false) @map("is_deleted")
+  createdAt              DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime                 @updatedAt @map("updated_at") @db.Timestamptz(6)
+  workspace              Workspace                @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  category               Category?                @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  createdBy              User                     @relation("TransactionCreatedBy", fields: [createdByUserId], references: [id])
+  paidBy                 User?                    @relation("TransactionPaidBy", fields: [paidByUserId], references: [id])
+  recurringTransaction   RecurringTransaction?    @relation(fields: [recurringTransactionId], references: [id], onDelete: SetNull)
+  participants           TransactionParticipant[]
+
+  @@index([workspaceId, transactionDate(sort: Desc)])
+  @@index([workspaceId, visibility, transactionDate(sort: Desc)])
+  @@index([workspaceId, categoryId, transactionDate(sort: Desc)])
+  @@index([paidByUserId, transactionDate(sort: Desc)])
+  @@index([workspaceId, isDeleted, transactionDate(sort: Desc)])
+  @@map("transactions")
+}
+
+model TransactionParticipant {
+  id            String      @id @default(uuid()) @db.Uuid
+  transactionId String      @map("transaction_id") @db.Uuid
+  userId        String      @map("user_id") @db.Uuid
+  shareType     ShareType   @map("share_type")
+  shareValue    Decimal?    @map("share_value") @db.Decimal(14, 2)
+  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([transactionId, userId])
+  @@index([userId])
+  @@map("transaction_participants")
+}
+
+model BudgetMonth {
+  id                String           @id @default(uuid()) @db.Uuid
+  workspaceId       String           @map("workspace_id") @db.Uuid
+  year              Int
+  month             Int
+  totalBudgetAmount Decimal?         @map("total_budget_amount") @db.Decimal(14, 2)
+  createdByUserId   String           @map("created_by_user_id") @db.Uuid
+  createdAt         DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+  workspace         Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdBy         User             @relation(fields: [createdByUserId], references: [id])
+  categoryBudgets   BudgetCategory[]
+
+  @@unique([workspaceId, year, month])
+  @@index([workspaceId, year, month])
+  @@map("budget_months")
+}
+
+model BudgetCategory {
+  id                String      @id @default(uuid()) @db.Uuid
+  budgetMonthId     String      @map("budget_month_id") @db.Uuid
+  categoryId        String      @map("category_id") @db.Uuid
+  plannedAmount     Decimal     @map("planned_amount") @db.Decimal(14, 2)
+  alertThresholdPct Int?        @map("alert_threshold_pct")
+  createdAt         DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+  budgetMonth       BudgetMonth @relation(fields: [budgetMonthId], references: [id], onDelete: Cascade)
+  category          Category    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([budgetMonthId, categoryId])
+  @@index([categoryId])
+  @@map("budget_categories")
+}
+
+model RecurringTransaction {
+  id                    String                @id @default(uuid()) @db.Uuid
+  workspaceId           String                @map("workspace_id") @db.Uuid
+  categoryId            String?               @map("category_id") @db.Uuid
+  type                  TransactionType
+  visibility            TransactionVisibility
+  amount                Decimal               @db.Decimal(14, 2)
+  currency              String                @db.Char(3)
+  memo                  String?
+  paidByUserId          String?               @map("paid_by_user_id") @db.Uuid
+  repeatUnit            RecurringRepeatUnit   @map("repeat_unit")
+  repeatInterval        Int                   @default(1) @map("repeat_interval")
+  dayOfMonth            Int?                  @map("day_of_month")
+  dayOfWeek             Int?                  @map("day_of_week")
+  startDate             DateTime              @map("start_date") @db.Date
+  endDate               DateTime?             @map("end_date") @db.Date
+  isActive              Boolean               @default(true) @map("is_active")
+  createdByUserId       String                @map("created_by_user_id") @db.Uuid
+  createdAt             DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime              @updatedAt @map("updated_at") @db.Timestamptz(6)
+  workspace             Workspace             @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  category              Category?             @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  paidBy                User?                 @relation("RecurringTransactionPaidBy", fields: [paidByUserId], references: [id])
+  createdBy             User                  @relation("RecurringTransactionCreatedBy", fields: [createdByUserId], references: [id])
+  generatedTransactions Transaction[]
+
+  @@index([workspaceId, isActive])
+  @@index([workspaceId, type, isActive])
+  @@map("recurring_transactions")
+}
+
+model Insight {
+  id            String        @id @default(uuid()) @db.Uuid
+  workspaceId   String        @map("workspace_id") @db.Uuid
+  type          String
+  title         String
+  body          String
+  status        InsightStatus @default(ACTIVE)
+  referenceType String?       @map("reference_type")
+  referenceId   String?       @map("reference_id") @db.Uuid
+  generatedAt   DateTime      @default(now()) @map("generated_at") @db.Timestamptz(6)
+  expiresAt     DateTime?     @map("expires_at") @db.Timestamptz(6)
+  workspace     Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, status, generatedAt(sort: Desc)])
+  @@map("insights")
+}

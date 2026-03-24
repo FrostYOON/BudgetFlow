@@ -1,0 +1,16 @@
+{
+  "name": "@budgetflow/database",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "build": "echo 'database build placeholder'",
+    "dev": "echo 'database dev placeholder'",
+    "lint": "echo 'database lint placeholder'",
+    "test": "echo 'database test placeholder'",
+    "format": "echo 'database format placeholder'",
+    "prisma:format": "prisma format --schema ./prisma/schema.prisma"
+  },
+  "devDependencies": {
+    "prisma": "^5.20.0"
+  }
+}
