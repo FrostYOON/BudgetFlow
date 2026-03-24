@@ -1,26 +1,28 @@
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { AppConfigService } from './core/config/app-config.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.setGlobalPrefix('api/v1');
+  const appConfig = app.get(AppConfigService);
+  app.setGlobalPrefix(appConfig.apiPrefix);
 
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('BudgetFlow API')
+    .setTitle(appConfig.appName)
     .setDescription('API documentation for the BudgetFlow backend.')
-    .setVersion('0.1.0')
+    .setVersion(appConfig.appVersion)
     .addBearerAuth()
     .build();
   const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
 
-  SwaggerModule.setup('docs', app, swaggerDocument, {
-    customSiteTitle: 'BudgetFlow API Docs',
+  SwaggerModule.setup(appConfig.swaggerPath, app, swaggerDocument, {
+    customSiteTitle: `${appConfig.appName} Docs`,
     swaggerOptions: {
       persistAuthorization: true,
     },
   });
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(appConfig.port);
 }
 void bootstrap();
