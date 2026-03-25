@@ -1,5 +1,5 @@
 import { ConflictException, Injectable } from '@nestjs/common';
-import { User } from '../../../../../packages/database/generated/client';
+import { User } from '@budgetflow/database';
 import { PrismaService } from '../../core/database/prisma.service';
 import { UserResponseDto } from './dto/user-response.dto';
 

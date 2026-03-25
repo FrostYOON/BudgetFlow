@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -8,11 +9,12 @@ import {
   Workspace,
   WorkspaceMemberRole,
   WorkspaceMemberStatus,
-} from '../../../../../packages/database/generated/client';
+} from '@budgetflow/database';
 import { PrismaService } from '../../core/database/prisma.service';
 import { CreateWorkspaceRequestDto } from './dto/create-workspace-request.dto';
 import { WorkspaceListItemResponseDto } from './dto/workspace-list-item-response.dto';
 import { WorkspaceResponseDto } from './dto/workspace-response.dto';
+import { WorkspaceMemberResponseDto } from './dto/workspace-member-response.dto';
 
 type WorkspaceWithMembers = Prisma.WorkspaceGetPayload<{
   include: {
@@ -87,7 +89,82 @@ export class WorkspacesService {
     workspaceId: string,
     userId: string,
   ): Promise<WorkspaceResponseDto> {
-    const workspace = await this.prisma.workspace.findUnique({
+    const workspace = await this.findWorkspaceWithMembers(workspaceId);
+
+    if (!workspace) {
+      throw new NotFoundException('Workspace was not found.');
+    }
+
+    this.ensureMemberAccess(workspace, userId);
+
+    return this.toWorkspaceResponse(workspace, true);
+  }
+
+  async listMembers(
+    workspaceId: string,
+    userId: string,
+  ): Promise<WorkspaceMemberResponseDto[]> {
+    const workspace = await this.findWorkspaceWithMembers(workspaceId);
+
+    if (!workspace) {
+      throw new NotFoundException('Workspace was not found.');
+    }
+
+    this.ensureMemberAccess(workspace, userId);
+
+    return workspace.members.map((member) => ({
+      userId: member.userId,
+      name: member.user.name,
+      role: member.role,
+      status: member.status,
+    }));
+  }
+
+  async assertOwner(workspaceId: string, userId: string): Promise<void> {
+    const membership = await this.prisma.workspaceMember.findUnique({
+      where: {
+        workspaceId_userId: {
+          workspaceId,
+          userId,
+        },
+      },
+    });
+
+    if (!membership || membership.status !== WorkspaceMemberStatus.ACTIVE) {
+      throw new ForbiddenException('You do not have access to this workspace.');
+    }
+
+    if (membership.role !== WorkspaceMemberRole.OWNER) {
+      throw new ForbiddenException(
+        'Only workspace owners can perform this action.',
+      );
+    }
+  }
+
+  async assertNotActiveMember(
+    workspaceId: string,
+    userId: string,
+  ): Promise<void> {
+    const membership = await this.prisma.workspaceMember.findUnique({
+      where: {
+        workspaceId_userId: {
+          workspaceId,
+          userId,
+        },
+      },
+    });
+
+    if (membership?.status === WorkspaceMemberStatus.ACTIVE) {
+      throw new ConflictException(
+        'User is already an active workspace member.',
+      );
+    }
+  }
+
+  private async findWorkspaceWithMembers(
+    workspaceId: string,
+  ): Promise<WorkspaceWithMembers | null> {
+    return this.prisma.workspace.findUnique({
       where: { id: workspaceId },
       include: {
         members: {
@@ -100,11 +177,12 @@ export class WorkspacesService {
         },
       },
     });
+  }
 
-    if (!workspace) {
-      throw new NotFoundException('Workspace was not found.');
-    }
-
+  private ensureMemberAccess(
+    workspace: WorkspaceWithMembers,
+    userId: string,
+  ): void {
     const isMember = workspace.members.some(
       (member) => member.userId === userId,
     );
@@ -112,8 +190,6 @@ export class WorkspacesService {
     if (!isMember) {
       throw new ForbiddenException('You do not have access to this workspace.');
     }
-
-    return this.toWorkspaceResponse(workspace, true);
   }
 
   private toWorkspaceResponse(

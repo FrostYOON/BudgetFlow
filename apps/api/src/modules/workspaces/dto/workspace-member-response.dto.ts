@@ -1,7 +1,7 @@
 import {
   WorkspaceMemberRole,
   WorkspaceMemberStatus,
-} from '../../../../../../packages/database/generated/client';
+} from '@budgetflow/database';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class WorkspaceMemberResponseDto {

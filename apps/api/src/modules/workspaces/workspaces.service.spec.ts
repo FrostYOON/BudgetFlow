@@ -4,7 +4,7 @@ import {
   WorkspaceMemberRole,
   WorkspaceMemberStatus,
   WorkspaceType,
-} from '../../../../../packages/database/generated/client';
+} from '@budgetflow/database';
 import { PrismaService } from '../../core/database/prisma.service';
 import { WorkspacesService } from './workspaces.service';
 
@@ -12,7 +12,7 @@ describe('WorkspacesService', () => {
   let service: WorkspacesService;
   let prisma: {
     $transaction: jest.Mock;
-    workspaceMember: { findMany: jest.Mock };
+    workspaceMember: { findMany: jest.Mock; findUnique: jest.Mock };
     workspace: { findUnique: jest.Mock };
   };
 
@@ -21,6 +21,7 @@ describe('WorkspacesService', () => {
       $transaction: jest.fn(),
       workspaceMember: {
         findMany: jest.fn(),
+        findUnique: jest.fn(),
       },
       workspace: {
         findUnique: jest.fn(),
@@ -139,5 +140,38 @@ describe('WorkspacesService', () => {
         '22222222-2222-2222-2222-222222222222',
       ),
     ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  it('listMembers should return workspace members for an active member', async () => {
+    prisma.workspace.findUnique.mockResolvedValue({
+      id: '11111111-1111-1111-1111-111111111111',
+      name: 'Home',
+      type: WorkspaceType.COUPLE,
+      baseCurrency: 'KRW',
+      timezone: 'Asia/Seoul',
+      ownerUserId: '33333333-3333-3333-3333-333333333333',
+      members: [
+        {
+          userId: '22222222-2222-2222-2222-222222222222',
+          role: WorkspaceMemberRole.MEMBER,
+          status: WorkspaceMemberStatus.ACTIVE,
+          user: { name: 'Jisu' },
+        },
+      ],
+    });
+
+    const result = await service.listMembers(
+      '11111111-1111-1111-1111-111111111111',
+      '22222222-2222-2222-2222-222222222222',
+    );
+
+    expect(result).toEqual([
+      {
+        userId: '22222222-2222-2222-2222-222222222222',
+        name: 'Jisu',
+        role: WorkspaceMemberRole.MEMBER,
+        status: WorkspaceMemberStatus.ACTIVE,
+      },
+    ]);
   });
 });

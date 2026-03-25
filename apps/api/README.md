@@ -27,6 +27,10 @@ pnpm run dev
 - Workspace create: `POST http://localhost:3000/api/v1/workspaces`
 - Workspace list: `GET http://localhost:3000/api/v1/workspaces`
 - Workspace detail: `GET http://localhost:3000/api/v1/workspaces/:workspaceId`
+- Workspace invite create: `POST http://localhost:3000/api/v1/workspaces/:workspaceId/invites`
+- Workspace invite list: `GET http://localhost:3000/api/v1/workspaces/:workspaceId/invites`
+- Workspace invite accept: `POST http://localhost:3000/api/v1/workspace-invites/:token/accept`
+- Workspace members: `GET http://localhost:3000/api/v1/workspaces/:workspaceId/members`
 
 ## Useful Commands
 
