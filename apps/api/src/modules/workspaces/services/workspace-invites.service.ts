@@ -6,11 +6,11 @@ import {
 } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { WorkspaceInvite, WorkspaceMemberStatus } from '@budgetflow/database';
-import type { AuthenticatedUser } from '../../common/interfaces/authenticated-request.interface';
-import { PrismaService } from '../../core/database/prisma.service';
-import { CreateWorkspaceInviteRequestDto } from './dto/create-workspace-invite-request.dto';
-import { AcceptWorkspaceInviteResponseDto } from './dto/accept-workspace-invite-response.dto';
-import { WorkspaceInviteResponseDto } from './dto/workspace-invite-response.dto';
+import type { AuthenticatedUser } from '../../../common/interfaces/authenticated-request.interface';
+import { PrismaService } from '../../../core/database/prisma.service';
+import { CreateWorkspaceInviteRequestDto } from '../dto/create-workspace-invite-request.dto';
+import { AcceptWorkspaceInviteResponseDto } from '../dto/accept-workspace-invite-response.dto';
+import { WorkspaceInviteResponseDto } from '../dto/workspace-invite-response.dto';
 import { WorkspacesService } from './workspaces.service';
 
 @Injectable()

@@ -5,7 +5,7 @@ import {
   WorkspaceMemberStatus,
   WorkspaceType,
 } from '@budgetflow/database';
-import { PrismaService } from '../../core/database/prisma.service';
+import { PrismaService } from '../../../core/database/prisma.service';
 import { WorkspacesService } from './workspaces.service';
 
 describe('WorkspacesService', () => {
@@ -142,36 +142,14 @@ describe('WorkspacesService', () => {
     ).rejects.toBeInstanceOf(ForbiddenException);
   });
 
-  it('listMembers should return workspace members for an active member', async () => {
-    prisma.workspace.findUnique.mockResolvedValue({
-      id: '11111111-1111-1111-1111-111111111111',
-      name: 'Home',
-      type: WorkspaceType.COUPLE,
-      baseCurrency: 'KRW',
-      timezone: 'Asia/Seoul',
-      ownerUserId: '33333333-3333-3333-3333-333333333333',
-      members: [
-        {
-          userId: '22222222-2222-2222-2222-222222222222',
-          role: WorkspaceMemberRole.MEMBER,
-          status: WorkspaceMemberStatus.ACTIVE,
-          user: { name: 'Jisu' },
-        },
-      ],
-    });
+  it('assertMemberAccess should reject when user is not an active member', async () => {
+    prisma.workspaceMember.findUnique.mockResolvedValue(null);
 
-    const result = await service.listMembers(
-      '11111111-1111-1111-1111-111111111111',
-      '22222222-2222-2222-2222-222222222222',
-    );
-
-    expect(result).toEqual([
-      {
-        userId: '22222222-2222-2222-2222-222222222222',
-        name: 'Jisu',
-        role: WorkspaceMemberRole.MEMBER,
-        status: WorkspaceMemberStatus.ACTIVE,
-      },
-    ]);
+    await expect(
+      service.assertMemberAccess(
+        '11111111-1111-1111-1111-111111111111',
+        '22222222-2222-2222-2222-222222222222',
+      ),
+    ).rejects.toBeInstanceOf(ForbiddenException);
   });
 });

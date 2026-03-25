@@ -11,18 +11,20 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import type { AuthenticatedUser } from '../../common/interfaces/authenticated-request.interface';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { WorkspaceMemberResponseDto } from './dto/workspace-member-response.dto';
-import { WorkspacesService } from './workspaces.service';
+import { CurrentUser } from '../../../common/decorators/current-user.decorator';
+import type { AuthenticatedUser } from '../../../common/interfaces/authenticated-request.interface';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { WorkspaceMemberResponseDto } from '../dto/workspace-member-response.dto';
+import { WorkspaceMembersService } from '../services/workspace-members.service';
 
 @ApiTags('Workspace Members')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('workspaces/:workspaceId/members')
 export class WorkspaceMembersController {
-  constructor(private readonly workspacesService: WorkspacesService) {}
+  constructor(
+    private readonly workspaceMembersService: WorkspaceMembersService,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'List workspace members' })
@@ -31,6 +33,6 @@ export class WorkspaceMembersController {
     @CurrentUser() user: AuthenticatedUser,
     @Param('workspaceId', new ParseUUIDPipe()) workspaceId: string,
   ): Promise<WorkspaceMemberResponseDto[]> {
-    return this.workspacesService.listMembers(workspaceId, user.userId);
+    return this.workspaceMembersService.listMembers(workspaceId, user.userId);
   }
 }

@@ -14,13 +14,13 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import type { AuthenticatedUser } from '../../common/interfaces/authenticated-request.interface';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { CreateWorkspaceRequestDto } from './dto/create-workspace-request.dto';
-import { WorkspaceListItemResponseDto } from './dto/workspace-list-item-response.dto';
-import { WorkspaceResponseDto } from './dto/workspace-response.dto';
-import { WorkspacesService } from './workspaces.service';
+import { CurrentUser } from '../../../common/decorators/current-user.decorator';
+import type { AuthenticatedUser } from '../../../common/interfaces/authenticated-request.interface';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { CreateWorkspaceRequestDto } from '../dto/create-workspace-request.dto';
+import { WorkspaceListItemResponseDto } from '../dto/workspace-list-item-response.dto';
+import { WorkspaceResponseDto } from '../dto/workspace-response.dto';
+import { WorkspacesService } from '../services/workspaces.service';
 
 @ApiTags('Workspaces')
 @ApiBearerAuth()

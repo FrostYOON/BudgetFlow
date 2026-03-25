@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
-import { WorkspaceInvitesController } from './workspace-invites.controller';
-import { WorkspaceMembersController } from './workspace-members.controller';
-import { WorkspaceInvitesService } from './workspace-invites.service';
-import { WorkspacesController } from './workspaces.controller';
-import { WorkspacesService } from './workspaces.service';
+import { WorkspaceInvitesController } from './controllers/workspace-invites.controller';
+import { WorkspaceMembersController } from './controllers/workspace-members.controller';
+import { WorkspacesController } from './controllers/workspaces.controller';
+import { WorkspaceInvitesService } from './services/workspace-invites.service';
+import { WorkspaceMembersService } from './services/workspace-members.service';
+import { WorkspacesService } from './services/workspaces.service';
 
 @Module({
   controllers: [
@@ -11,6 +12,10 @@ import { WorkspacesService } from './workspaces.service';
     WorkspaceInvitesController,
     WorkspaceMembersController,
   ],
-  providers: [WorkspacesService, WorkspaceInvitesService],
+  providers: [
+    WorkspacesService,
+    WorkspaceInvitesService,
+    WorkspaceMembersService,
+  ],
 })
 export class WorkspacesModule {}

@@ -8,7 +8,7 @@ import {
   WorkspaceMemberRole,
   WorkspaceMemberStatus,
 } from '@budgetflow/database';
-import { PrismaService } from '../../core/database/prisma.service';
+import { PrismaService } from '../../../core/database/prisma.service';
 import { WorkspacesService } from './workspaces.service';
 import { WorkspaceInvitesService } from './workspace-invites.service';
 

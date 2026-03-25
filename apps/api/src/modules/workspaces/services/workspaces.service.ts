@@ -1,5 +1,4 @@
 import {
-  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -10,11 +9,10 @@ import {
   WorkspaceMemberRole,
   WorkspaceMemberStatus,
 } from '@budgetflow/database';
-import { PrismaService } from '../../core/database/prisma.service';
-import { CreateWorkspaceRequestDto } from './dto/create-workspace-request.dto';
-import { WorkspaceListItemResponseDto } from './dto/workspace-list-item-response.dto';
-import { WorkspaceResponseDto } from './dto/workspace-response.dto';
-import { WorkspaceMemberResponseDto } from './dto/workspace-member-response.dto';
+import { PrismaService } from '../../../core/database/prisma.service';
+import { CreateWorkspaceRequestDto } from '../dto/create-workspace-request.dto';
+import { WorkspaceListItemResponseDto } from '../dto/workspace-list-item-response.dto';
+import { WorkspaceResponseDto } from '../dto/workspace-response.dto';
 
 type WorkspaceWithMembers = Prisma.WorkspaceGetPayload<{
   include: {
@@ -100,26 +98,6 @@ export class WorkspacesService {
     return this.toWorkspaceResponse(workspace, true);
   }
 
-  async listMembers(
-    workspaceId: string,
-    userId: string,
-  ): Promise<WorkspaceMemberResponseDto[]> {
-    const workspace = await this.findWorkspaceWithMembers(workspaceId);
-
-    if (!workspace) {
-      throw new NotFoundException('Workspace was not found.');
-    }
-
-    this.ensureMemberAccess(workspace, userId);
-
-    return workspace.members.map((member) => ({
-      userId: member.userId,
-      name: member.user.name,
-      role: member.role,
-      status: member.status,
-    }));
-  }
-
   async assertOwner(workspaceId: string, userId: string): Promise<void> {
     const membership = await this.prisma.workspaceMember.findUnique({
       where: {
@@ -141,10 +119,7 @@ export class WorkspacesService {
     }
   }
 
-  async assertNotActiveMember(
-    workspaceId: string,
-    userId: string,
-  ): Promise<void> {
+  async assertMemberAccess(workspaceId: string, userId: string): Promise<void> {
     const membership = await this.prisma.workspaceMember.findUnique({
       where: {
         workspaceId_userId: {
@@ -154,10 +129,8 @@ export class WorkspacesService {
       },
     });
 
-    if (membership?.status === WorkspaceMemberStatus.ACTIVE) {
-      throw new ConflictException(
-        'User is already an active workspace member.',
-      );
+    if (!membership || membership.status !== WorkspaceMemberStatus.ACTIVE) {
+      throw new ForbiddenException('You do not have access to this workspace.');
     }
   }
 

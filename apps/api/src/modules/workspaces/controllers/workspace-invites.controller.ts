@@ -14,13 +14,13 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import type { AuthenticatedUser } from '../../common/interfaces/authenticated-request.interface';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { AcceptWorkspaceInviteResponseDto } from './dto/accept-workspace-invite-response.dto';
-import { CreateWorkspaceInviteRequestDto } from './dto/create-workspace-invite-request.dto';
-import { WorkspaceInviteResponseDto } from './dto/workspace-invite-response.dto';
-import { WorkspaceInvitesService } from './workspace-invites.service';
+import { CurrentUser } from '../../../common/decorators/current-user.decorator';
+import type { AuthenticatedUser } from '../../../common/interfaces/authenticated-request.interface';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { AcceptWorkspaceInviteResponseDto } from '../dto/accept-workspace-invite-response.dto';
+import { CreateWorkspaceInviteRequestDto } from '../dto/create-workspace-invite-request.dto';
+import { WorkspaceInviteResponseDto } from '../dto/workspace-invite-response.dto';
+import { WorkspaceInvitesService } from '../services/workspace-invites.service';
 
 @ApiTags('Workspace Invites')
 @ApiBearerAuth()
