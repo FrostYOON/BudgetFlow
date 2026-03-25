@@ -13,7 +13,7 @@ import { AuthResponseDto } from './dto/auth-response.dto';
 import { SignInRequestDto } from './dto/sign-in-request.dto';
 import { SignUpRequestDto } from './dto/sign-up-request.dto';
 import { AuthService } from './auth.service';
-import { AccessTokenGuard } from './guards/access-token.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -37,7 +37,7 @@ export class AuthController {
   }
 
   @Get('me')
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get the authenticated user profile' })
   @ApiOkResponse({ type: UserResponseDto })
