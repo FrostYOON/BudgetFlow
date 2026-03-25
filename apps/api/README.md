@@ -24,6 +24,9 @@ pnpm run dev
 - Auth sign-up: `POST http://localhost:3000/api/v1/auth/sign-up`
 - Auth sign-in: `POST http://localhost:3000/api/v1/auth/sign-in`
 - Auth me: `GET http://localhost:3000/api/v1/auth/me`
+- Workspace create: `POST http://localhost:3000/api/v1/workspaces`
+- Workspace list: `GET http://localhost:3000/api/v1/workspaces`
+- Workspace detail: `GET http://localhost:3000/api/v1/workspaces/:workspaceId`
 
 ## Useful Commands
 

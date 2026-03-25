@@ -1,0 +1,143 @@
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
+import {
+  WorkspaceMemberRole,
+  WorkspaceMemberStatus,
+  WorkspaceType,
+} from '../../../../../packages/database/generated/client';
+import { PrismaService } from '../../core/database/prisma.service';
+import { WorkspacesService } from './workspaces.service';
+
+describe('WorkspacesService', () => {
+  let service: WorkspacesService;
+  let prisma: {
+    $transaction: jest.Mock;
+    workspaceMember: { findMany: jest.Mock };
+    workspace: { findUnique: jest.Mock };
+  };
+
+  beforeEach(async () => {
+    prisma = {
+      $transaction: jest.fn(),
+      workspaceMember: {
+        findMany: jest.fn(),
+      },
+      workspace: {
+        findUnique: jest.fn(),
+      },
+    };
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        WorkspacesService,
+        {
+          provide: PrismaService,
+          useValue: prisma,
+        },
+      ],
+    }).compile();
+
+    service = module.get<WorkspacesService>(WorkspacesService);
+  });
+
+  it('create should create a workspace and owner membership', async () => {
+    const transactionClient = {
+      workspace: {
+        create: jest.fn().mockResolvedValue({
+          id: '11111111-1111-1111-1111-111111111111',
+          name: 'Home',
+          type: WorkspaceType.COUPLE,
+          baseCurrency: 'KRW',
+          timezone: 'Asia/Seoul',
+          ownerUserId: '22222222-2222-2222-2222-222222222222',
+        }),
+      },
+      workspaceMember: {
+        create: jest.fn().mockResolvedValue(undefined),
+      },
+    };
+
+    prisma.$transaction.mockImplementation(
+      (callback: (tx: typeof transactionClient) => Promise<unknown>) =>
+        callback(transactionClient),
+    );
+
+    const result = await service.create(
+      '22222222-2222-2222-2222-222222222222',
+      {
+        name: 'Home',
+        type: WorkspaceType.COUPLE,
+      },
+    );
+
+    expect(result.name).toBe('Home');
+    expect(prisma.$transaction).toHaveBeenCalled();
+  });
+
+  it('listForUser should return active memberships as workspace list items', async () => {
+    prisma.workspaceMember.findMany.mockResolvedValue([
+      {
+        role: WorkspaceMemberRole.OWNER,
+        workspace: {
+          id: '11111111-1111-1111-1111-111111111111',
+          name: 'Home',
+          type: WorkspaceType.COUPLE,
+          baseCurrency: 'KRW',
+          timezone: 'Asia/Seoul',
+        },
+      },
+    ]);
+
+    const result = await service.listForUser(
+      '22222222-2222-2222-2222-222222222222',
+    );
+
+    expect(result).toEqual([
+      {
+        id: '11111111-1111-1111-1111-111111111111',
+        name: 'Home',
+        type: WorkspaceType.COUPLE,
+        baseCurrency: 'KRW',
+        timezone: 'Asia/Seoul',
+        memberRole: WorkspaceMemberRole.OWNER,
+      },
+    ]);
+  });
+
+  it('getDetail should throw when workspace does not exist', async () => {
+    prisma.workspace.findUnique.mockResolvedValue(null);
+
+    await expect(
+      service.getDetail(
+        '11111111-1111-1111-1111-111111111111',
+        '22222222-2222-2222-2222-222222222222',
+      ),
+    ).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it('getDetail should throw when user is not a member', async () => {
+    prisma.workspace.findUnique.mockResolvedValue({
+      id: '11111111-1111-1111-1111-111111111111',
+      name: 'Home',
+      type: WorkspaceType.COUPLE,
+      baseCurrency: 'KRW',
+      timezone: 'Asia/Seoul',
+      ownerUserId: '33333333-3333-3333-3333-333333333333',
+      members: [
+        {
+          userId: '33333333-3333-3333-3333-333333333333',
+          role: WorkspaceMemberRole.OWNER,
+          status: WorkspaceMemberStatus.ACTIVE,
+          user: { name: 'Owner' },
+        },
+      ],
+    });
+
+    await expect(
+      service.getDetail(
+        '11111111-1111-1111-1111-111111111111',
+        '22222222-2222-2222-2222-222222222222',
+      ),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+});
