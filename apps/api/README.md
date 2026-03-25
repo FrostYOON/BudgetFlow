@@ -11,6 +11,7 @@ pnpm install
 ## Run The API
 
 ```bash
+pnpm db:generate
 pnpm run dev
 ```
 
@@ -26,6 +27,8 @@ pnpm run dev
 ```bash
 pnpm run build
 pnpm run lint
+pnpm db:generate
+pnpm --filter @budgetflow/database prisma:migrate:dev
 pnpm run test
 pnpm run test:e2e
 ```

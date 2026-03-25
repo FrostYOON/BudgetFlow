@@ -25,4 +25,12 @@ export class AppConfigService {
   get swaggerPath(): string {
     return process.env.SWAGGER_PATH ?? 'docs';
   }
+
+  get databaseUrl(): string {
+    return process.env.DATABASE_URL ?? '';
+  }
+
+  get isProduction(): boolean {
+    return this.nodeEnv === 'production';
+  }
 }

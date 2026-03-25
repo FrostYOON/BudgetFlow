@@ -1,6 +1,7 @@
 import { Global, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { ConfigModule } from './config/config.module';
+import { DatabaseModule } from './database/database.module';
 import { GlobalExceptionFilter } from './filters/global-exception.filter';
 import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import { LoggerModule } from './logger/logger.module';
@@ -8,7 +9,7 @@ import { RequestIdMiddleware } from './middleware/request-id.middleware';
 
 @Global()
 @Module({
-  imports: [ConfigModule, LoggerModule],
+  imports: [ConfigModule, LoggerModule, DatabaseModule],
   providers: [
     RequestIdMiddleware,
     {
@@ -20,7 +21,7 @@ import { RequestIdMiddleware } from './middleware/request-id.middleware';
       useClass: GlobalExceptionFilter,
     },
   ],
-  exports: [ConfigModule, LoggerModule],
+  exports: [ConfigModule, LoggerModule, DatabaseModule],
 })
 export class CoreModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
