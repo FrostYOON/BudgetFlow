@@ -11,6 +11,7 @@ pnpm install
 ## Run The API
 
 ```bash
+pnpm db:generate
 pnpm run dev
 ```
 
@@ -20,12 +21,17 @@ pnpm run dev
 - API prefix: `http://localhost:3000/api/v1`
 - Swagger docs: `http://localhost:3000/docs`
 - Health check: `GET http://localhost:3000/api/v1`
+- Auth sign-up: `POST http://localhost:3000/api/v1/auth/sign-up`
+- Auth sign-in: `POST http://localhost:3000/api/v1/auth/sign-in`
+- Auth me: `GET http://localhost:3000/api/v1/auth/me`
 
 ## Useful Commands
 
 ```bash
 pnpm run build
 pnpm run lint
+pnpm db:generate
+pnpm --filter @budgetflow/database prisma:migrate:dev
 pnpm run test
 pnpm run test:e2e
 ```
