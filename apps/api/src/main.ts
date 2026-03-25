@@ -1,3 +1,4 @@
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
@@ -6,6 +7,13 @@ import { AppConfigService } from './core/config/app-config.service';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const appConfig = app.get(AppConfigService);
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
   app.setGlobalPrefix(appConfig.apiPrefix);
 
   const swaggerConfig = new DocumentBuilder()

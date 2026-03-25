@@ -33,4 +33,16 @@ export class AppConfigService {
   get isProduction(): boolean {
     return this.nodeEnv === 'production';
   }
+
+  get jwtAccessSecret(): string {
+    return process.env.JWT_ACCESS_SECRET ?? 'budgetflow-dev-access-secret';
+  }
+
+  get jwtAccessExpiresInSeconds(): number {
+    return Number(process.env.JWT_ACCESS_EXPIRES_IN_SECONDS ?? 3600);
+  }
+
+  get passwordHashSaltRounds(): number {
+    return Number(process.env.PASSWORD_HASH_SALT_ROUNDS ?? 10);
+  }
 }
