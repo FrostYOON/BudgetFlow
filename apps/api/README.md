@@ -12,7 +12,7 @@ pnpm install
 
 ```bash
 cp .env.example .env.local
-pnpm local:db:start
+pnpm docker:start
 pnpm prisma:generate
 pnpm run dev
 ```
