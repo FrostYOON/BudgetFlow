@@ -4,9 +4,15 @@ import { PassportModule } from '@nestjs/passport';
 import { AppConfigService } from '../../core/config/app-config.service';
 import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { RefreshTokenGuard } from './guards/refresh-token.guard';
 import { AccessTokenStrategy } from './strategies/access-token.strategy';
+import { RefreshTokenStrategy } from './strategies/refresh-token.strategy';
+import { AuthCookieService } from './services/auth-cookie.service';
+import { AuthSessionsService } from './services/auth-sessions.service';
+import { AuthService } from './services/auth.service';
+import { PasswordService } from './services/password.service';
+import { TokenService } from './services/token.service';
 
 @Module({
   imports: [
@@ -23,7 +29,17 @@ import { AccessTokenStrategy } from './strategies/access-token.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtAuthGuard, AccessTokenStrategy],
-  exports: [PassportModule, JwtModule, JwtAuthGuard],
+  providers: [
+    AuthService,
+    AuthCookieService,
+    AuthSessionsService,
+    PasswordService,
+    TokenService,
+    JwtAuthGuard,
+    RefreshTokenGuard,
+    AccessTokenStrategy,
+    RefreshTokenStrategy,
+  ],
+  exports: [PassportModule, JwtModule, JwtAuthGuard, RefreshTokenGuard],
 })
 export class AuthModule {}

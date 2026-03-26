@@ -23,7 +23,9 @@ pnpm run dev
 - Health check: `GET http://localhost:3000/api/v1`
 - Auth sign-up: `POST http://localhost:3000/api/v1/auth/sign-up`
 - Auth sign-in: `POST http://localhost:3000/api/v1/auth/sign-in`
+- Auth refresh: `POST http://localhost:3000/api/v1/auth/refresh`
 - Auth me: `GET http://localhost:3000/api/v1/auth/me`
+- Auth sign-out: `POST http://localhost:3000/api/v1/auth/sign-out`
 - Workspace create: `POST http://localhost:3000/api/v1/workspaces`
 - Workspace list: `GET http://localhost:3000/api/v1/workspaces`
 - Workspace detail: `GET http://localhost:3000/api/v1/workspaces/:workspaceId`

@@ -78,6 +78,17 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
   private extractErrorCode(exception: unknown): string {
     if (exception instanceof HttpException) {
+      const response = exception.getResponse();
+
+      if (
+        typeof response === 'object' &&
+        response !== null &&
+        'code' in response &&
+        typeof response.code === 'string'
+      ) {
+        return response.code;
+      }
+
       return exception.name;
     }
 
