@@ -2,7 +2,7 @@
 
 ## KR Summary
 - BudgetFlow는 Prisma migration을 기준으로 데이터베이스 변경 이력을 관리한다.
-- Docker Compose 기반 DB 제어는 `docker:db:*`, Prisma 스키마 작업은 `prisma:*`로 분리한다.
+- Docker Compose 제어는 `docker:*`, Prisma 스키마 작업은 `prisma:*`로 분리한다.
 - 로컬 개발에서는 `prisma:migrate:dev`, 운영 배포에서는 `prisma:migrate:deploy`를 사용한다.
 - 현재 레포의 초기 스키마는 `init_schema` migration으로 이미 커밋되어 있다.
 - 공유 또는 운영 DB에는 `migrate dev`를 사용하지 않는다.
@@ -74,7 +74,7 @@ When changing schema locally:
 Recommended command sequence:
 
 ```bash
-pnpm docker:db:start
+pnpm docker:start
 pnpm prisma:validate
 pnpm prisma:migrate:dev --name init_schema
 pnpm prisma:generate

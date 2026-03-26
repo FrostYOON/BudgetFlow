@@ -5,7 +5,7 @@
 - 루트 `.env`는 Docker Compose용 변수 파일이다.
 - `apps/api/.env.local`은 API 런타임 변수 파일이다.
 - 기본 로컬 DB는 `postgresql://postgres:postgres@localhost:5432/budgetflow?schema=public`를 사용한다.
-- Docker Compose 기반 DB 제어는 `docker:db:*`, Prisma 작업은 `prisma:*` 스크립트로 분리한다.
+- Docker Compose 제어는 `docker:*`, Prisma 작업은 `prisma:*` 스크립트로 분리한다.
 
 ## 1. Required Files
 
@@ -24,19 +24,19 @@ Reference templates:
 ## 2. Start Local Postgres
 
 ```bash
-pnpm docker:db:start
+pnpm docker:start
 ```
 
 Stop it:
 
 ```bash
-pnpm docker:db:stop
+pnpm docker:stop
 ```
 
 Watch logs:
 
 ```bash
-pnpm docker:db:logs
+pnpm docker:logs
 ```
 
 ## 3. Default Local Database
