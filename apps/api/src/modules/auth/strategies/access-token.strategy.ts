@@ -22,6 +22,7 @@ export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt') {
     return {
       userId: payload.sub,
       email: payload.email,
+      sessionId: payload.sessionId,
     };
   }
 }

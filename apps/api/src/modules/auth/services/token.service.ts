@@ -6,6 +6,11 @@ import { AuthTokensDto } from '../dto/auth-tokens.dto';
 interface TokenSubject {
   userId: string;
   email: string;
+  sessionId: string;
+}
+
+export interface IssuedAuthTokens extends AuthTokensDto {
+  refreshToken: string;
 }
 
 @Injectable()
@@ -20,6 +25,7 @@ export class TokenService {
       {
         sub: subject.userId,
         email: subject.email,
+        sessionId: subject.sessionId,
         tokenType: 'access',
       },
       {
@@ -34,6 +40,7 @@ export class TokenService {
       {
         sub: subject.userId,
         email: subject.email,
+        sessionId: subject.sessionId,
         tokenType: 'refresh',
       },
       {
@@ -43,7 +50,7 @@ export class TokenService {
     );
   }
 
-  async createAuthTokens(subject: TokenSubject): Promise<AuthTokensDto> {
+  async createAuthTokens(subject: TokenSubject): Promise<IssuedAuthTokens> {
     const [accessToken, refreshToken] = await Promise.all([
       this.createAccessToken(subject),
       this.createRefreshToken(subject),
@@ -53,5 +60,11 @@ export class TokenService {
       accessToken,
       refreshToken,
     };
+  }
+
+  buildRefreshTokenExpiresAt(now: Date = new Date()): Date {
+    return new Date(
+      now.getTime() + this.appConfig.jwtRefreshExpiresInSeconds * 1000,
+    );
   }
 }

@@ -4,6 +4,6 @@ export class AuthTokensDto {
   @ApiProperty()
   accessToken!: string;
 
-  @ApiProperty()
-  refreshToken!: string;
+  @ApiProperty({ required: false })
+  refreshToken?: string;
 }

@@ -1,12 +1,23 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { AppConfigService } from './core/config/app-config.service';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const appConfig = app.get(AppConfigService);
+
+  if (appConfig.trustProxy) {
+    app.getHttpAdapter().getInstance().set('trust proxy', 1);
+  }
+
+  app.enableCors({
+    origin: appConfig.corsOrigins.length > 0 ? appConfig.corsOrigins : true,
+    credentials: true,
+  });
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

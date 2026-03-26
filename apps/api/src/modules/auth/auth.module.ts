@@ -8,6 +8,8 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RefreshTokenGuard } from './guards/refresh-token.guard';
 import { AccessTokenStrategy } from './strategies/access-token.strategy';
 import { RefreshTokenStrategy } from './strategies/refresh-token.strategy';
+import { AuthCookieService } from './services/auth-cookie.service';
+import { AuthSessionsService } from './services/auth-sessions.service';
 import { AuthService } from './services/auth.service';
 import { PasswordService } from './services/password.service';
 import { TokenService } from './services/token.service';
@@ -29,6 +31,8 @@ import { TokenService } from './services/token.service';
   controllers: [AuthController],
   providers: [
     AuthService,
+    AuthCookieService,
+    AuthSessionsService,
     PasswordService,
     TokenService,
     JwtAuthGuard,

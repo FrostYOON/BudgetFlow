@@ -22,6 +22,14 @@ export class AppConfigService {
     return process.env.API_PREFIX ?? 'api/v1';
   }
 
+  get corsOrigins(): string[] {
+    const raw = process.env.CORS_ORIGINS ?? '';
+    return raw
+      .split(',')
+      .map((origin) => origin.trim())
+      .filter(Boolean);
+  }
+
   get swaggerPath(): string {
     return process.env.SWAGGER_PATH ?? 'docs';
   }
@@ -48,6 +56,41 @@ export class AppConfigService {
 
   get jwtRefreshExpiresInSeconds(): number {
     return Number(process.env.JWT_REFRESH_EXPIRES_IN_SECONDS ?? 2_592_000);
+  }
+
+  get authRefreshCookieName(): string {
+    return process.env.AUTH_REFRESH_COOKIE_NAME ?? 'budgetflow_refresh_token';
+  }
+
+  get authRefreshCookieDomain(): string | undefined {
+    return process.env.AUTH_REFRESH_COOKIE_DOMAIN || undefined;
+  }
+
+  get authRefreshCookieSameSite(): 'lax' | 'strict' | 'none' {
+    const sameSite = (
+      process.env.AUTH_REFRESH_COOKIE_SAME_SITE ?? 'lax'
+    ).toLowerCase();
+
+    return sameSite === 'strict' || sameSite === 'none' ? sameSite : 'lax';
+  }
+
+  get authRefreshCookieSecure(): boolean {
+    return (process.env.AUTH_REFRESH_COOKIE_SECURE ?? '').toLowerCase() ===
+      'true'
+      ? true
+      : this.isProduction;
+  }
+
+  get authExposeRefreshTokenInResponse(): boolean {
+    return (
+      (
+        process.env.AUTH_EXPOSE_REFRESH_TOKEN_IN_RESPONSE ?? 'false'
+      ).toLowerCase() === 'true'
+    );
+  }
+
+  get trustProxy(): boolean {
+    return (process.env.TRUST_PROXY ?? 'false').toLowerCase() === 'true';
   }
 
   get passwordHashSaltRounds(): number {
