@@ -1,5 +1,5 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { PrismaClient } from '../../../../../packages/database/generated/client';
+import { PrismaClient } from '@budgetflow/database';
 import { AppConfigService } from '../config/app-config.service';
 import { AppLoggerService } from '../logger/app-logger.service';
 

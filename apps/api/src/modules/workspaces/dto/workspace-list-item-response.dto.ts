@@ -1,7 +1,4 @@
-import {
-  WorkspaceMemberRole,
-  WorkspaceType,
-} from '../../../../../../packages/database/generated/client';
+import { WorkspaceMemberRole, WorkspaceType } from '@budgetflow/database';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class WorkspaceListItemResponseDto {

@@ -4,15 +4,15 @@ import {
   WorkspaceMemberRole,
   WorkspaceMemberStatus,
   WorkspaceType,
-} from '../../../../../packages/database/generated/client';
-import { PrismaService } from '../../core/database/prisma.service';
+} from '@budgetflow/database';
+import { PrismaService } from '../../../core/database/prisma.service';
 import { WorkspacesService } from './workspaces.service';
 
 describe('WorkspacesService', () => {
   let service: WorkspacesService;
   let prisma: {
     $transaction: jest.Mock;
-    workspaceMember: { findMany: jest.Mock };
+    workspaceMember: { findMany: jest.Mock; findUnique: jest.Mock };
     workspace: { findUnique: jest.Mock };
   };
 
@@ -21,6 +21,7 @@ describe('WorkspacesService', () => {
       $transaction: jest.fn(),
       workspaceMember: {
         findMany: jest.fn(),
+        findUnique: jest.fn(),
       },
       workspace: {
         findUnique: jest.fn(),
@@ -135,6 +136,17 @@ describe('WorkspacesService', () => {
 
     await expect(
       service.getDetail(
+        '11111111-1111-1111-1111-111111111111',
+        '22222222-2222-2222-2222-222222222222',
+      ),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  it('assertMemberAccess should reject when user is not an active member', async () => {
+    prisma.workspaceMember.findUnique.mockResolvedValue(null);
+
+    await expect(
+      service.assertMemberAccess(
         '11111111-1111-1111-1111-111111111111',
         '22222222-2222-2222-2222-222222222222',
       ),
