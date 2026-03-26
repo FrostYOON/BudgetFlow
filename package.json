@@ -10,7 +10,12 @@
     "test": "turbo run test",
     "format": "turbo run format",
     "db:format": "pnpm --filter @budgetflow/database prisma:format",
-    "db:generate": "pnpm --filter @budgetflow/database prisma:generate"
+    "db:generate": "pnpm --filter @budgetflow/database prisma:generate",
+    "db:validate": "pnpm --filter @budgetflow/database prisma:validate",
+    "db:status": "pnpm --filter @budgetflow/database prisma:migrate:status",
+    "db:migrate:dev": "pnpm --filter @budgetflow/database prisma:migrate:dev",
+    "db:migrate:deploy": "pnpm --filter @budgetflow/database prisma:migrate:deploy",
+    "db:studio": "pnpm --filter @budgetflow/database prisma:studio"
   },
   "devDependencies": {
     "turbo": "^2.0.12"
