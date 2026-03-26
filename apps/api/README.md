@@ -11,6 +11,8 @@ pnpm install
 ## Run The API
 
 ```bash
+cp .env.example .env.local
+pnpm db:up
 pnpm db:generate
 pnpm run dev
 ```

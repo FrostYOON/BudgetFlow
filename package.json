@@ -9,12 +9,15 @@
     "lint": "turbo run lint",
     "test": "turbo run test",
     "format": "turbo run format",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "db:logs": "docker compose logs -f postgres",
     "db:format": "pnpm --filter @budgetflow/database prisma:format",
     "db:generate": "pnpm --filter @budgetflow/database prisma:generate",
     "db:validate": "pnpm --filter @budgetflow/database prisma:validate",
     "db:status": "pnpm --filter @budgetflow/database prisma:migrate:status",
-    "db:migrate:dev": "pnpm --filter @budgetflow/database prisma:migrate:dev",
-    "db:migrate:deploy": "pnpm --filter @budgetflow/database prisma:migrate:deploy",
+    "db:migrate:dev": "pnpm --filter @budgetflow/database exec prisma migrate dev --schema ./prisma/schema.prisma",
+    "db:migrate:deploy": "pnpm --filter @budgetflow/database exec prisma migrate deploy --schema ./prisma/schema.prisma",
     "db:studio": "pnpm --filter @budgetflow/database prisma:studio"
   },
   "devDependencies": {

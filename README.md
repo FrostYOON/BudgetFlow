@@ -15,9 +15,33 @@ Shared household budgeting SaaS for couples and families.
 
 ```bash
 pnpm install
+cp .env.example .env
+cp packages/database/.env.example packages/database/.env
+cp apps/api/.env.example apps/api/.env.local
+pnpm db:up
 pnpm db:generate
 pnpm dev
 ```
+
+## Local Database
+
+BudgetFlow uses Docker Compose for the default local PostgreSQL setup.
+
+Common local DB commands:
+
+```bash
+pnpm db:up
+pnpm db:logs
+pnpm db:down
+```
+
+The default local connection string is:
+
+```bash
+postgresql://postgres:postgres@localhost:5432/budgetflow?schema=public
+```
+
+Prisma CLI reads `DATABASE_URL` from `packages/database/.env`.
 
 ## Database Workflow
 
@@ -29,7 +53,7 @@ Common commands:
 pnpm db:validate
 pnpm db:generate
 pnpm db:status
-pnpm db:migrate:dev -- --name <migration_name>
+pnpm db:migrate:dev --name <migration_name>
 pnpm db:migrate:deploy
 pnpm db:studio
 ```

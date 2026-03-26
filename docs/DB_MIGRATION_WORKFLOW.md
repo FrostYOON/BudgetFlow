@@ -30,7 +30,7 @@ Run from the repo root:
 pnpm db:validate
 pnpm db:generate
 pnpm db:status
-pnpm db:migrate:dev -- --name <migration_name>
+pnpm db:migrate:dev --name <migration_name>
 pnpm db:migrate:deploy
 pnpm db:studio
 ```
@@ -74,7 +74,7 @@ Recommended command sequence:
 
 ```bash
 pnpm db:validate
-pnpm db:migrate:dev -- --name add_auth_sessions
+pnpm db:migrate:dev --name init_schema
 pnpm db:generate
 pnpm --filter @budgetflow/api lint
 pnpm --filter @budgetflow/api build
@@ -103,18 +103,18 @@ Production should never invent new migrations during deploy.
 The current codebase now expects an `auth_sessions` table and no longer relies
 on `users.refresh_token_hash`.
 
-Once a real `DATABASE_URL` is available, the next migration should be created
+Once a real `DATABASE_URL` is available, the first migration should be created
 with a name close to:
 
 ```bash
-pnpm db:migrate:dev -- --name add_auth_sessions
+pnpm db:migrate:dev --name init_schema
 ```
 
 Expected schema impact:
 
-- create `auth_sessions`
-- remove `users.refresh_token_hash`
-- keep all auth-related foreign keys and indexes aligned with the Prisma schema
+- create the full initial schema from Prisma
+- include `auth_sessions` from the current auth design
+- align all indexes and foreign keys with the Prisma schema
 
 ## 8. Operational Notes
 
