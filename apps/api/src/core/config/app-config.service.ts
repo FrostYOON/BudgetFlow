@@ -42,6 +42,14 @@ export class AppConfigService {
     return Number(process.env.JWT_ACCESS_EXPIRES_IN_SECONDS ?? 3600);
   }
 
+  get jwtRefreshSecret(): string {
+    return process.env.JWT_REFRESH_SECRET ?? 'budgetflow-dev-refresh-secret';
+  }
+
+  get jwtRefreshExpiresInSeconds(): number {
+    return Number(process.env.JWT_REFRESH_EXPIRES_IN_SECONDS ?? 2_592_000);
+  }
+
   get passwordHashSaltRounds(): number {
     return Number(process.env.PASSWORD_HASH_SALT_ROUNDS ?? 10);
   }
