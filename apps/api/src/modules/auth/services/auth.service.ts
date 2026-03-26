@@ -1,28 +1,26 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { compare, hash } from 'bcryptjs';
-import type { AuthenticatedUser } from '../../common/interfaces/authenticated-request.interface';
-import { AppConfigService } from '../../core/config/app-config.service';
-import { AppLoggerService } from '../../core/logger/app-logger.service';
-import { UsersService } from '../users/users.service';
-import { AuthResponseDto } from './dto/auth-response.dto';
-import { SignInRequestDto } from './dto/sign-in-request.dto';
-import { SignOutResponseDto } from './dto/sign-out-response.dto';
-import { SignUpRequestDto } from './dto/sign-up-request.dto';
+import type { AuthenticatedUser } from '../../../common/interfaces/authenticated-request.interface';
+import { AppLoggerService } from '../../../core/logger/app-logger.service';
+import { UsersService } from '../../users/users.service';
+import { AuthResponseDto } from '../dto/auth-response.dto';
+import { SignInRequestDto } from '../dto/sign-in-request.dto';
+import { SignOutResponseDto } from '../dto/sign-out-response.dto';
+import { SignUpRequestDto } from '../dto/sign-up-request.dto';
+import { PasswordService } from './password.service';
+import { TokenService } from './token.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly usersService: UsersService,
-    private readonly jwtService: JwtService,
-    private readonly appConfig: AppConfigService,
+    private readonly passwordService: PasswordService,
+    private readonly tokenService: TokenService,
     private readonly logger: AppLoggerService,
   ) {}
 
   async signUp(input: SignUpRequestDto): Promise<AuthResponseDto> {
-    const passwordHash = await hash(
+    const passwordHash = await this.passwordService.hashPassword(
       input.password,
-      this.appConfig.passwordHashSaltRounds,
     );
 
     const user = await this.usersService.create({
@@ -46,7 +44,10 @@ export class AuthService {
       throw new UnauthorizedException('Email or password is invalid.');
     }
 
-    const passwordMatches = await compare(input.password, user.passwordHash);
+    const passwordMatches = await this.passwordService.verifyPassword(
+      input.password,
+      user.passwordHash,
+    );
 
     if (!passwordMatches) {
       throw new UnauthorizedException('Email or password is invalid.');
@@ -77,7 +78,7 @@ export class AuthService {
       throw new UnauthorizedException('Refresh token is invalid.');
     }
 
-    const refreshTokenMatches = await compare(
+    const refreshTokenMatches = await this.passwordService.verifyRefreshToken(
       user.refreshToken,
       existingUser.refreshTokenHash,
     );
@@ -113,44 +114,20 @@ export class AuthService {
       throw new UnauthorizedException('Authenticated user was not found.');
     }
 
-    const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(
-        {
-          sub: user.id,
-          email: user.email,
-          tokenType: 'access',
-        },
-        {
-          secret: this.appConfig.jwtAccessSecret,
-          expiresIn: this.appConfig.jwtAccessExpiresInSeconds,
-        },
-      ),
-      this.jwtService.signAsync(
-        {
-          sub: user.id,
-          email: user.email,
-          tokenType: 'refresh',
-        },
-        {
-          secret: this.appConfig.jwtRefreshSecret,
-          expiresIn: this.appConfig.jwtRefreshExpiresInSeconds,
-        },
-      ),
-    ]);
+    const tokens = await this.tokenService.createAuthTokens({
+      userId: user.id,
+      email: user.email,
+    });
 
-    const refreshTokenHash = await hash(
-      refreshToken,
-      this.appConfig.passwordHashSaltRounds,
+    const refreshTokenHash = await this.passwordService.hashRefreshToken(
+      tokens.refreshToken,
     );
 
     await this.usersService.updateRefreshTokenHash(user.id, refreshTokenHash);
 
     return {
       user: this.usersService.toResponse(user),
-      tokens: {
-        accessToken,
-        refreshToken,
-      },
+      tokens,
     };
   }
 }

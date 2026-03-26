@@ -1,11 +1,10 @@
 import { UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
-import { hash } from 'bcryptjs';
-import { AppConfigService } from '../../core/config/app-config.service';
-import { AppLoggerService } from '../../core/logger/app-logger.service';
-import { UsersService } from '../users/users.service';
+import { AppLoggerService } from '../../../core/logger/app-logger.service';
+import { UsersService } from '../../users/users.service';
 import { AuthService } from './auth.service';
+import { PasswordService } from './password.service';
+import { TokenService } from './token.service';
 
 describe('AuthService', () => {
   let authService: AuthService;
@@ -13,10 +12,17 @@ describe('AuthService', () => {
     create: jest.Mock;
     findByEmail: jest.Mock;
     findById: jest.Mock;
+    updateRefreshTokenHash: jest.Mock;
     toResponse: jest.Mock;
   };
-  let jwtService: {
-    signAsync: jest.Mock;
+  let passwordService: {
+    hashPassword: jest.Mock;
+    verifyPassword: jest.Mock;
+    hashRefreshToken: jest.Mock;
+    verifyRefreshToken: jest.Mock;
+  };
+  let tokenService: {
+    createAuthTokens: jest.Mock;
   };
 
   beforeEach(async () => {
@@ -28,8 +34,15 @@ describe('AuthService', () => {
       toResponse: jest.fn(),
     };
 
-    jwtService = {
-      signAsync: jest.fn(),
+    passwordService = {
+      hashPassword: jest.fn(),
+      verifyPassword: jest.fn(),
+      hashRefreshToken: jest.fn(),
+      verifyRefreshToken: jest.fn(),
+    };
+
+    tokenService = {
+      createAuthTokens: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -40,10 +53,13 @@ describe('AuthService', () => {
           useValue: usersService,
         },
         {
-          provide: JwtService,
-          useValue: jwtService,
+          provide: PasswordService,
+          useValue: passwordService,
         },
-        AppConfigService,
+        {
+          provide: TokenService,
+          useValue: tokenService,
+        },
         {
           provide: AppLoggerService,
           useValue: {
@@ -66,12 +82,15 @@ describe('AuthService', () => {
       createdAt: new Date('2026-03-24T00:00:00.000Z'),
     };
 
+    passwordService.hashPassword.mockResolvedValue('password-hash');
     usersService.create.mockResolvedValue(createdUser);
     usersService.findById.mockResolvedValue(createdUser);
     usersService.toResponse.mockReturnValue(createdUser);
-    jwtService.signAsync
-      .mockResolvedValueOnce('access-token')
-      .mockResolvedValueOnce('refresh-token');
+    tokenService.createAuthTokens.mockResolvedValue({
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+    });
+    passwordService.hashRefreshToken.mockResolvedValue('refresh-token-hash');
 
     const result = await authService.signUp({
       email: 'minji@example.com',
@@ -93,6 +112,7 @@ describe('AuthService', () => {
       passwordHash:
         '$2b$10$PEmjTePlL3W0Qm7lvcVnV.RXqEJ10BGSAdoo6gWQBaIjXImQxGc1m',
     });
+    passwordService.verifyPassword.mockResolvedValue(false);
 
     await expect(
       authService.signIn({
@@ -122,12 +142,11 @@ describe('AuthService', () => {
   });
 
   it('refresh should rotate tokens when refresh token is valid', async () => {
-    const refreshTokenHash = await hash('refresh-token', 10);
     const user = {
       id: 'user-1',
       email: 'minji@example.com',
       passwordHash: null,
-      refreshTokenHash,
+      refreshTokenHash: 'stored-refresh-token-hash',
       name: 'Minji',
       locale: 'ko-KR',
       timezone: 'Asia/Seoul',
@@ -136,9 +155,14 @@ describe('AuthService', () => {
 
     usersService.findById.mockResolvedValue(user);
     usersService.toResponse.mockReturnValue(user);
-    jwtService.signAsync
-      .mockResolvedValueOnce('next-access-token')
-      .mockResolvedValueOnce('next-refresh-token');
+    passwordService.verifyRefreshToken.mockResolvedValue(true);
+    tokenService.createAuthTokens.mockResolvedValue({
+      accessToken: 'next-access-token',
+      refreshToken: 'next-refresh-token',
+    });
+    passwordService.hashRefreshToken.mockResolvedValue(
+      'next-refresh-token-hash',
+    );
 
     const result = await authService.refresh({
       userId: 'user-1',

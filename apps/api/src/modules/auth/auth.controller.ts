@@ -14,9 +14,9 @@ import { RefreshTokenRequestDto } from './dto/refresh-token-request.dto';
 import { SignInRequestDto } from './dto/sign-in-request.dto';
 import { SignOutResponseDto } from './dto/sign-out-response.dto';
 import { SignUpRequestDto } from './dto/sign-up-request.dto';
-import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RefreshTokenGuard } from './guards/refresh-token.guard';
+import { AuthService } from './services/auth.service';
 
 @ApiTags('Auth')
 @Controller('auth')
