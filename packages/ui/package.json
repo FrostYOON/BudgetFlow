@@ -1,12 +1,5 @@
 {
   "name": "@budgetflow/ui",
   "private": true,
-  "version": "0.1.0",
-  "scripts": {
-    "build": "echo 'ui build placeholder'",
-    "dev": "echo 'ui dev placeholder'",
-    "lint": "echo 'ui lint placeholder'",
-    "test": "echo 'ui test placeholder'",
-    "format": "echo 'ui format placeholder'"
-  }
+  "version": "0.1.0"
 }

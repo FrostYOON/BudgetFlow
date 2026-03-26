@@ -18,8 +18,8 @@ pnpm install
 cp .env.example .env
 cp packages/database/.env.example packages/database/.env
 cp apps/api/.env.example apps/api/.env.local
-pnpm db:up
-pnpm db:generate
+pnpm local:db:start
+pnpm prisma:generate
 pnpm dev
 ```
 
@@ -30,9 +30,9 @@ BudgetFlow uses Docker Compose for the default local PostgreSQL setup.
 Common local DB commands:
 
 ```bash
-pnpm db:up
-pnpm db:logs
-pnpm db:down
+pnpm local:db:start
+pnpm local:db:logs
+pnpm local:db:stop
 ```
 
 The default local connection string is:
@@ -50,16 +50,18 @@ The current schema lives in [packages/database/prisma/schema.prisma](/Users/yoon
 Common commands:
 
 ```bash
-pnpm db:validate
-pnpm db:generate
-pnpm db:status
-pnpm db:migrate:dev --name <migration_name>
-pnpm db:migrate:deploy
-pnpm db:studio
+pnpm prisma:validate
+pnpm prisma:generate
+pnpm prisma:migrate:status
+pnpm prisma:migrate:dev --name <migration_name>
+pnpm prisma:migrate:deploy
+pnpm prisma:studio
 ```
 
 Operational notes:
-- `db:migrate:dev` is for local development only.
-- `db:migrate:deploy` is for CI/CD or production deploy steps.
-- `db:validate`, `db:status`, and all migration commands require a real `DATABASE_URL`.
+- `local:db:*` scripts control only the local Docker PostgreSQL container.
+- `prisma:*` scripts control only Prisma schema, client, and migration work.
+- `prisma:migrate:dev` is for local development only.
+- `prisma:migrate:deploy` is for CI/CD or production deploy steps.
+- `prisma:validate`, `prisma:migrate:status`, and all migration commands require a real `DATABASE_URL`.
 - The current migration workflow is documented in [docs/DB_MIGRATION_WORKFLOW.md](/Users/yoon-yongseol/WorkSpace/BudgetFlow/docs/DB_MIGRATION_WORKFLOW.md).

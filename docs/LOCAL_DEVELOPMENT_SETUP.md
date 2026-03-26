@@ -5,7 +5,7 @@
 - 루트 `.env`는 Docker Compose용 변수 파일이다.
 - `apps/api/.env.local`은 API 런타임 변수 파일이다.
 - 기본 로컬 DB는 `postgresql://postgres:postgres@localhost:5432/budgetflow?schema=public`를 사용한다.
-- DB를 올린 뒤 `pnpm db:migrate:dev --name <name>` 순서로 migration을 만든다.
+- 로컬 DB 제어는 `local:db:*`, Prisma 작업은 `prisma:*` 스크립트로 분리한다.
 
 ## 1. Required Files
 
@@ -24,19 +24,19 @@ Reference templates:
 ## 2. Start Local Postgres
 
 ```bash
-pnpm db:up
+pnpm local:db:start
 ```
 
 Stop it:
 
 ```bash
-pnpm db:down
+pnpm local:db:stop
 ```
 
 Watch logs:
 
 ```bash
-pnpm db:logs
+pnpm local:db:logs
 ```
 
 ## 3. Default Local Database
@@ -52,9 +52,9 @@ This is the default value included in both `apps/api/.env.example` and `packages
 After the DB container is up:
 
 ```bash
-pnpm db:validate
-pnpm db:migrate:dev --name init_schema
-pnpm db:generate
+pnpm prisma:validate
+pnpm prisma:migrate:dev --name init_schema
+pnpm prisma:generate
 pnpm --filter @budgetflow/api build
 ```
 
