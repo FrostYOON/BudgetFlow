@@ -18,7 +18,7 @@ pnpm install
 cp .env.example .env
 cp packages/database/.env.example packages/database/.env
 cp apps/api/.env.example apps/api/.env.local
-pnpm local:db:start
+pnpm docker:db:start
 pnpm prisma:generate
 pnpm dev
 ```
@@ -30,9 +30,10 @@ BudgetFlow uses Docker Compose for the default local PostgreSQL setup.
 Common local DB commands:
 
 ```bash
-pnpm local:db:start
-pnpm local:db:logs
-pnpm local:db:stop
+pnpm docker:db:start
+pnpm docker:db:logs
+pnpm docker:db:stop
+pnpm docker:db:status
 ```
 
 The default local connection string is:
@@ -59,7 +60,7 @@ pnpm prisma:studio
 ```
 
 Operational notes:
-- `local:db:*` scripts control only the local Docker PostgreSQL container.
+- `docker:db:*` scripts control the local Docker Compose PostgreSQL service.
 - `prisma:*` scripts control only Prisma schema, client, and migration work.
 - `prisma:migrate:dev` is for local development only.
 - `prisma:migrate:deploy` is for CI/CD or production deploy steps.
