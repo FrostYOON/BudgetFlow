@@ -12,8 +12,8 @@ pnpm install
 
 ```bash
 cp .env.example .env.local
-pnpm db:up
-pnpm db:generate
+pnpm local:db:start
+pnpm prisma:generate
 pnpm run dev
 ```
 
@@ -41,8 +41,8 @@ pnpm run dev
 ```bash
 pnpm run build
 pnpm run lint
-pnpm db:generate
-pnpm --filter @budgetflow/database prisma:migrate:dev
+pnpm prisma:generate
+pnpm prisma:migrate:dev --name <migration_name>
 pnpm run test
 pnpm run test:e2e
 ```

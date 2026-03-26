@@ -11,11 +11,9 @@
     }
   },
   "scripts": {
-    "build": "echo 'database build placeholder'",
-    "dev": "echo 'database dev placeholder'",
-    "lint": "echo 'database lint placeholder'",
-    "test": "echo 'database test placeholder'",
-    "format": "echo 'database format placeholder'",
+    "build": "pnpm prisma:generate",
+    "lint": "pnpm prisma:validate",
+    "format": "pnpm prisma:format",
     "prisma:format": "prisma format --schema ./prisma/schema.prisma",
     "prisma:validate": "prisma validate --schema ./prisma/schema.prisma",
     "prisma:generate": "prisma generate --schema ./prisma/schema.prisma",
