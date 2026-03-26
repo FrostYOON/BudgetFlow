@@ -35,6 +35,10 @@ pnpm run dev
 - Workspace invite list: `GET http://localhost:3000/api/v1/workspaces/:workspaceId/invites`
 - Workspace invite accept: `POST http://localhost:3000/api/v1/workspace-invites/:token/accept`
 - Workspace members: `GET http://localhost:3000/api/v1/workspaces/:workspaceId/members`
+- Categories list: `GET http://localhost:3000/api/v1/workspaces/:workspaceId/categories`
+- Category create: `POST http://localhost:3000/api/v1/workspaces/:workspaceId/categories`
+- Category update: `PATCH http://localhost:3000/api/v1/workspaces/:workspaceId/categories/:categoryId`
+- Category archive: `DELETE http://localhost:3000/api/v1/workspaces/:workspaceId/categories/:categoryId`
 
 ## Useful Commands
 
