@@ -3,6 +3,7 @@ import { CoreModule } from './core/core.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { HealthModule } from './modules/health/health.module';
+import { TransactionsModule } from './modules/transactions/transactions.module';
 import { UsersModule } from './modules/users/users.module';
 import { WorkspacesModule } from './modules/workspaces/workspaces.module';
 
@@ -14,6 +15,7 @@ import { WorkspacesModule } from './modules/workspaces/workspaces.module';
     AuthModule,
     WorkspacesModule,
     CategoriesModule,
+    TransactionsModule,
   ],
 })
 export class AppModule {}

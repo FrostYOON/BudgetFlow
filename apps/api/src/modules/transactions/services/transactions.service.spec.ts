@@ -1,0 +1,230 @@
+import {
+  Prisma,
+  TransactionType,
+  TransactionVisibility,
+  WorkspaceMemberStatus,
+} from '@budgetflow/database';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
+import { PrismaService } from '../../../core/database/prisma.service';
+import { WorkspacesService } from '../../workspaces/services/workspaces.service';
+import { TransactionsService } from './transactions.service';
+
+describe('TransactionsService', () => {
+  let service: TransactionsService;
+  let prisma: {
+    workspaceMember: { findUnique: jest.Mock };
+    category: { findFirst: jest.Mock };
+    transaction: {
+      create: jest.Mock;
+      findMany: jest.Mock;
+      findFirst: jest.Mock;
+      update: jest.Mock;
+    };
+  };
+  let workspacesService: {
+    assertMemberAccess: jest.Mock;
+  };
+
+  beforeEach(async () => {
+    prisma = {
+      workspaceMember: {
+        findUnique: jest.fn(),
+      },
+      category: {
+        findFirst: jest.fn(),
+      },
+      transaction: {
+        create: jest.fn(),
+        findMany: jest.fn(),
+        findFirst: jest.fn(),
+        update: jest.fn(),
+      },
+    };
+
+    workspacesService = {
+      assertMemberAccess: jest.fn(),
+    };
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        TransactionsService,
+        {
+          provide: PrismaService,
+          useValue: prisma,
+        },
+        {
+          provide: WorkspacesService,
+          useValue: workspacesService,
+        },
+      ],
+    }).compile();
+
+    service = module.get<TransactionsService>(TransactionsService);
+  });
+
+  it('create should create a transaction and default paidByUserId to current user', async () => {
+    prisma.workspaceMember.findUnique.mockResolvedValue({
+      status: WorkspaceMemberStatus.ACTIVE,
+    });
+    prisma.transaction.create.mockResolvedValue({
+      id: 'transaction-1',
+      workspaceId: 'workspace-1',
+      type: TransactionType.EXPENSE,
+      visibility: TransactionVisibility.SHARED,
+      amount: new Prisma.Decimal('52000.00'),
+      currency: 'KRW',
+      transactionDate: new Date('2026-03-24T00:00:00.000Z'),
+      categoryId: null,
+      category: null,
+      memo: 'Mart run',
+      createdByUserId: 'user-1',
+      paidByUserId: 'user-1',
+      paidBy: { name: 'Minji' },
+      isDeleted: false,
+      createdAt: new Date('2026-03-24T12:00:00.000Z'),
+    });
+
+    const result = await service.create('workspace-1', 'user-1', {
+      type: TransactionType.EXPENSE,
+      visibility: TransactionVisibility.SHARED,
+      amount: '52000.00',
+      currency: 'KRW',
+      transactionDate: '2026-03-24',
+      memo: 'Mart run',
+    });
+
+    expect(result.paidByUserId).toBe('user-1');
+    expect(prisma.transaction.create).toHaveBeenCalled();
+  });
+
+  it('create should reject when category type does not match transaction type', async () => {
+    prisma.workspaceMember.findUnique.mockResolvedValue({
+      status: WorkspaceMemberStatus.ACTIVE,
+    });
+    prisma.category.findFirst.mockResolvedValue({
+      id: 'category-1',
+      workspaceId: 'workspace-1',
+      type: TransactionType.INCOME,
+      isArchived: false,
+    });
+
+    await expect(
+      service.create('workspace-1', 'user-1', {
+        type: TransactionType.EXPENSE,
+        visibility: TransactionVisibility.SHARED,
+        amount: '52000.00',
+        currency: 'KRW',
+        transactionDate: '2026-03-24',
+        categoryId: 'category-1',
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('list should return items and nextCursor when more records exist', async () => {
+    prisma.transaction.findMany.mockResolvedValue([
+      {
+        id: 'transaction-2',
+        workspaceId: 'workspace-1',
+        type: TransactionType.EXPENSE,
+        visibility: TransactionVisibility.SHARED,
+        amount: new Prisma.Decimal('1000.00'),
+        currency: 'KRW',
+        transactionDate: new Date('2026-03-25T00:00:00.000Z'),
+        categoryId: null,
+        category: null,
+        memo: null,
+        createdByUserId: 'user-1',
+        paidByUserId: 'user-1',
+        paidBy: { name: 'Minji' },
+        isDeleted: false,
+        createdAt: new Date('2026-03-25T10:00:00.000Z'),
+      },
+      {
+        id: 'transaction-1',
+        workspaceId: 'workspace-1',
+        type: TransactionType.EXPENSE,
+        visibility: TransactionVisibility.SHARED,
+        amount: new Prisma.Decimal('500.00'),
+        currency: 'KRW',
+        transactionDate: new Date('2026-03-24T00:00:00.000Z'),
+        categoryId: null,
+        category: null,
+        memo: null,
+        createdByUserId: 'user-1',
+        paidByUserId: 'user-1',
+        paidBy: { name: 'Minji' },
+        isDeleted: false,
+        createdAt: new Date('2026-03-24T10:00:00.000Z'),
+      },
+    ]);
+
+    const result = await service.list('workspace-1', 'user-1', {
+      limit: 1,
+    });
+
+    expect(result.items).toHaveLength(1);
+    expect(result.nextCursor).toBe('transaction-2');
+  });
+
+  it('detail should throw when transaction does not exist', async () => {
+    prisma.transaction.findFirst.mockResolvedValue(null);
+
+    await expect(
+      service.detail('workspace-1', 'transaction-1', 'user-1'),
+    ).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it('remove should soft-delete the transaction', async () => {
+    prisma.transaction.findFirst.mockResolvedValue({
+      id: 'transaction-1',
+      workspaceId: 'workspace-1',
+      type: TransactionType.EXPENSE,
+      visibility: TransactionVisibility.SHARED,
+      amount: new Prisma.Decimal('52000.00'),
+      currency: 'KRW',
+      transactionDate: new Date('2026-03-24T00:00:00.000Z'),
+      categoryId: null,
+      category: null,
+      memo: null,
+      createdByUserId: 'user-1',
+      paidByUserId: 'user-1',
+      paidBy: { name: 'Minji' },
+      isDeleted: false,
+      createdAt: new Date('2026-03-24T10:00:00.000Z'),
+    });
+    prisma.transaction.update.mockResolvedValue({
+      id: 'transaction-1',
+      workspaceId: 'workspace-1',
+      type: TransactionType.EXPENSE,
+      visibility: TransactionVisibility.SHARED,
+      amount: new Prisma.Decimal('52000.00'),
+      currency: 'KRW',
+      transactionDate: new Date('2026-03-24T00:00:00.000Z'),
+      categoryId: null,
+      category: null,
+      memo: null,
+      createdByUserId: 'user-1',
+      paidByUserId: 'user-1',
+      paidBy: { name: 'Minji' },
+      isDeleted: true,
+      createdAt: new Date('2026-03-24T10:00:00.000Z'),
+    });
+
+    const result = await service.remove(
+      'workspace-1',
+      'transaction-1',
+      'user-1',
+    );
+
+    expect(result.isDeleted).toBe(true);
+    expect(prisma.transaction.update).toHaveBeenCalledWith({
+      where: { id: 'transaction-1' },
+      data: { isDeleted: true },
+      include: {
+        category: true,
+        paidBy: true,
+      },
+    });
+  });
+});
