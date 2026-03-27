@@ -23,9 +23,14 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CreateRecurringTransactionRequestDto } from '../dto/create-recurring-transaction-request.dto';
 import { ExecuteRecurringTransactionsRequestDto } from '../dto/execute-recurring-transactions-request.dto';
 import { ExecuteRecurringTransactionsResponseDto } from '../dto/execute-recurring-transactions-response.dto';
+import { ListRecurringExecutionRunsQueryDto } from '../dto/list-recurring-execution-runs-query.dto';
 import { ListRecurringTransactionsQueryDto } from '../dto/list-recurring-transactions-query.dto';
 import { RecurringTransactionResponseDto } from '../dto/recurring-transaction-response.dto';
+import { RecurringExecutionRunResponseDto } from '../dto/recurring-execution-run-response.dto';
+import { RerunRecurringTransactionsRequestDto } from '../dto/rerun-recurring-transactions-request.dto';
+import { RerunRecurringTransactionsResponseDto } from '../dto/rerun-recurring-transactions-response.dto';
 import { UpdateRecurringTransactionRequestDto } from '../dto/update-recurring-transaction-request.dto';
+import { RecurringTransactionExecutionRunsService } from '../services/recurring-transaction-execution-runs.service';
 import { RecurringTransactionsService } from '../services/recurring-transactions.service';
 
 @ApiTags('Recurring Transactions')
@@ -35,6 +40,7 @@ import { RecurringTransactionsService } from '../services/recurring-transactions
 export class RecurringTransactionsController {
   constructor(
     private readonly recurringTransactionsService: RecurringTransactionsService,
+    private readonly recurringTransactionExecutionRunsService: RecurringTransactionExecutionRunsService,
   ) {}
 
   @Post()
@@ -68,6 +74,21 @@ export class RecurringTransactionsController {
     );
   }
 
+  @Get('execution-runs')
+  @ApiOperation({ summary: 'List recurring execution runs' })
+  @ApiOkResponse({ type: [RecurringExecutionRunResponseDto] })
+  listExecutionRuns(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('workspaceId', new ParseUUIDPipe()) workspaceId: string,
+    @Query() query: ListRecurringExecutionRunsQueryDto,
+  ): Promise<RecurringExecutionRunResponseDto[]> {
+    return this.recurringTransactionExecutionRunsService.listRuns(
+      workspaceId,
+      user.userId,
+      query.limit,
+    );
+  }
+
   @Post('execute')
   @ApiOperation({ summary: 'Execute recurring transactions for a month' })
   @ApiBody({ type: ExecuteRecurringTransactionsRequestDto })
@@ -78,6 +99,22 @@ export class RecurringTransactionsController {
     @Body() input: ExecuteRecurringTransactionsRequestDto,
   ): Promise<ExecuteRecurringTransactionsResponseDto> {
     return this.recurringTransactionsService.executeMonthly(
+      workspaceId,
+      user.userId,
+      input,
+    );
+  }
+
+  @Post('execution-runs/rerun')
+  @ApiOperation({ summary: 'Rerun recurring execution for a specific date' })
+  @ApiBody({ type: RerunRecurringTransactionsRequestDto })
+  @ApiOkResponse({ type: RerunRecurringTransactionsResponseDto })
+  rerunExecution(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('workspaceId', new ParseUUIDPipe()) workspaceId: string,
+    @Body() input: RerunRecurringTransactionsRequestDto,
+  ): Promise<RerunRecurringTransactionsResponseDto> {
+    return this.recurringTransactionExecutionRunsService.rerunForDate(
       workspaceId,
       user.userId,
       input,

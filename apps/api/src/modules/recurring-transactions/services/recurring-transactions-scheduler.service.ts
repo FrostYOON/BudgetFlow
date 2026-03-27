@@ -3,7 +3,8 @@ import { Cron } from '@nestjs/schedule';
 import { AppConfigService } from '../../../core/config/app-config.service';
 import { PrismaService } from '../../../core/database/prisma.service';
 import { AppLoggerService } from '../../../core/logger/app-logger.service';
-import { RecurringTransactionsService } from './recurring-transactions.service';
+import { RecurringExecutionRunStatus } from '@budgetflow/database';
+import { RecurringTransactionExecutionRunsService } from './recurring-transaction-execution-runs.service';
 
 const RECURRING_EXECUTION_CRON =
   process.env.RECURRING_EXECUTION_CRON ?? '5,20,35,50 * * * *';
@@ -16,7 +17,7 @@ export class RecurringTransactionsSchedulerService {
     private readonly prisma: PrismaService,
     private readonly config: AppConfigService,
     private readonly logger: AppLoggerService,
-    private readonly recurringTransactionsService: RecurringTransactionsService,
+    private readonly recurringTransactionExecutionRunsService: RecurringTransactionExecutionRunsService,
   ) {}
 
   @Cron(RECURRING_EXECUTION_CRON, {
@@ -66,15 +67,16 @@ export class RecurringTransactionsSchedulerService {
       );
 
       try {
-        const result =
-          await this.recurringTransactionsService.executeAutomaticDaily(
+        const run =
+          await this.recurringTransactionExecutionRunsService.runScheduledForDate(
             workspace.id,
             executionDate,
           );
 
         if (
-          result.summary.createdCount > 0 ||
-          result.summary.skippedCount > 0
+          run.status === RecurringExecutionRunStatus.FAILED ||
+          (run.createdCount ?? 0) > 0 ||
+          (run.skippedCount ?? 0) > 0
         ) {
           this.logger.log(
             'Processed recurring transactions for workspace.',
@@ -82,8 +84,10 @@ export class RecurringTransactionsSchedulerService {
             {
               workspaceId: workspace.id,
               executionDate: executionDate.toISOString().slice(0, 10),
-              createdCount: result.summary.createdCount,
-              skippedCount: result.summary.skippedCount,
+              runId: run.id,
+              status: run.status,
+              createdCount: run.createdCount,
+              skippedCount: run.skippedCount,
             },
           );
         }
