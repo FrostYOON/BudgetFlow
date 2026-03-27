@@ -1,6 +1,7 @@
 import { Prisma, RecurringRepeatUnit } from '@budgetflow/database';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../../../core/database/prisma.service';
+import { InsightsService } from '../../insights/services/insights.service';
 import { WorkspacesService } from '../../workspaces/services/workspaces.service';
 import { ReportsService } from './reports.service';
 
@@ -27,6 +28,9 @@ describe('ReportsService', () => {
   let workspacesService: {
     assertMemberAccess: jest.Mock;
   };
+  let insightsService: {
+    listMonthlyInsights: jest.Mock;
+  };
 
   beforeEach(async () => {
     prisma = {
@@ -51,6 +55,9 @@ describe('ReportsService', () => {
     workspacesService = {
       assertMemberAccess: jest.fn(),
     };
+    insightsService = {
+      listMonthlyInsights: jest.fn(),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -62,6 +69,10 @@ describe('ReportsService', () => {
         {
           provide: WorkspacesService,
           useValue: workspacesService,
+        },
+        {
+          provide: InsightsService,
+          useValue: insightsService,
         },
       ],
     }).compile();
@@ -134,6 +145,15 @@ describe('ReportsService', () => {
         name: 'Jisu',
       },
     ]);
+    insightsService.listMonthlyInsights.mockResolvedValue([
+      {
+        id: 'insight-1',
+        type: 'EXPENSE_SPIKE',
+        severity: 'MEDIUM',
+        title: 'Expenses increased 25% from last month',
+        body: 'This month spent 1250000.00 KRW compared with 1000000.00 KRW last month.',
+      },
+    ]);
 
     const result = await service.getMonthlyReport(
       'workspace-1',
@@ -151,6 +171,11 @@ describe('ReportsService', () => {
     expect(result.payerBreakdown[0]?.name).toBe('Jisu');
     expect(result.budgetProgress[0]?.progressPct).toBe(70);
     expect(result.recurringUpcoming[0]?.nextOccurrenceDate).toBe('2026-03-25');
+    expect(result.insights).toEqual([
+      expect.objectContaining({
+        type: 'EXPENSE_SPIKE',
+      }),
+    ]);
   });
 
   it('getMonthlyReport should return zeroed sections when data is missing', async () => {
@@ -164,6 +189,7 @@ describe('ReportsService', () => {
     prisma.recurringTransaction.findMany.mockResolvedValue([]);
     prisma.category.findMany.mockResolvedValue([]);
     prisma.user.findMany.mockResolvedValue([]);
+    insightsService.listMonthlyInsights.mockResolvedValue([]);
 
     const result = await service.getMonthlyReport(
       'workspace-1',
@@ -179,6 +205,7 @@ describe('ReportsService', () => {
     expect(result.payerBreakdown).toHaveLength(0);
     expect(result.budgetProgress).toHaveLength(0);
     expect(result.recurringUpcoming).toHaveLength(0);
+    expect(result.insights).toHaveLength(0);
   });
 
   it('getMonthlyReport should only include recurring items with an occurrence in the month', async () => {
@@ -217,6 +244,7 @@ describe('ReportsService', () => {
     ]);
     prisma.category.findMany.mockResolvedValue([]);
     prisma.user.findMany.mockResolvedValue([]);
+    insightsService.listMonthlyInsights.mockResolvedValue([]);
 
     const result = await service.getMonthlyReport(
       'workspace-1',

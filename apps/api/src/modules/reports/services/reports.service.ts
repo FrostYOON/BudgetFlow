@@ -5,7 +5,9 @@ import {
   TransactionType,
   TransactionVisibility,
 } from '@budgetflow/database';
+import { getMonthRange } from '../../../common/utils/month-range.util';
 import { PrismaService } from '../../../core/database/prisma.service';
+import { InsightsService } from '../../insights/services/insights.service';
 import { WorkspacesService } from '../../workspaces/services/workspaces.service';
 import { MonthlyReportResponseDto } from '../dto/monthly-report-response.dto';
 
@@ -32,6 +34,7 @@ export class ReportsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly workspacesService: WorkspacesService,
+    private readonly insightsService: InsightsService,
   ) {}
 
   async getMonthlyReport(
@@ -42,10 +45,7 @@ export class ReportsService {
   ): Promise<MonthlyReportResponseDto> {
     await this.workspacesService.assertMemberAccess(workspaceId, userId);
 
-    const { start, endInclusive, endExclusive } = this.getMonthRange(
-      year,
-      month,
-    );
+    const { start, endInclusive, endExclusive } = getMonthRange(year, month);
 
     const [
       totalIncome,
@@ -56,6 +56,7 @@ export class ReportsService {
       payerRows,
       monthBudget,
       recurringTransactions,
+      insights,
     ] = await Promise.all([
       this.aggregateTransactionAmount(workspaceId, start, endExclusive, {
         type: TransactionType.INCOME,
@@ -169,6 +170,7 @@ export class ReportsService {
           createdAt: 'asc',
         },
       }),
+      this.insightsService.listMonthlyInsights(workspaceId, year, month),
     ]);
 
     const categoryIds = categoryRows
@@ -309,25 +311,7 @@ export class ReportsService {
           categoryName: item.category?.name ?? null,
           nextOccurrenceDate: nextOccurrenceDate.toISOString().slice(0, 10),
         })),
-    };
-  }
-
-  private getMonthRange(
-    year: number,
-    month: number,
-  ): {
-    start: Date;
-    endInclusive: Date;
-    endExclusive: Date;
-  } {
-    const start = new Date(Date.UTC(year, month - 1, 1));
-    const endExclusive = new Date(Date.UTC(year, month, 1));
-    const endInclusive = new Date(Date.UTC(year, month, 0));
-
-    return {
-      start,
-      endInclusive,
-      endExclusive,
+      insights,
     };
   }
 

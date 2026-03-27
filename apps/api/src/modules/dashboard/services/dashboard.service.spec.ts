@@ -5,6 +5,7 @@ import {
 } from '@budgetflow/database';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../../../core/database/prisma.service';
+import { InsightsService } from '../../insights/services/insights.service';
 import { WorkspacesService } from '../../workspaces/services/workspaces.service';
 import { DashboardService } from './dashboard.service';
 
@@ -26,6 +27,9 @@ describe('DashboardService', () => {
   let workspacesService: {
     assertMemberAccess: jest.Mock;
   };
+  let insightsService: {
+    listMonthlyInsights: jest.Mock;
+  };
 
   beforeEach(async () => {
     prisma = {
@@ -45,6 +49,9 @@ describe('DashboardService', () => {
     workspacesService = {
       assertMemberAccess: jest.fn(),
     };
+    insightsService = {
+      listMonthlyInsights: jest.fn(),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -56,6 +63,10 @@ describe('DashboardService', () => {
         {
           provide: WorkspacesService,
           useValue: workspacesService,
+        },
+        {
+          provide: InsightsService,
+          useValue: insightsService,
         },
       ],
     }).compile();
@@ -108,6 +119,15 @@ describe('DashboardService', () => {
         name: 'Groceries',
       },
     ]);
+    insightsService.listMonthlyInsights.mockResolvedValue([
+      {
+        id: 'insight-1',
+        type: 'MONTHLY_BUDGET_WARNING',
+        severity: 'MEDIUM',
+        title: 'Monthly budget reached 84%',
+        body: 'Current spending is 1680000.00 KRW out of 2000000.00 KRW.',
+      },
+    ]);
 
     const result = await service.getDashboard('workspace-1', 2026, 3, 'user-1');
 
@@ -123,7 +143,11 @@ describe('DashboardService', () => {
     expect(result.summary.remainingBudget).toBe('750000.00');
     expect(result.topCategories[0]?.name).toBe('Groceries');
     expect(result.recentTransactions[0]?.paidByName).toBe('Jisu');
-    expect(result.insights).toEqual([]);
+    expect(result.insights).toEqual([
+      expect.objectContaining({
+        type: 'MONTHLY_BUDGET_WARNING',
+      }),
+    ]);
   });
 
   it('getDashboard should fall back to zero amounts when month budget is missing', async () => {
@@ -134,6 +158,7 @@ describe('DashboardService', () => {
     prisma.transaction.groupBy.mockResolvedValue([]);
     prisma.transaction.findMany.mockResolvedValue([]);
     prisma.category.findMany.mockResolvedValue([]);
+    insightsService.listMonthlyInsights.mockResolvedValue([]);
 
     const result = await service.getDashboard('workspace-1', 2026, 3, 'user-1');
 
@@ -152,6 +177,7 @@ describe('DashboardService', () => {
     prisma.transaction.groupBy.mockResolvedValue([]);
     prisma.transaction.findMany.mockResolvedValue([]);
     prisma.category.findMany.mockResolvedValue([]);
+    insightsService.listMonthlyInsights.mockResolvedValue([]);
 
     await service.getDashboard('workspace-1', 2026, 3, 'user-1');
 
