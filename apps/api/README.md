@@ -47,6 +47,7 @@ pnpm run dev
 - Monthly budget detail: `GET http://localhost:3000/api/v1/workspaces/:workspaceId/budgets/:year/:month`
 - Category budget replace: `PUT http://localhost:3000/api/v1/workspaces/:workspaceId/budgets/:year/:month/categories`
 - Category budget delete: `DELETE http://localhost:3000/api/v1/workspaces/:workspaceId/budgets/:year/:month/categories/:categoryId`
+- Dashboard summary: `GET http://localhost:3000/api/v1/workspaces/:workspaceId/dashboard?year=2026&month=3`
 
 ## Useful Commands
 
