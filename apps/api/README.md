@@ -48,6 +48,10 @@ pnpm run dev
 - Category budget replace: `PUT http://localhost:3000/api/v1/workspaces/:workspaceId/budgets/:year/:month/categories`
 - Category budget delete: `DELETE http://localhost:3000/api/v1/workspaces/:workspaceId/budgets/:year/:month/categories/:categoryId`
 - Dashboard summary: `GET http://localhost:3000/api/v1/workspaces/:workspaceId/dashboard?year=2026&month=3`
+- Recurring transaction create: `POST http://localhost:3000/api/v1/workspaces/:workspaceId/recurring-transactions`
+- Recurring transaction list: `GET http://localhost:3000/api/v1/workspaces/:workspaceId/recurring-transactions`
+- Recurring transaction update: `PATCH http://localhost:3000/api/v1/workspaces/:workspaceId/recurring-transactions/:recurringTransactionId`
+- Recurring transaction deactivate: `DELETE http://localhost:3000/api/v1/workspaces/:workspaceId/recurring-transactions/:recurringTransactionId`
 
 ## Useful Commands
 
