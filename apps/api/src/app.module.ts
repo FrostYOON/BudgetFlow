@@ -6,6 +6,7 @@ import { CategoriesModule } from './modules/categories/categories.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { HealthModule } from './modules/health/health.module';
 import { RecurringTransactionsModule } from './modules/recurring-transactions/recurring-transactions.module';
+import { ReportsModule } from './modules/reports/reports.module';
 import { TransactionsModule } from './modules/transactions/transactions.module';
 import { UsersModule } from './modules/users/users.module';
 import { WorkspacesModule } from './modules/workspaces/workspaces.module';
@@ -22,6 +23,7 @@ import { WorkspacesModule } from './modules/workspaces/workspaces.module';
     BudgetsModule,
     DashboardModule,
     RecurringTransactionsModule,
+    ReportsModule,
   ],
 })
 export class AppModule {}
