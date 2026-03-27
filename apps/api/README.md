@@ -52,6 +52,7 @@ pnpm run dev
 - Recurring transaction list: `GET http://localhost:3000/api/v1/workspaces/:workspaceId/recurring-transactions`
 - Recurring transaction update: `PATCH http://localhost:3000/api/v1/workspaces/:workspaceId/recurring-transactions/:recurringTransactionId`
 - Recurring transaction deactivate: `DELETE http://localhost:3000/api/v1/workspaces/:workspaceId/recurring-transactions/:recurringTransactionId`
+- Monthly report: `GET http://localhost:3000/api/v1/workspaces/:workspaceId/reports/monthly?year=2026&month=3`
 
 ## Useful Commands
 
