@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { WorkspacesModule } from '../workspaces/workspaces.module';
 import { RecurringTransactionsController } from './controllers/recurring-transactions.controller';
 import { RecurringTransactionExecutionRunsService } from './services/recurring-transaction-execution-runs.service';
+import { RecurringTransactionOpsService } from './services/recurring-transaction-ops.service';
 import { RecurringTransactionsSchedulerService } from './services/recurring-transactions-scheduler.service';
 import { RecurringTransactionsService } from './services/recurring-transactions.service';
 
@@ -11,6 +12,7 @@ import { RecurringTransactionsService } from './services/recurring-transactions.
   providers: [
     RecurringTransactionsService,
     RecurringTransactionExecutionRunsService,
+    RecurringTransactionOpsService,
     RecurringTransactionsSchedulerService,
   ],
 })
