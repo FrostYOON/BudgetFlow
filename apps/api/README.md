@@ -51,6 +51,7 @@ pnpm run dev
 - Dashboard summary: `GET http://localhost:3000/api/v1/workspaces/:workspaceId/dashboard?year=2026&month=3`
 - Recurring transaction create: `POST http://localhost:3000/api/v1/workspaces/:workspaceId/recurring-transactions`
 - Recurring transaction list: `GET http://localhost:3000/api/v1/workspaces/:workspaceId/recurring-transactions`
+- Recurring transaction execute: `POST http://localhost:3000/api/v1/workspaces/:workspaceId/recurring-transactions/execute`
 - Recurring transaction update: `PATCH http://localhost:3000/api/v1/workspaces/:workspaceId/recurring-transactions/:recurringTransactionId`
 - Recurring transaction deactivate: `DELETE http://localhost:3000/api/v1/workspaces/:workspaceId/recurring-transactions/:recurringTransactionId`
 - Monthly report: `GET http://localhost:3000/api/v1/workspaces/:workspaceId/reports/monthly?year=2026&month=3`

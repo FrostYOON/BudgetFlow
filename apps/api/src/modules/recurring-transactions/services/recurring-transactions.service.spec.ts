@@ -16,6 +16,10 @@ describe('RecurringTransactionsService', () => {
   let prisma: {
     workspaceMember: { findUnique: jest.Mock };
     category: { findFirst: jest.Mock };
+    transaction: {
+      findMany: jest.Mock;
+      create: jest.Mock;
+    };
     recurringTransaction: {
       create: jest.Mock;
       findMany: jest.Mock;
@@ -34,6 +38,10 @@ describe('RecurringTransactionsService', () => {
       },
       category: {
         findFirst: jest.fn(),
+      },
+      transaction: {
+        findMany: jest.fn(),
+        create: jest.fn(),
       },
       recurringTransaction: {
         create: jest.fn(),
@@ -227,5 +235,155 @@ describe('RecurringTransactionsService', () => {
     );
 
     expect(result.isActive).toBe(false);
+  });
+
+  it('executeMonthly should create missing occurrences for the month', async () => {
+    prisma.recurringTransaction.findMany.mockResolvedValue([
+      {
+        id: 'recurring-1',
+        workspaceId: 'workspace-1',
+        type: TransactionType.EXPENSE,
+        visibility: TransactionVisibility.SHARED,
+        amount: new Prisma.Decimal('55000.00'),
+        currency: 'KRW',
+        categoryId: null,
+        category: null,
+        memo: 'Netflix',
+        paidByUserId: 'user-1',
+        repeatUnit: RecurringRepeatUnit.MONTHLY,
+        repeatInterval: 1,
+        dayOfMonth: 25,
+        dayOfWeek: null,
+        startDate: new Date('2026-01-25T00:00:00.000Z'),
+        endDate: null,
+        isActive: true,
+        createdByUserId: 'user-1',
+        createdAt: new Date('2026-01-01T00:00:00.000Z'),
+        updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+      },
+      {
+        id: 'recurring-2',
+        workspaceId: 'workspace-1',
+        type: TransactionType.EXPENSE,
+        visibility: TransactionVisibility.SHARED,
+        amount: new Prisma.Decimal('10000.00'),
+        currency: 'KRW',
+        categoryId: null,
+        category: null,
+        memo: 'Gym',
+        paidByUserId: 'user-1',
+        repeatUnit: RecurringRepeatUnit.WEEKLY,
+        repeatInterval: 1,
+        dayOfMonth: null,
+        dayOfWeek: 2,
+        startDate: new Date('2026-03-01T00:00:00.000Z'),
+        endDate: null,
+        isActive: true,
+        createdByUserId: 'user-1',
+        createdAt: new Date('2026-03-01T00:00:00.000Z'),
+        updatedAt: new Date('2026-03-01T00:00:00.000Z'),
+      },
+    ]);
+    prisma.transaction.findMany.mockResolvedValue([]);
+    prisma.transaction.create
+      .mockResolvedValueOnce({
+        id: 'transaction-1',
+        transactionDate: new Date('2026-03-25T00:00:00.000Z'),
+        amount: new Prisma.Decimal('55000.00'),
+        memo: 'Netflix',
+      })
+      .mockResolvedValueOnce({
+        id: 'transaction-2',
+        transactionDate: new Date('2026-03-03T00:00:00.000Z'),
+        amount: new Prisma.Decimal('10000.00'),
+        memo: 'Gym',
+      })
+      .mockResolvedValueOnce({
+        id: 'transaction-3',
+        transactionDate: new Date('2026-03-10T00:00:00.000Z'),
+        amount: new Prisma.Decimal('10000.00'),
+        memo: 'Gym',
+      })
+      .mockResolvedValueOnce({
+        id: 'transaction-4',
+        transactionDate: new Date('2026-03-17T00:00:00.000Z'),
+        amount: new Prisma.Decimal('10000.00'),
+        memo: 'Gym',
+      })
+      .mockResolvedValueOnce({
+        id: 'transaction-5',
+        transactionDate: new Date('2026-03-24T00:00:00.000Z'),
+        amount: new Prisma.Decimal('10000.00'),
+        memo: 'Gym',
+      })
+      .mockResolvedValueOnce({
+        id: 'transaction-6',
+        transactionDate: new Date('2026-03-31T00:00:00.000Z'),
+        amount: new Prisma.Decimal('10000.00'),
+        memo: 'Gym',
+      });
+
+    const result = await service.executeMonthly('workspace-1', 'user-1', {
+      year: 2026,
+      month: 3,
+    });
+
+    expect(result.summary).toEqual({
+      candidateCount: 6,
+      createdCount: 6,
+      skippedCount: 0,
+    });
+    expect(prisma.transaction.create).toHaveBeenCalledTimes(6);
+  });
+
+  it('executeMonthly should skip duplicates and support dryRun', async () => {
+    prisma.recurringTransaction.findMany.mockResolvedValue([
+      {
+        id: 'recurring-1',
+        workspaceId: 'workspace-1',
+        type: TransactionType.EXPENSE,
+        visibility: TransactionVisibility.SHARED,
+        amount: new Prisma.Decimal('55000.00'),
+        currency: 'KRW',
+        categoryId: null,
+        category: null,
+        memo: 'Netflix',
+        paidByUserId: 'user-1',
+        repeatUnit: RecurringRepeatUnit.MONTHLY,
+        repeatInterval: 1,
+        dayOfMonth: 25,
+        dayOfWeek: null,
+        startDate: new Date('2026-01-25T00:00:00.000Z'),
+        endDate: null,
+        isActive: true,
+        createdByUserId: 'user-1',
+        createdAt: new Date('2026-01-01T00:00:00.000Z'),
+        updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+      },
+    ]);
+    prisma.transaction.findMany.mockResolvedValue([
+      {
+        id: 'transaction-1',
+        recurringTransactionId: 'recurring-1',
+        transactionDate: new Date('2026-03-25T00:00:00.000Z'),
+      },
+    ]);
+
+    const result = await service.executeMonthly('workspace-1', 'user-1', {
+      year: 2026,
+      month: 3,
+      dryRun: true,
+    });
+
+    expect(result.summary).toEqual({
+      candidateCount: 1,
+      createdCount: 0,
+      skippedCount: 1,
+    });
+    expect(result.items[0]).toMatchObject({
+      skipped: true,
+      skipReason: 'already_exists',
+    });
+    expect(prisma.transaction.create).not.toHaveBeenCalled();
   });
 });
