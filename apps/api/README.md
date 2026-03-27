@@ -39,6 +39,10 @@ pnpm run dev
 - Category create: `POST http://localhost:3000/api/v1/workspaces/:workspaceId/categories`
 - Category update: `PATCH http://localhost:3000/api/v1/workspaces/:workspaceId/categories/:categoryId`
 - Category archive: `DELETE http://localhost:3000/api/v1/workspaces/:workspaceId/categories/:categoryId`
+- Transaction create: `POST http://localhost:3000/api/v1/workspaces/:workspaceId/transactions`
+- Transaction list: `GET http://localhost:3000/api/v1/workspaces/:workspaceId/transactions`
+- Transaction detail: `GET http://localhost:3000/api/v1/workspaces/:workspaceId/transactions/:transactionId`
+- Transaction delete: `DELETE http://localhost:3000/api/v1/workspaces/:workspaceId/transactions/:transactionId`
 
 ## Useful Commands
 
