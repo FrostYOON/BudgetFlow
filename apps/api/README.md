@@ -43,6 +43,10 @@ pnpm run dev
 - Transaction list: `GET http://localhost:3000/api/v1/workspaces/:workspaceId/transactions`
 - Transaction detail: `GET http://localhost:3000/api/v1/workspaces/:workspaceId/transactions/:transactionId`
 - Transaction delete: `DELETE http://localhost:3000/api/v1/workspaces/:workspaceId/transactions/:transactionId`
+- Monthly budget upsert: `PUT http://localhost:3000/api/v1/workspaces/:workspaceId/budgets/:year/:month`
+- Monthly budget detail: `GET http://localhost:3000/api/v1/workspaces/:workspaceId/budgets/:year/:month`
+- Category budget replace: `PUT http://localhost:3000/api/v1/workspaces/:workspaceId/budgets/:year/:month/categories`
+- Category budget delete: `DELETE http://localhost:3000/api/v1/workspaces/:workspaceId/budgets/:year/:month/categories/:categoryId`
 
 ## Useful Commands
 
