@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import {
-  Prisma,
   RecurringExecutionRun,
   RecurringExecutionRunStatus,
   RecurringExecutionTriggerType,
@@ -12,18 +11,10 @@ import { RecurringExecutionRunResponseDto } from '../dto/recurring-execution-run
 import { RerunRecurringTransactionsRequestDto } from '../dto/rerun-recurring-transactions-request.dto';
 import { RerunRecurringTransactionsResponseDto } from '../dto/rerun-recurring-transactions-response.dto';
 import { RecurringTransactionsService } from './recurring-transactions.service';
-
-type RecurringExecutionRunWithInitiator =
-  Prisma.RecurringExecutionRunGetPayload<{
-    include: {
-      initiatedBy: {
-        select: {
-          id: true;
-          name: true;
-        };
-      };
-    };
-  }>;
+import {
+  RecurringExecutionRunWithInitiator,
+  toRecurringExecutionRunResponse,
+} from '../utils/to-recurring-execution-run-response.util';
 
 @Injectable()
 export class RecurringTransactionExecutionRunsService {
@@ -56,7 +47,7 @@ export class RecurringTransactionExecutionRunsService {
       take: limit,
     });
 
-    return runs.map((run) => this.toRunResponse(run));
+    return runs.map((run) => toRecurringExecutionRunResponse(run));
   }
 
   async rerunForDate(
@@ -98,7 +89,7 @@ export class RecurringTransactionExecutionRunsService {
       const completedRun = await this.completeRun(run.id, result);
 
       return {
-        run: this.toRunResponse(completedRun),
+        run: toRecurringExecutionRunResponse(completedRun),
         result,
       };
     } catch (error) {
@@ -130,13 +121,13 @@ export class RecurringTransactionExecutionRunsService {
         );
 
       const completedRun = await this.completeRun(run.id, result);
-      return this.toRunResponse(completedRun);
+      return toRecurringExecutionRunResponse(completedRun);
     } catch (error) {
       const failedRun = await this.failRun(
         run.id,
         error instanceof Error ? error.message : 'Unknown execution error.',
       );
-      return this.toRunResponse(failedRun);
+      return toRecurringExecutionRunResponse(failedRun);
     }
   }
 
@@ -214,25 +205,5 @@ export class RecurringTransactionExecutionRunsService {
     return new Date(
       Date.UTC(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate()),
     );
-  }
-
-  private toRunResponse(
-    run: RecurringExecutionRunWithInitiator,
-  ): RecurringExecutionRunResponseDto {
-    return {
-      id: run.id,
-      workspaceId: run.workspaceId,
-      triggerType: run.triggerType,
-      status: run.status,
-      targetDate: run.targetDate.toISOString().slice(0, 10),
-      initiatedByUserId: run.initiatedByUserId,
-      initiatedByUserName: run.initiatedBy?.name ?? null,
-      candidateCount: run.candidateCount ?? null,
-      createdCount: run.createdCount ?? null,
-      skippedCount: run.skippedCount ?? null,
-      errorMessage: run.errorMessage,
-      startedAt: run.startedAt.toISOString(),
-      finishedAt: run.finishedAt?.toISOString() ?? null,
-    };
   }
 }

@@ -53,6 +53,7 @@ Recurring transaction automation runs on a scheduler and evaluates each workspac
 - Dashboard summary: `GET http://localhost:3000/api/v1/workspaces/:workspaceId/dashboard?year=2026&month=3`
 - Recurring transaction create: `POST http://localhost:3000/api/v1/workspaces/:workspaceId/recurring-transactions`
 - Recurring transaction list: `GET http://localhost:3000/api/v1/workspaces/:workspaceId/recurring-transactions`
+- Recurring ops summary: `GET http://localhost:3000/api/v1/workspaces/:workspaceId/recurring-transactions/ops`
 - Recurring transaction execute: `POST http://localhost:3000/api/v1/workspaces/:workspaceId/recurring-transactions/execute`
 - Recurring execution runs: `GET http://localhost:3000/api/v1/workspaces/:workspaceId/recurring-transactions/execution-runs`
 - Recurring execution rerun: `POST http://localhost:3000/api/v1/workspaces/:workspaceId/recurring-transactions/execution-runs/rerun`

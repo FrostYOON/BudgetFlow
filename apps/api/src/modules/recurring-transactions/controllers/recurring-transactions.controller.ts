@@ -25,12 +25,14 @@ import { ExecuteRecurringTransactionsRequestDto } from '../dto/execute-recurring
 import { ExecuteRecurringTransactionsResponseDto } from '../dto/execute-recurring-transactions-response.dto';
 import { ListRecurringExecutionRunsQueryDto } from '../dto/list-recurring-execution-runs-query.dto';
 import { ListRecurringTransactionsQueryDto } from '../dto/list-recurring-transactions-query.dto';
+import { RecurringOpsSummaryResponseDto } from '../dto/recurring-ops-summary-response.dto';
 import { RecurringTransactionResponseDto } from '../dto/recurring-transaction-response.dto';
 import { RecurringExecutionRunResponseDto } from '../dto/recurring-execution-run-response.dto';
 import { RerunRecurringTransactionsRequestDto } from '../dto/rerun-recurring-transactions-request.dto';
 import { RerunRecurringTransactionsResponseDto } from '../dto/rerun-recurring-transactions-response.dto';
 import { UpdateRecurringTransactionRequestDto } from '../dto/update-recurring-transaction-request.dto';
 import { RecurringTransactionExecutionRunsService } from '../services/recurring-transaction-execution-runs.service';
+import { RecurringTransactionOpsService } from '../services/recurring-transaction-ops.service';
 import { RecurringTransactionsService } from '../services/recurring-transactions.service';
 
 @ApiTags('Recurring Transactions')
@@ -41,6 +43,7 @@ export class RecurringTransactionsController {
   constructor(
     private readonly recurringTransactionsService: RecurringTransactionsService,
     private readonly recurringTransactionExecutionRunsService: RecurringTransactionExecutionRunsService,
+    private readonly recurringTransactionOpsService: RecurringTransactionOpsService,
   ) {}
 
   @Post()
@@ -71,6 +74,19 @@ export class RecurringTransactionsController {
       workspaceId,
       user.userId,
       query,
+    );
+  }
+
+  @Get('ops')
+  @ApiOperation({ summary: 'Get recurring automation operations summary' })
+  @ApiOkResponse({ type: RecurringOpsSummaryResponseDto })
+  getOpsSummary(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('workspaceId', new ParseUUIDPipe()) workspaceId: string,
+  ): Promise<RecurringOpsSummaryResponseDto> {
+    return this.recurringTransactionOpsService.getOpsSummary(
+      workspaceId,
+      user.userId,
     );
   }
 
