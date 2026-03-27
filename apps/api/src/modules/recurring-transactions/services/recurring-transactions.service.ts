@@ -7,11 +7,18 @@ import {
   Prisma,
   RecurringRepeatUnit,
   RecurringTransaction,
+  Transaction,
   WorkspaceMemberStatus,
 } from '@budgetflow/database';
+import { getMonthRange } from '../../../common/utils/month-range.util';
 import { PrismaService } from '../../../core/database/prisma.service';
 import { WorkspacesService } from '../../workspaces/services/workspaces.service';
 import { CreateRecurringTransactionRequestDto } from '../dto/create-recurring-transaction-request.dto';
+import { ExecuteRecurringTransactionsRequestDto } from '../dto/execute-recurring-transactions-request.dto';
+import {
+  ExecuteRecurringTransactionsResponseDto,
+  ExecutedRecurringTransactionItemDto,
+} from '../dto/execute-recurring-transactions-response.dto';
 import { ListRecurringTransactionsQueryDto } from '../dto/list-recurring-transactions-query.dto';
 import { RecurringTransactionResponseDto } from '../dto/recurring-transaction-response.dto';
 import { UpdateRecurringTransactionRequestDto } from '../dto/update-recurring-transaction-request.dto';
@@ -20,6 +27,12 @@ type RecurringTransactionWithRelations = Prisma.RecurringTransactionGetPayload<{
   include: {
     category: true;
     paidBy: true;
+  };
+}>;
+
+type RecurringTransactionForExecution = Prisma.RecurringTransactionGetPayload<{
+  include: {
+    category: true;
   };
 }>;
 
@@ -176,6 +189,163 @@ export class RecurringTransactionsService {
     });
 
     return this.toResponse(recurringTransaction);
+  }
+
+  async executeMonthly(
+    workspaceId: string,
+    userId: string,
+    input: ExecuteRecurringTransactionsRequestDto,
+  ): Promise<ExecuteRecurringTransactionsResponseDto> {
+    await this.workspacesService.assertMemberAccess(workspaceId, userId);
+
+    const { start, endInclusive, endExclusive } = getMonthRange(
+      input.year,
+      input.month,
+    );
+    const dryRun = input.dryRun ?? false;
+
+    const recurringTransactions =
+      await this.prisma.recurringTransaction.findMany({
+        where: {
+          workspaceId,
+          isActive: true,
+          startDate: {
+            lte: endInclusive,
+          },
+          OR: [
+            {
+              endDate: null,
+            },
+            {
+              endDate: {
+                gte: start,
+              },
+            },
+          ],
+        },
+        include: {
+          category: true,
+        },
+        orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+      });
+
+    const candidateOccurrences = recurringTransactions.flatMap((item) =>
+      this.computeOccurrenceDatesInMonth(item, start, endInclusive).map(
+        (transactionDate) => ({
+          recurringTransaction: item,
+          transactionDate,
+        }),
+      ),
+    );
+
+    if (!candidateOccurrences.length) {
+      return {
+        year: input.year,
+        month: input.month,
+        dryRun,
+        summary: {
+          candidateCount: 0,
+          createdCount: 0,
+          skippedCount: 0,
+        },
+        items: [],
+      };
+    }
+
+    const existingTransactions = await this.prisma.transaction.findMany({
+      where: {
+        workspaceId,
+        recurringTransactionId: {
+          in: [
+            ...new Set(
+              candidateOccurrences.map((item) => item.recurringTransaction.id),
+            ),
+          ],
+        },
+        transactionDate: {
+          gte: start,
+          lt: endExclusive,
+        },
+      },
+      select: {
+        id: true,
+        recurringTransactionId: true,
+        transactionDate: true,
+      },
+    });
+
+    const existingKeys = new Set(
+      existingTransactions.map((transaction) =>
+        this.toOccurrenceKey(
+          transaction.recurringTransactionId!,
+          transaction.transactionDate,
+        ),
+      ),
+    );
+
+    const items: ExecutedRecurringTransactionItemDto[] = [];
+
+    for (const occurrence of candidateOccurrences) {
+      const occurrenceKey = this.toOccurrenceKey(
+        occurrence.recurringTransaction.id,
+        occurrence.transactionDate,
+      );
+
+      if (existingKeys.has(occurrenceKey)) {
+        items.push({
+          recurringTransactionId: occurrence.recurringTransaction.id,
+          transactionId: null,
+          transactionDate: this.toDateString(occurrence.transactionDate),
+          memo: occurrence.recurringTransaction.memo,
+          amount: occurrence.recurringTransaction.amount.toFixed(2),
+          skipped: true,
+          skipReason: 'already_exists',
+        });
+        continue;
+      }
+
+      if (dryRun) {
+        items.push({
+          recurringTransactionId: occurrence.recurringTransaction.id,
+          transactionId: null,
+          transactionDate: this.toDateString(occurrence.transactionDate),
+          memo: occurrence.recurringTransaction.memo,
+          amount: occurrence.recurringTransaction.amount.toFixed(2),
+          skipped: false,
+          skipReason: null,
+        });
+        continue;
+      }
+
+      const transaction = await this.createGeneratedTransaction(
+        occurrence.recurringTransaction,
+        occurrence.transactionDate,
+        userId,
+      );
+
+      existingKeys.add(occurrenceKey);
+      items.push({
+        recurringTransactionId: occurrence.recurringTransaction.id,
+        transactionId: transaction.id,
+        transactionDate: this.toDateString(transaction.transactionDate),
+        memo: transaction.memo,
+        amount: transaction.amount.toFixed(2),
+        skipped: false,
+        skipReason: null,
+      });
+    }
+
+    return {
+      year: input.year,
+      month: input.month,
+      dryRun,
+      summary: {
+        candidateCount: items.length,
+        createdCount: items.filter((item) => !item.skipped).length,
+        skippedCount: items.filter((item) => item.skipped).length,
+      },
+      items,
+    };
   }
 
   async deactivate(
@@ -371,5 +541,195 @@ export class RecurringTransactionsService {
       createdAt: recurringTransaction.createdAt.toISOString(),
       updatedAt: recurringTransaction.updatedAt.toISOString(),
     };
+  }
+
+  private async createGeneratedTransaction(
+    recurringTransaction: RecurringTransactionForExecution,
+    transactionDate: Date,
+    createdByUserId: string,
+  ): Promise<Transaction> {
+    return this.prisma.transaction.create({
+      data: {
+        workspaceId: recurringTransaction.workspaceId,
+        categoryId: recurringTransaction.categoryId ?? null,
+        type: recurringTransaction.type,
+        visibility: recurringTransaction.visibility,
+        amount: recurringTransaction.amount,
+        currency: recurringTransaction.currency,
+        transactionDate,
+        memo: recurringTransaction.memo,
+        createdByUserId,
+        paidByUserId: recurringTransaction.paidByUserId ?? null,
+        recurringTransactionId: recurringTransaction.id,
+      },
+    });
+  }
+
+  private computeOccurrenceDatesInMonth(
+    recurringTransaction: RecurringTransactionForExecution,
+    monthStart: Date,
+    monthEndInclusive: Date,
+  ): Date[] {
+    const startDate = this.stripTime(recurringTransaction.startDate);
+    const endDate = recurringTransaction.endDate
+      ? this.stripTime(recurringTransaction.endDate)
+      : null;
+    const rangeStart =
+      startDate > monthStart ? startDate : this.stripTime(monthStart);
+    const rangeEnd =
+      endDate && endDate < monthEndInclusive ? endDate : monthEndInclusive;
+
+    if (rangeStart > rangeEnd) {
+      return [];
+    }
+
+    switch (recurringTransaction.repeatUnit) {
+      case RecurringRepeatUnit.WEEKLY:
+        return this.computeWeeklyOccurrences(
+          recurringTransaction,
+          rangeStart,
+          rangeEnd,
+        );
+      case RecurringRepeatUnit.MONTHLY:
+        return this.computeMonthlyOccurrences(
+          recurringTransaction,
+          rangeStart,
+          rangeEnd,
+        );
+      case RecurringRepeatUnit.YEARLY:
+        return this.computeYearlyOccurrences(
+          recurringTransaction,
+          rangeStart,
+          rangeEnd,
+        );
+      default:
+        return [];
+    }
+  }
+
+  private computeWeeklyOccurrences(
+    recurringTransaction: RecurringTransactionForExecution,
+    rangeStart: Date,
+    rangeEnd: Date,
+  ): Date[] {
+    if (recurringTransaction.dayOfWeek === null) {
+      return [];
+    }
+
+    const dates: Date[] = [];
+    const candidate = new Date(rangeStart);
+
+    while (candidate <= rangeEnd) {
+      if (candidate.getUTCDay() === recurringTransaction.dayOfWeek) {
+        const diffDays = Math.floor(
+          (candidate.getTime() -
+            this.stripTime(recurringTransaction.startDate).getTime()) /
+            86_400_000,
+        );
+        const weekIndex = Math.floor(diffDays / 7);
+
+        if (
+          weekIndex >= 0 &&
+          weekIndex % recurringTransaction.repeatInterval === 0
+        ) {
+          dates.push(new Date(candidate));
+        }
+      }
+
+      candidate.setUTCDate(candidate.getUTCDate() + 1);
+    }
+
+    return dates;
+  }
+
+  private computeMonthlyOccurrences(
+    recurringTransaction: RecurringTransactionForExecution,
+    rangeStart: Date,
+    rangeEnd: Date,
+  ): Date[] {
+    if (recurringTransaction.dayOfMonth === null) {
+      return [];
+    }
+
+    const candidate = new Date(
+      Date.UTC(
+        rangeStart.getUTCFullYear(),
+        rangeStart.getUTCMonth(),
+        Math.min(recurringTransaction.dayOfMonth, this.daysInMonth(rangeStart)),
+      ),
+    );
+
+    if (candidate < rangeStart || candidate > rangeEnd) {
+      return [];
+    }
+
+    const monthDiff =
+      (candidate.getUTCFullYear() -
+        recurringTransaction.startDate.getUTCFullYear()) *
+        12 +
+      (candidate.getUTCMonth() - recurringTransaction.startDate.getUTCMonth());
+
+    if (
+      monthDiff < 0 ||
+      monthDiff % recurringTransaction.repeatInterval !== 0
+    ) {
+      return [];
+    }
+
+    return [candidate];
+  }
+
+  private computeYearlyOccurrences(
+    recurringTransaction: RecurringTransactionForExecution,
+    rangeStart: Date,
+    rangeEnd: Date,
+  ): Date[] {
+    const startDate = this.stripTime(recurringTransaction.startDate);
+    const candidate = new Date(
+      Date.UTC(
+        rangeStart.getUTCFullYear(),
+        startDate.getUTCMonth(),
+        Math.min(
+          startDate.getUTCDate(),
+          this.daysInMonth(rangeStart, startDate.getUTCMonth()),
+        ),
+      ),
+    );
+
+    if (candidate < rangeStart || candidate > rangeEnd) {
+      return [];
+    }
+
+    const yearDiff = candidate.getUTCFullYear() - startDate.getUTCFullYear();
+    if (yearDiff < 0 || yearDiff % recurringTransaction.repeatInterval !== 0) {
+      return [];
+    }
+
+    return [candidate];
+  }
+
+  private stripTime(date: Date): Date {
+    return new Date(
+      Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
+    );
+  }
+
+  private daysInMonth(date: Date, monthOverride?: number): number {
+    const year = date.getUTCFullYear();
+    const month =
+      monthOverride !== undefined ? monthOverride : date.getUTCMonth();
+
+    return new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+  }
+
+  private toOccurrenceKey(
+    recurringTransactionId: string,
+    transactionDate: Date,
+  ): string {
+    return `${recurringTransactionId}:${this.toDateString(transactionDate)}`;
+  }
+
+  private toDateString(date: Date): string {
+    return date.toISOString().slice(0, 10);
   }
 }

@@ -21,6 +21,8 @@ import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../../../common/interfaces/authenticated-request.interface';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CreateRecurringTransactionRequestDto } from '../dto/create-recurring-transaction-request.dto';
+import { ExecuteRecurringTransactionsRequestDto } from '../dto/execute-recurring-transactions-request.dto';
+import { ExecuteRecurringTransactionsResponseDto } from '../dto/execute-recurring-transactions-response.dto';
 import { ListRecurringTransactionsQueryDto } from '../dto/list-recurring-transactions-query.dto';
 import { RecurringTransactionResponseDto } from '../dto/recurring-transaction-response.dto';
 import { UpdateRecurringTransactionRequestDto } from '../dto/update-recurring-transaction-request.dto';
@@ -63,6 +65,22 @@ export class RecurringTransactionsController {
       workspaceId,
       user.userId,
       query,
+    );
+  }
+
+  @Post('execute')
+  @ApiOperation({ summary: 'Execute recurring transactions for a month' })
+  @ApiBody({ type: ExecuteRecurringTransactionsRequestDto })
+  @ApiOkResponse({ type: ExecuteRecurringTransactionsResponseDto })
+  execute(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('workspaceId', new ParseUUIDPipe()) workspaceId: string,
+    @Body() input: ExecuteRecurringTransactionsRequestDto,
+  ): Promise<ExecuteRecurringTransactionsResponseDto> {
+    return this.recurringTransactionsService.executeMonthly(
+      workspaceId,
+      user.userId,
+      input,
     );
   }
 
