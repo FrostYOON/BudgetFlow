@@ -204,38 +204,10 @@ export class RecurringTransactionsService {
     );
     const dryRun = input.dryRun ?? false;
 
-    const recurringTransactions =
-      await this.prisma.recurringTransaction.findMany({
-        where: {
-          workspaceId,
-          isActive: true,
-          startDate: {
-            lte: endInclusive,
-          },
-          OR: [
-            {
-              endDate: null,
-            },
-            {
-              endDate: {
-                gte: start,
-              },
-            },
-          ],
-        },
-        include: {
-          category: true,
-        },
-        orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
-      });
-
-    const candidateOccurrences = recurringTransactions.flatMap((item) =>
-      this.computeOccurrenceDatesInMonth(item, start, endInclusive).map(
-        (transactionDate) => ({
-          recurringTransaction: item,
-          transactionDate,
-        }),
-      ),
+    const candidateOccurrences = await this.findCandidateOccurrences(
+      workspaceId,
+      start,
+      endInclusive,
     );
 
     if (!candidateOccurrences.length) {
@@ -252,93 +224,57 @@ export class RecurringTransactionsService {
       };
     }
 
-    const existingTransactions = await this.prisma.transaction.findMany({
-      where: {
-        workspaceId,
-        recurringTransactionId: {
-          in: [
-            ...new Set(
-              candidateOccurrences.map((item) => item.recurringTransaction.id),
-            ),
-          ],
-        },
-        transactionDate: {
-          gte: start,
-          lt: endExclusive,
-        },
-      },
-      select: {
-        id: true,
-        recurringTransactionId: true,
-        transactionDate: true,
-      },
-    });
-
-    const existingKeys = new Set(
-      existingTransactions.map((transaction) =>
-        this.toOccurrenceKey(
-          transaction.recurringTransactionId!,
-          transaction.transactionDate,
-        ),
-      ),
+    const items = await this.executeCandidateOccurrences(
+      workspaceId,
+      candidateOccurrences,
+      start,
+      endExclusive,
+      dryRun,
+      () => userId,
     );
-
-    const items: ExecutedRecurringTransactionItemDto[] = [];
-
-    for (const occurrence of candidateOccurrences) {
-      const occurrenceKey = this.toOccurrenceKey(
-        occurrence.recurringTransaction.id,
-        occurrence.transactionDate,
-      );
-
-      if (existingKeys.has(occurrenceKey)) {
-        items.push({
-          recurringTransactionId: occurrence.recurringTransaction.id,
-          transactionId: null,
-          transactionDate: this.toDateString(occurrence.transactionDate),
-          memo: occurrence.recurringTransaction.memo,
-          amount: occurrence.recurringTransaction.amount.toFixed(2),
-          skipped: true,
-          skipReason: 'already_exists',
-        });
-        continue;
-      }
-
-      if (dryRun) {
-        items.push({
-          recurringTransactionId: occurrence.recurringTransaction.id,
-          transactionId: null,
-          transactionDate: this.toDateString(occurrence.transactionDate),
-          memo: occurrence.recurringTransaction.memo,
-          amount: occurrence.recurringTransaction.amount.toFixed(2),
-          skipped: false,
-          skipReason: null,
-        });
-        continue;
-      }
-
-      const transaction = await this.createGeneratedTransaction(
-        occurrence.recurringTransaction,
-        occurrence.transactionDate,
-        userId,
-      );
-
-      existingKeys.add(occurrenceKey);
-      items.push({
-        recurringTransactionId: occurrence.recurringTransaction.id,
-        transactionId: transaction.id,
-        transactionDate: this.toDateString(transaction.transactionDate),
-        memo: transaction.memo,
-        amount: transaction.amount.toFixed(2),
-        skipped: false,
-        skipReason: null,
-      });
-    }
 
     return {
       year: input.year,
       month: input.month,
       dryRun,
+      summary: {
+        candidateCount: items.length,
+        createdCount: items.filter((item) => !item.skipped).length,
+        skippedCount: items.filter((item) => item.skipped).length,
+      },
+      items,
+    };
+  }
+
+  async executeAutomaticDaily(
+    workspaceId: string,
+    executionDate: Date,
+  ): Promise<ExecuteRecurringTransactionsResponseDto> {
+    const targetDate = this.stripTime(executionDate);
+    const endExclusive = new Date(targetDate);
+    endExclusive.setUTCDate(endExclusive.getUTCDate() + 1);
+
+    const candidateOccurrences = (
+      await this.findCandidateOccurrences(workspaceId, targetDate, targetDate)
+    ).filter(
+      (occurrence) =>
+        this.toDateString(occurrence.transactionDate) ===
+        this.toDateString(targetDate),
+    );
+
+    const items = await this.executeCandidateOccurrences(
+      workspaceId,
+      candidateOccurrences,
+      targetDate,
+      endExclusive,
+      false,
+      (occurrence) => occurrence.recurringTransaction.createdByUserId,
+    );
+
+    return {
+      year: targetDate.getUTCFullYear(),
+      month: targetDate.getUTCMonth() + 1,
+      dryRun: false,
       summary: {
         candidateCount: items.length,
         createdCount: items.filter((item) => !item.skipped).length,
@@ -563,6 +499,157 @@ export class RecurringTransactionsService {
         recurringTransactionId: recurringTransaction.id,
       },
     });
+  }
+
+  private async findCandidateOccurrences(
+    workspaceId: string,
+    rangeStart: Date,
+    rangeEndInclusive: Date,
+  ): Promise<
+    Array<{
+      recurringTransaction: RecurringTransactionForExecution;
+      transactionDate: Date;
+    }>
+  > {
+    const recurringTransactions =
+      await this.prisma.recurringTransaction.findMany({
+        where: {
+          workspaceId,
+          isActive: true,
+          startDate: {
+            lte: rangeEndInclusive,
+          },
+          OR: [
+            {
+              endDate: null,
+            },
+            {
+              endDate: {
+                gte: rangeStart,
+              },
+            },
+          ],
+        },
+        include: {
+          category: true,
+        },
+        orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+      });
+
+    return recurringTransactions.flatMap((item) =>
+      this.computeOccurrenceDatesInMonth(
+        item,
+        rangeStart,
+        rangeEndInclusive,
+      ).map((transactionDate) => ({
+        recurringTransaction: item,
+        transactionDate,
+      })),
+    );
+  }
+
+  private async executeCandidateOccurrences(
+    workspaceId: string,
+    candidateOccurrences: Array<{
+      recurringTransaction: RecurringTransactionForExecution;
+      transactionDate: Date;
+    }>,
+    rangeStart: Date,
+    rangeEndExclusive: Date,
+    dryRun: boolean,
+    resolveCreatedByUserId: (occurrence: {
+      recurringTransaction: RecurringTransactionForExecution;
+      transactionDate: Date;
+    }) => string,
+  ): Promise<ExecutedRecurringTransactionItemDto[]> {
+    if (!candidateOccurrences.length) {
+      return [];
+    }
+
+    const existingTransactions = await this.prisma.transaction.findMany({
+      where: {
+        workspaceId,
+        recurringTransactionId: {
+          in: [
+            ...new Set(
+              candidateOccurrences.map((item) => item.recurringTransaction.id),
+            ),
+          ],
+        },
+        transactionDate: {
+          gte: rangeStart,
+          lt: rangeEndExclusive,
+        },
+      },
+      select: {
+        id: true,
+        recurringTransactionId: true,
+        transactionDate: true,
+      },
+    });
+
+    const existingKeys = new Set(
+      existingTransactions.map((transaction) =>
+        this.toOccurrenceKey(
+          transaction.recurringTransactionId!,
+          transaction.transactionDate,
+        ),
+      ),
+    );
+
+    const items: ExecutedRecurringTransactionItemDto[] = [];
+
+    for (const occurrence of candidateOccurrences) {
+      const occurrenceKey = this.toOccurrenceKey(
+        occurrence.recurringTransaction.id,
+        occurrence.transactionDate,
+      );
+
+      if (existingKeys.has(occurrenceKey)) {
+        items.push({
+          recurringTransactionId: occurrence.recurringTransaction.id,
+          transactionId: null,
+          transactionDate: this.toDateString(occurrence.transactionDate),
+          memo: occurrence.recurringTransaction.memo,
+          amount: occurrence.recurringTransaction.amount.toFixed(2),
+          skipped: true,
+          skipReason: 'already_exists',
+        });
+        continue;
+      }
+
+      if (dryRun) {
+        items.push({
+          recurringTransactionId: occurrence.recurringTransaction.id,
+          transactionId: null,
+          transactionDate: this.toDateString(occurrence.transactionDate),
+          memo: occurrence.recurringTransaction.memo,
+          amount: occurrence.recurringTransaction.amount.toFixed(2),
+          skipped: false,
+          skipReason: null,
+        });
+        continue;
+      }
+
+      const transaction = await this.createGeneratedTransaction(
+        occurrence.recurringTransaction,
+        occurrence.transactionDate,
+        resolveCreatedByUserId(occurrence),
+      );
+
+      existingKeys.add(occurrenceKey);
+      items.push({
+        recurringTransactionId: occurrence.recurringTransaction.id,
+        transactionId: transaction.id,
+        transactionDate: this.toDateString(transaction.transactionDate),
+        memo: transaction.memo,
+        amount: transaction.amount.toFixed(2),
+        skipped: false,
+        skipReason: null,
+      });
+    }
+
+    return items;
   }
 
   private computeOccurrenceDatesInMonth(

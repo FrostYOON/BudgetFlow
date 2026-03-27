@@ -96,4 +96,16 @@ export class AppConfigService {
   get passwordHashSaltRounds(): number {
     return Number(process.env.PASSWORD_HASH_SALT_ROUNDS ?? 10);
   }
+
+  get recurringExecutionSchedulerEnabled(): boolean {
+    return (
+      (
+        process.env.RECURRING_EXECUTION_SCHEDULER_ENABLED ?? 'true'
+      ).toLowerCase() === 'true'
+    );
+  }
+
+  get recurringExecutionCron(): string {
+    return process.env.RECURRING_EXECUTION_CRON ?? '5,20,35,50 * * * *';
+  }
 }

@@ -17,6 +17,8 @@ pnpm prisma:generate
 pnpm run dev
 ```
 
+Recurring transaction automation runs on a scheduler and evaluates each workspace in its own timezone. The default cron checks every 15 minutes in UTC and only executes workspaces whose local time is in the first 15 minutes after midnight.
+
 ## API Endpoints
 
 - App base URL: `http://localhost:3000`

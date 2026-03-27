@@ -386,4 +386,82 @@ describe('RecurringTransactionsService', () => {
     });
     expect(prisma.transaction.create).not.toHaveBeenCalled();
   });
+
+  it('executeAutomaticDaily should create only occurrences due on the target day', async () => {
+    prisma.recurringTransaction.findMany.mockResolvedValue([
+      {
+        id: 'recurring-1',
+        workspaceId: 'workspace-1',
+        type: TransactionType.EXPENSE,
+        visibility: TransactionVisibility.SHARED,
+        amount: new Prisma.Decimal('55000.00'),
+        currency: 'KRW',
+        categoryId: null,
+        category: null,
+        memo: 'Netflix',
+        paidByUserId: 'user-1',
+        repeatUnit: RecurringRepeatUnit.MONTHLY,
+        repeatInterval: 1,
+        dayOfMonth: 25,
+        dayOfWeek: null,
+        startDate: new Date('2026-01-25T00:00:00.000Z'),
+        endDate: null,
+        isActive: true,
+        createdByUserId: 'owner-1',
+        createdAt: new Date('2026-01-01T00:00:00.000Z'),
+        updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+      },
+      {
+        id: 'recurring-2',
+        workspaceId: 'workspace-1',
+        type: TransactionType.EXPENSE,
+        visibility: TransactionVisibility.SHARED,
+        amount: new Prisma.Decimal('10000.00'),
+        currency: 'KRW',
+        categoryId: null,
+        category: null,
+        memo: 'Gym',
+        paidByUserId: 'user-1',
+        repeatUnit: RecurringRepeatUnit.WEEKLY,
+        repeatInterval: 1,
+        dayOfMonth: null,
+        dayOfWeek: 2,
+        startDate: new Date('2026-03-01T00:00:00.000Z'),
+        endDate: null,
+        isActive: true,
+        createdByUserId: 'owner-2',
+        createdAt: new Date('2026-03-01T00:00:00.000Z'),
+        updatedAt: new Date('2026-03-01T00:00:00.000Z'),
+      },
+    ]);
+    prisma.transaction.findMany.mockResolvedValue([]);
+    prisma.transaction.create.mockResolvedValue({
+      id: 'transaction-1',
+      transactionDate: new Date('2026-03-25T00:00:00.000Z'),
+      amount: new Prisma.Decimal('55000.00'),
+      memo: 'Netflix',
+    });
+
+    const result = await service.executeAutomaticDaily(
+      'workspace-1',
+      new Date('2026-03-25T00:00:00.000Z'),
+    );
+
+    expect(result.summary).toEqual({
+      candidateCount: 1,
+      createdCount: 1,
+      skippedCount: 0,
+    });
+    const createCalls = prisma.transaction.create.mock.calls as Array<
+      [
+        {
+          data: {
+            createdByUserId: string;
+          };
+        },
+      ]
+    >;
+
+    expect(createCalls[0]?.[0].data.createdByUserId).toBe('owner-1');
+  });
 });
