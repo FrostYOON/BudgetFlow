@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { InsightResponseDto } from '../../../common/dto/insight-response.dto';
 
 export class DashboardPeriodDto {
   @ApiProperty({ example: 2026 })
@@ -59,20 +60,6 @@ export class DashboardRecentTransactionDto {
   paidByName!: string | null;
 }
 
-export class DashboardInsightDto {
-  @ApiProperty()
-  id!: string;
-
-  @ApiProperty({ example: 'BUDGET_WARNING' })
-  type!: string;
-
-  @ApiProperty({ example: 'Groceries reached 70% of budget' })
-  title!: string;
-
-  @ApiProperty({ example: 'Spending is rising faster than last month.' })
-  body!: string;
-}
-
 export class DashboardResponseDto {
   @ApiProperty({ type: DashboardPeriodDto })
   period!: DashboardPeriodDto;
@@ -86,6 +73,6 @@ export class DashboardResponseDto {
   @ApiProperty({ type: [DashboardRecentTransactionDto] })
   recentTransactions!: DashboardRecentTransactionDto[];
 
-  @ApiProperty({ type: [DashboardInsightDto] })
-  insights!: DashboardInsightDto[];
+  @ApiProperty({ type: [InsightResponseDto] })
+  insights!: InsightResponseDto[];
 }

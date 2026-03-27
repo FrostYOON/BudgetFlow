@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { InsightResponseDto } from '../../../common/dto/insight-response.dto';
 
 export class MonthlyReportSummaryDto {
   @ApiProperty({ example: '3500000.00' })
@@ -109,4 +110,7 @@ export class MonthlyReportResponseDto {
 
   @ApiProperty({ type: [MonthlyReportRecurringUpcomingItemDto] })
   recurringUpcoming!: MonthlyReportRecurringUpcomingItemDto[];
+
+  @ApiProperty({ type: [InsightResponseDto] })
+  insights!: InsightResponseDto[];
 }

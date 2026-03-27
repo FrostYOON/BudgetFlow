@@ -4,7 +4,9 @@ import {
   TransactionType,
   TransactionVisibility,
 } from '@budgetflow/database';
+import { getMonthRange } from '../../../common/utils/month-range.util';
 import { PrismaService } from '../../../core/database/prisma.service';
+import { InsightsService } from '../../insights/services/insights.service';
 import { WorkspacesService } from '../../workspaces/services/workspaces.service';
 import { DashboardResponseDto } from '../dto/dashboard-response.dto';
 
@@ -20,6 +22,7 @@ export class DashboardService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly workspacesService: WorkspacesService,
+    private readonly insightsService: InsightsService,
   ) {}
 
   async getDashboard(
@@ -30,7 +33,7 @@ export class DashboardService {
   ): Promise<DashboardResponseDto> {
     await this.workspacesService.assertMemberAccess(workspaceId, userId);
 
-    const { start, endExclusive } = this.getMonthRange(year, month);
+    const { start, endExclusive } = getMonthRange(year, month);
 
     const [
       totalIncome,
@@ -40,6 +43,7 @@ export class DashboardService {
       monthBudget,
       topCategoryRows,
       recentTransactions,
+      insights,
     ] = await Promise.all([
       this.aggregateTransactionAmount(workspaceId, start, endExclusive, {
         type: TransactionType.INCOME,
@@ -107,6 +111,7 @@ export class DashboardService {
         orderBy: [{ transactionDate: 'desc' }, { createdAt: 'desc' }],
         take: 5,
       }),
+      this.insightsService.listMonthlyInsights(workspaceId, year, month),
     ]);
 
     const topCategoryIds = topCategoryRows
@@ -178,20 +183,7 @@ export class DashboardService {
         categoryName: transaction.category?.name ?? null,
         paidByName: transaction.paidBy?.name ?? null,
       })),
-      insights: [],
-    };
-  }
-
-  private getMonthRange(
-    year: number,
-    month: number,
-  ): {
-    start: Date;
-    endExclusive: Date;
-  } {
-    return {
-      start: new Date(Date.UTC(year, month - 1, 1)),
-      endExclusive: new Date(Date.UTC(year, month, 1)),
+      insights,
     };
   }
 
