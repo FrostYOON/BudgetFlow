@@ -1,9 +1,10 @@
+import { RecurringExecutionRunStatus } from '@budgetflow/database';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppConfigService } from '../../../core/config/app-config.service';
 import { PrismaService } from '../../../core/database/prisma.service';
 import { AppLoggerService } from '../../../core/logger/app-logger.service';
+import { RecurringTransactionExecutionRunsService } from './recurring-transaction-execution-runs.service';
 import { RecurringTransactionsSchedulerService } from './recurring-transactions-scheduler.service';
-import { RecurringTransactionsService } from './recurring-transactions.service';
 
 describe('RecurringTransactionsSchedulerService', () => {
   let service: RecurringTransactionsSchedulerService;
@@ -19,8 +20,8 @@ describe('RecurringTransactionsSchedulerService', () => {
     log: jest.Mock;
     error: jest.Mock;
   };
-  let recurringTransactionsService: {
-    executeAutomaticDaily: jest.Mock;
+  let recurringTransactionExecutionRunsService: {
+    runScheduledForDate: jest.Mock;
   };
 
   beforeEach(async () => {
@@ -36,8 +37,8 @@ describe('RecurringTransactionsSchedulerService', () => {
       log: jest.fn(),
       error: jest.fn(),
     };
-    recurringTransactionsService = {
-      executeAutomaticDaily: jest.fn(),
+    recurringTransactionExecutionRunsService = {
+      runScheduledForDate: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -56,8 +57,8 @@ describe('RecurringTransactionsSchedulerService', () => {
           useValue: logger,
         },
         {
-          provide: RecurringTransactionsService,
-          useValue: recurringTransactionsService,
+          provide: RecurringTransactionExecutionRunsService,
+          useValue: recurringTransactionExecutionRunsService,
         },
       ],
     }).compile();
@@ -78,22 +79,24 @@ describe('RecurringTransactionsSchedulerService', () => {
         timezone: 'Asia/Seoul',
       },
     ]);
-    recurringTransactionsService.executeAutomaticDaily.mockResolvedValue({
-      summary: {
+    recurringTransactionExecutionRunsService.runScheduledForDate.mockResolvedValue(
+      {
+        id: 'run-1',
+        status: RecurringExecutionRunStatus.SUCCESS,
         createdCount: 1,
         skippedCount: 0,
       },
-    });
+    );
 
     jest.useFakeTimers().setSystemTime(new Date('2026-03-27T00:05:00.000Z'));
 
     await service.handleRecurringExecution();
 
     expect(
-      recurringTransactionsService.executeAutomaticDaily,
+      recurringTransactionExecutionRunsService.runScheduledForDate,
     ).toHaveBeenCalledTimes(1);
     expect(
-      recurringTransactionsService.executeAutomaticDaily,
+      recurringTransactionExecutionRunsService.runScheduledForDate,
     ).toHaveBeenCalledWith('workspace-1', new Date('2026-03-27T00:00:00.000Z'));
 
     jest.useRealTimers();

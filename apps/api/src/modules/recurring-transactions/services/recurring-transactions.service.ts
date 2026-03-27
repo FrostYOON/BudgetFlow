@@ -249,6 +249,7 @@ export class RecurringTransactionsService {
   async executeAutomaticDaily(
     workspaceId: string,
     executionDate: Date,
+    dryRun = false,
   ): Promise<ExecuteRecurringTransactionsResponseDto> {
     const targetDate = this.stripTime(executionDate);
     const endExclusive = new Date(targetDate);
@@ -267,14 +268,14 @@ export class RecurringTransactionsService {
       candidateOccurrences,
       targetDate,
       endExclusive,
-      false,
+      dryRun,
       (occurrence) => occurrence.recurringTransaction.createdByUserId,
     );
 
     return {
       year: targetDate.getUTCFullYear(),
       month: targetDate.getUTCMonth() + 1,
-      dryRun: false,
+      dryRun,
       summary: {
         candidateCount: items.length,
         createdCount: items.filter((item) => !item.skipped).length,
