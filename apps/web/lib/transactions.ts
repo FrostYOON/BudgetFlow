@@ -23,8 +23,32 @@ export interface TransactionListResponse {
   nextCursor: string | null;
 }
 
+export interface TransactionCategory {
+  id: string;
+  workspaceId: string;
+  name: string;
+  type: "INCOME" | "EXPENSE";
+  color: string | null;
+  icon: string | null;
+  sortOrder: number;
+  isDefault: boolean;
+  isArchived: boolean;
+}
+
 function getApiBaseUrl() {
   return process.env.BUDGETFLOW_API_URL ?? "http://localhost:3000/api/v1";
+}
+
+async function readErrorMessage(response: Response, fallback: string) {
+  try {
+    const payload = (await response.json()) as { message?: string | string[] };
+    if (Array.isArray(payload.message)) {
+      return payload.message[0] ?? fallback;
+    }
+    return payload.message ?? fallback;
+  } catch {
+    return fallback;
+  }
 }
 
 export async function fetchWorkspaceTransactions(input: {
@@ -59,10 +83,103 @@ export async function fetchWorkspaceTransactions(input: {
   );
 
   if (!response.ok) {
-    throw new Error("Failed to load transactions.");
+    throw new Error(
+      await readErrorMessage(response, "Failed to load transactions."),
+    );
   }
 
   return (await response.json()) as TransactionListResponse;
+}
+
+export async function fetchWorkspaceCategories(input: {
+  accessToken: string;
+  workspaceId: string;
+}) {
+  const response = await fetch(
+    `${getApiBaseUrl()}/workspaces/${input.workspaceId}/categories`,
+    {
+      headers: {
+        Authorization: `Bearer ${input.accessToken}`,
+      },
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(response, "Failed to load categories."),
+    );
+  }
+
+  return (await response.json()) as TransactionCategory[];
+}
+
+export async function createWorkspaceTransaction(input: {
+  accessToken: string;
+  workspaceId: string;
+  type: "INCOME" | "EXPENSE";
+  visibility: "SHARED" | "PERSONAL";
+  amount: string;
+  currency: string;
+  transactionDate: string;
+  categoryId?: string;
+  memo?: string;
+  paidByUserId?: string;
+}) {
+  const response = await fetch(
+    `${getApiBaseUrl()}/workspaces/${input.workspaceId}/transactions`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${input.accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(input),
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(response, "Failed to create transaction."),
+    );
+  }
+
+  return response.json();
+}
+
+export async function updateWorkspaceTransaction(input: {
+  accessToken: string;
+  workspaceId: string;
+  transactionId: string;
+  visibility: "SHARED" | "PERSONAL";
+  amount: string;
+  currency: string;
+  transactionDate: string;
+  categoryId: string | null;
+  memo: string | null;
+  paidByUserId?: string;
+}) {
+  const response = await fetch(
+    `${getApiBaseUrl()}/workspaces/${input.workspaceId}/transactions/${input.transactionId}`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${input.accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(input),
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(response, "Failed to update transaction."),
+    );
+  }
+
+  return response.json();
 }
 
 export function formatCurrency(
