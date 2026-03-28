@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "node --env-file=.env.local ./node_modules/next/dist/bin/next dev",
+    "dev": "next dev --port 3001",
     "build": "next build --webpack",
-    "start": "node --env-file=.env.local ./node_modules/next/dist/bin/next start",
+    "start": "next start --port 3001",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
