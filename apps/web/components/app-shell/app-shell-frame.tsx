@@ -1,11 +1,11 @@
 import Link from "next/link";
-import type { PreviewSession } from "@/lib/auth/preview-session";
+import type { AppSession } from "@/lib/auth/session";
 import { AppSidebarNav } from "@/components/app-shell/app-sidebar-nav";
 import { WorkspaceSwitcher } from "@/components/app-shell/workspace-switcher";
 
 interface AppShellFrameProps {
   children: React.ReactNode;
-  session: PreviewSession;
+  session: AppSession;
 }
 
 export function AppShellFrame({ children, session }: AppShellFrameProps) {
@@ -36,9 +36,9 @@ export function AppShellFrame({ children, session }: AppShellFrameProps) {
           <div className="mt-6">
             <p className="text-sm font-medium text-slate-500">Signed in as</p>
             <p className="mt-2 text-base font-semibold text-slate-950">
-              {session.userName}
+              {session.user.name}
             </p>
-            <p className="text-sm text-slate-500">{session.email}</p>
+            <p className="text-sm text-slate-500">{session.user.email}</p>
           </div>
 
           <div className="mt-8">
@@ -46,7 +46,10 @@ export function AppShellFrame({ children, session }: AppShellFrameProps) {
           </div>
 
           <div className="mt-8">
-            <WorkspaceSwitcher currentWorkspace={session.workspace} />
+            <WorkspaceSwitcher
+              currentWorkspace={session.currentWorkspace}
+              workspaces={session.workspaces}
+            />
           </div>
         </aside>
 
@@ -55,11 +58,12 @@ export function AppShellFrame({ children, session }: AppShellFrameProps) {
             <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-500">
-                  {session.workspace.name}
+                  {session.currentWorkspace?.name ?? "No workspace selected"}
                 </p>
                 <p className="mt-1 text-sm text-slate-600">
-                  Protected workspace routes are active. Use this shell as the
-                  base for the next web issues.
+                  {session.currentWorkspace
+                    ? "Protected workspace routes are active. Use this shell as the base for the next web issues."
+                    : "Your account is authenticated. The next step is to create or join a household workspace."}
                 </p>
               </div>
               <div className="flex gap-3 text-sm">

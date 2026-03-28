@@ -18,6 +18,7 @@ pnpm install
 cp .env.example .env
 cp packages/database/.env.example packages/database/.env
 cp apps/api/.env.example apps/api/.env.local
+cp apps/web/.env.example apps/web/.env.local
 pnpm docker:start
 pnpm prisma:generate
 pnpm dev

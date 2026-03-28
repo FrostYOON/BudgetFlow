@@ -2,19 +2,35 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  PREVIEW_WORKSPACES,
-  type PreviewWorkspace,
-} from "@/lib/preview-workspaces";
+import type { WorkspaceSummary } from "@/lib/auth/types";
 
 interface WorkspaceSwitcherProps {
-  currentWorkspace: PreviewWorkspace;
+  currentWorkspace: WorkspaceSummary | null;
+  workspaces: WorkspaceSummary[];
 }
 
 export function WorkspaceSwitcher({
   currentWorkspace,
+  workspaces,
 }: WorkspaceSwitcherProps) {
   const pathname = usePathname();
+
+  if (workspaces.length === 0) {
+    return (
+      <section className="rounded-2xl border border-dashed border-slate-900/12 bg-slate-50/70 p-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+          Workspace
+        </p>
+        <h2 className="mt-3 text-base font-semibold text-slate-950">
+          No household workspace yet
+        </h2>
+        <p className="mt-2 text-sm leading-6 text-slate-600">
+          Authentication is now real. The next onboarding step should create a
+          workspace or accept an invite.
+        </p>
+      </section>
+    );
+  }
 
   return (
     <section className="rounded-2xl border border-slate-900/8 bg-slate-50/80 p-4">
@@ -24,25 +40,25 @@ export function WorkspaceSwitcher({
             Workspace
           </p>
           <h2 className="mt-2 text-base font-semibold text-slate-950">
-            {currentWorkspace.name}
+            {currentWorkspace?.name}
           </h2>
           <p className="mt-1 text-sm text-slate-500">
-            {currentWorkspace.roleLabel} · {currentWorkspace.memberLabel}
+            {currentWorkspace?.memberRole} · {currentWorkspace?.timezone}
           </p>
         </div>
         <div className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
-          {currentWorkspace.budgetLabel}
+          {currentWorkspace?.baseCurrency}
         </div>
       </div>
 
       <div className="mt-5 grid gap-2">
-        {PREVIEW_WORKSPACES.map((workspace) => {
-          const isCurrent = workspace.id === currentWorkspace.id;
+        {workspaces.map((workspace) => {
+          const isCurrent = workspace.id === currentWorkspace?.id;
 
           return (
             <Link
               key={workspace.id}
-              href={`/auth/preview-session?workspaceId=${workspace.id}&redirectTo=${encodeURIComponent(
+              href={`/auth/select-workspace?workspaceId=${workspace.id}&redirectTo=${encodeURIComponent(
                 pathname,
               )}`}
               className={`rounded-xl px-3 py-3 text-sm transition ${
@@ -52,7 +68,10 @@ export function WorkspaceSwitcher({
               }`}
             >
               <p className="font-semibold">{workspace.name}</p>
-              <p className="mt-1 text-xs text-slate-500">{workspace.summary}</p>
+              <p className="mt-1 text-xs text-slate-500">
+                {workspace.memberRole} · {workspace.type} ·{" "}
+                {workspace.baseCurrency}
+              </p>
             </Link>
           );
         })}
