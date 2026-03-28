@@ -1,11 +1,11 @@
 import Link from "next/link";
+
 export default async function SignInPage({
   searchParams,
 }: {
   searchParams: Promise<{ error?: string; next?: string }>;
 }) {
   const params = await searchParams;
-  const error = params.error;
   const next = params.next ?? "/app/dashboard";
 
   return (
@@ -20,31 +20,25 @@ export default async function SignInPage({
               BudgetFlow
             </Link>
             <h1 className="mt-8 max-w-2xl text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
-              Sign in with your actual BudgetFlow account.
+              Sign in to BudgetFlow.
             </h1>
             <p className="mt-5 max-w-xl text-base leading-7 text-slate-300">
-              This screen now posts to the real Nest auth API. On success, the
-              web app stores its own auth cookies and enters the protected app
-              shell.
+              Shared budgeting for couples and families.
             </p>
           </div>
 
           <div className="grid gap-4 border-t border-white/10 pt-8 text-sm text-slate-300 sm:grid-cols-3">
             <div>
-              <p className="font-semibold text-white">Real auth</p>
-              <p className="mt-1">
-                Sign-in calls the live `/auth/sign-in` API.
-              </p>
+              <p className="font-semibold text-white">Track together</p>
+              <p className="mt-1">Household spending in one workspace.</p>
             </div>
             <div>
-              <p className="font-semibold text-white">Cookie session</p>
-              <p className="mt-1">
-                Access and refresh cookies are stored on web.
-              </p>
+              <p className="font-semibold text-white">Budget clearly</p>
+              <p className="mt-1">Monthly budgets and recurring spend.</p>
             </div>
             <div>
-              <p className="font-semibold text-white">Protected shell</p>
-              <p className="mt-1">Successful sign-in redirects into `/app`.</p>
+              <p className="font-semibold text-white">Stay synced</p>
+              <p className="mt-1">Live dashboard and shared visibility.</p>
             </div>
           </div>
         </section>
@@ -58,20 +52,9 @@ export default async function SignInPage({
               Enter your account details
             </h2>
             <p className="mt-2 text-sm leading-6 text-slate-300">
-              The refresh token stays server-managed through web cookies. This
-              keeps the browser flow compatible with the API contract.
+              Continue to your workspace.
             </p>
           </div>
-
-          {error ? (
-            <div className="mb-4 rounded-2xl border border-rose-400/30 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">
-              {error === "missing_fields"
-                ? "Email and password are required."
-                : error === "session_expired"
-                  ? "Your session expired. Please sign in again."
-                  : "Sign-in failed. Check your credentials and try again."}
-            </div>
-          ) : null}
 
           <form action="/auth/sign-in" method="post" className="space-y-4">
             <input type="hidden" name="redirectTo" value={next} />

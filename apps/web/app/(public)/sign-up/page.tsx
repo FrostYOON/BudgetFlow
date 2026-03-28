@@ -5,8 +5,7 @@ export default async function SignUpPage({
 }: {
   searchParams: Promise<{ error?: string }>;
 }) {
-  const params = await searchParams;
-  const error = params.error;
+  await searchParams;
 
   return (
     <main className="min-h-screen bg-[#f4f6f2] text-slate-950">
@@ -19,18 +18,8 @@ export default async function SignUpPage({
             Create your BudgetFlow account.
           </h1>
           <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600">
-            This screen posts to the live sign-up endpoint. After account
-            creation, the app stores auth cookies and sends you into the
-            protected shell.
+            Start a shared budgeting workspace in a few steps.
           </p>
-
-          {error ? (
-            <div className="mt-8 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-              {error === "missing_fields"
-                ? "Name, email, and password are required."
-                : "Sign-up failed. The email may already be in use."}
-            </div>
-          ) : null}
 
           <form
             action="/auth/sign-up"
