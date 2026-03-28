@@ -10,6 +10,13 @@ export class UserResponseDto {
   @ApiProperty({ example: 'Minji' })
   name!: string;
 
+  @ApiProperty({
+    required: false,
+    nullable: true,
+    example: 'https://example.com/avatar.png',
+  })
+  profileImageUrl!: string | null;
+
   @ApiProperty({ example: 'ko-KR' })
   locale!: string;
 

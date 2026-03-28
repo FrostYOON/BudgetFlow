@@ -11,6 +11,9 @@ export class WorkspaceMemberResponseDto {
   @ApiProperty({ example: 'Minji' })
   name!: string;
 
+  @ApiProperty({ required: false, nullable: true, example: 'Jisu' })
+  nickname!: string | null;
+
   @ApiProperty({
     enum: WorkspaceMemberRole,
     example: WorkspaceMemberRole.OWNER,
