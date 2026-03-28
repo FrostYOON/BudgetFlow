@@ -86,10 +86,16 @@ export async function POST(request: NextRequest) {
         request.url,
       ),
     );
-  } catch {
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to save category budgets.";
+    const errorKey = message.includes("exceeds monthly budget")
+      ? "allocations_over_budget"
+      : "allocations_save_failed";
+
     return NextResponse.redirect(
       new URL(
-        `/app/budgets?year=${year}&month=${month}&error=allocations_save_failed`,
+        `/app/budgets?year=${year}&month=${month}&error=${errorKey}`,
         request.url,
       ),
     );

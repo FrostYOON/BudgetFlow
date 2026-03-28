@@ -27,6 +27,12 @@ export function WorkspaceSwitcher({
         <p className="mt-2 text-sm leading-6 text-slate-600">
           Create one or accept an invite to start tracking together.
         </p>
+        <Link
+          href="/app/onboarding"
+          className="mt-4 inline-flex rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+        >
+          Create household
+        </Link>
       </section>
     );
   }

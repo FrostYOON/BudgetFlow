@@ -44,18 +44,7 @@ export default async function BudgetsPage({
   }
 
   if (!session.currentWorkspace) {
-    return (
-      <div className="space-y-6">
-        <section className="rounded-[1.75rem] border border-dashed border-slate-300 bg-white px-6 py-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
-            Budgets
-          </p>
-          <h1 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">
-            No workspace selected
-          </h1>
-        </section>
-      </div>
-    );
+    redirect("/app/onboarding");
   }
 
   const requestedPeriod = getPeriod(await searchParams);

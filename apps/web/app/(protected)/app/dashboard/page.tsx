@@ -36,23 +36,7 @@ export default async function DashboardPage({
   }
 
   if (!session.currentWorkspace) {
-    return (
-      <div className="space-y-8">
-        <section className="border-b border-slate-900/8 pb-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
-            Dashboard
-          </p>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
-            No workspace connected yet
-          </h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
-            Your account is authenticated, but there is no household workspace
-            available yet. The next onboarding step should create a workspace or
-            accept an invite.
-          </p>
-        </section>
-      </div>
-    );
+    redirect("/app/onboarding");
   }
 
   const requestedPeriod = getPeriod(await searchParams);

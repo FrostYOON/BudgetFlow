@@ -50,7 +50,10 @@ export async function POST(request: NextRequest) {
     });
 
     const workspaces = await fetchWorkspaces(auth.accessToken);
-    const redirectUrl = new URL("/app/dashboard", request.url);
+    const redirectUrl = new URL(
+      workspaces[0] ? "/app/dashboard" : "/app/onboarding",
+      request.url,
+    );
     redirectUrl.searchParams.set("toast", "account_created");
     const response = NextResponse.redirect(redirectUrl);
 

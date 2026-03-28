@@ -65,6 +65,18 @@ const TOAST_MESSAGES: Record<string, { type: "success" | "error"; text: string }
     type: "error",
     text: "Failed to save category plan.",
   },
+  allocations_over_budget: {
+    type: "error",
+    text: "Category plan is over the monthly total.",
+  },
+  workspace_created: {
+    type: "success",
+    text: "Household created.",
+  },
+  workspace_create_failed: {
+    type: "error",
+    text: "Failed to create household.",
+  },
   workspace_missing: {
     type: "error",
     text: "Workspace is missing.",

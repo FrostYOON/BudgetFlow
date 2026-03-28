@@ -38,6 +38,18 @@ function getApiBaseUrl() {
   return process.env.BUDGETFLOW_API_URL ?? "http://localhost:3000/api/v1";
 }
 
+async function readErrorMessage(response: Response, fallback: string) {
+  try {
+    const payload = (await response.json()) as { message?: string | string[] };
+    if (Array.isArray(payload.message)) {
+      return payload.message[0] ?? fallback;
+    }
+    return payload.message ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 export async function fetchMonthlyBudget(input: {
   accessToken: string;
   workspaceId: string;
@@ -59,7 +71,7 @@ export async function fetchMonthlyBudget(input: {
   }
 
   if (!response.ok) {
-    throw new Error("Failed to load budget.");
+    throw new Error(await readErrorMessage(response, "Failed to load budget."));
   }
 
   return (await response.json()) as MonthlyBudgetSummary;
@@ -80,7 +92,7 @@ export async function fetchExpenseCategories(input: {
   );
 
   if (!response.ok) {
-    throw new Error("Failed to load categories.");
+    throw new Error(await readErrorMessage(response, "Failed to load categories."));
   }
 
   return (await response.json()) as ExpenseCategory[];
@@ -109,7 +121,9 @@ export async function upsertMonthlyBudget(input: {
   );
 
   if (!response.ok) {
-    throw new Error("Failed to save monthly budget.");
+    throw new Error(
+      await readErrorMessage(response, "Failed to save monthly budget."),
+    );
   }
 
   return (await response.json()) as MonthlyBudgetSummary;
@@ -142,7 +156,9 @@ export async function replaceCategoryBudgets(input: {
   );
 
   if (!response.ok) {
-    throw new Error("Failed to save category budgets.");
+    throw new Error(
+      await readErrorMessage(response, "Failed to save category budgets."),
+    );
   }
 
   return response.json();
