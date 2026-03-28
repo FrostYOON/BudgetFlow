@@ -49,7 +49,8 @@ export async function POST(request: NextRequest) {
     });
 
     const workspaces = await fetchWorkspaces(auth.accessToken);
-    const redirectUrl = new URL(redirectTo, request.url);
+    const destination = workspaces[0] ? redirectTo : "/app/onboarding";
+    const redirectUrl = new URL(destination, request.url);
     redirectUrl.searchParams.set("toast", "signed_in");
     const response = NextResponse.redirect(redirectUrl);
 
