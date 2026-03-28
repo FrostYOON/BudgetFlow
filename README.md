@@ -26,8 +26,8 @@ pnpm dev
 
 Default local ports:
 
-- web: `http://localhost:3001`
-- api: `http://localhost:3000`
+- web: `apps/web/.env.local`의 `PORT` 기준
+- api: `apps/api/.env.local`의 `PORT` 기준
 - swagger: `http://localhost:3000/docs`
 
 ## Local Database
