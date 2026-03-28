@@ -1,5 +1,22 @@
 import Link from "next/link";
-import { PREVIEW_WORKSPACES } from "@/lib/preview-workspaces";
+
+const SAMPLE_HOUSEHOLDS = [
+  {
+    name: "Couple household",
+    summary: "Monthly rent, groceries, and shared subscriptions in one budget.",
+    meta: "2 members · CAD 3,200 monthly budget",
+  },
+  {
+    name: "Family workspace",
+    summary: "Food, school, utilities, and recurring bills tracked together.",
+    meta: "4 members · CAD 5,850 monthly budget",
+  },
+  {
+    name: "Roommate setup",
+    summary: "Shared rent split, internet, and household supplies.",
+    meta: "3 members · CAD 2,450 monthly budget",
+  },
+] as const;
 
 export default function HomePage() {
   return (
@@ -25,7 +42,7 @@ export default function HomePage() {
               href="/sign-up"
               className="rounded-full bg-slate-950 px-4 py-2 font-medium text-white transition hover:bg-slate-800"
             >
-              Start preview
+              Create account
             </Link>
           </nav>
         </header>
@@ -51,7 +68,7 @@ export default function HomePage() {
                 href="/sign-up"
                 className="inline-flex items-center justify-center rounded-full bg-emerald-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800"
               >
-                Open MVP preview
+                Create your account
               </Link>
               <Link
                 href="/sign-in"
@@ -65,18 +82,18 @@ export default function HomePage() {
           <div className="overflow-hidden rounded-[2rem] border border-slate-900/10 bg-white/85 shadow-[0_20px_80px_rgba(15,23,42,0.08)] backdrop-blur">
             <div className="border-b border-slate-900/8 px-6 py-5">
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
-                Preview workspaces
+                Typical workspace shapes
               </p>
               <p className="mt-2 text-sm leading-6 text-slate-600">
-                The app shell already supports multiple household contexts. Use
-                the preview auth entry to switch between them.
+                BudgetFlow is designed around real shared-money contexts instead
+                of a single-user ledger.
               </p>
             </div>
 
             <div className="divide-y divide-slate-900/8">
-              {PREVIEW_WORKSPACES.map((workspace) => (
+              {SAMPLE_HOUSEHOLDS.map((workspace) => (
                 <article
-                  key={workspace.id}
+                  key={workspace.name}
                   className="grid gap-2 px-6 py-5 sm:grid-cols-[1fr_auto]"
                 >
                   <div>
@@ -88,8 +105,7 @@ export default function HomePage() {
                     </p>
                   </div>
                   <div className="text-sm text-slate-500 sm:text-right">
-                    <p>{workspace.memberLabel}</p>
-                    <p>{workspace.budgetLabel}</p>
+                    <p>{workspace.meta}</p>
                   </div>
                 </article>
               ))}
