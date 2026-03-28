@@ -14,6 +14,7 @@ import { CreateTransactionRequestDto } from '../dto/create-transaction-request.d
 import { ListTransactionsQueryDto } from '../dto/list-transactions-query.dto';
 import { TransactionListResponseDto } from '../dto/transaction-list-response.dto';
 import { TransactionResponseDto } from '../dto/transaction-response.dto';
+import { UpdateTransactionRequestDto } from '../dto/update-transaction-request.dto';
 
 type TransactionWithRelations = Prisma.TransactionGetPayload<{
   include: {
@@ -117,6 +118,58 @@ export class TransactionsService {
       workspaceId,
       transactionId,
     );
+    return this.toResponse(transaction);
+  }
+
+  async update(
+    workspaceId: string,
+    transactionId: string,
+    userId: string,
+    input: UpdateTransactionRequestDto,
+  ): Promise<TransactionResponseDto> {
+    await this.workspacesService.assertMemberAccess(workspaceId, userId);
+
+    const existingTransaction = await this.findTransactionOrThrow(
+      workspaceId,
+      transactionId,
+    );
+    const paidByUserId =
+      input.paidByUserId ?? existingTransaction.paidByUserId ?? userId;
+    const categoryId =
+      input.categoryId !== undefined
+        ? input.categoryId
+        : existingTransaction.categoryId;
+
+    await this.assertValidPaidBy(workspaceId, paidByUserId);
+    await this.assertValidCategory(
+      workspaceId,
+      categoryId ?? undefined,
+      existingTransaction.type,
+    );
+
+    const transaction = await this.prisma.transaction.update({
+      where: { id: transactionId },
+      data: {
+        visibility: input.visibility,
+        amount:
+          input.amount !== undefined
+            ? new Prisma.Decimal(input.amount)
+            : undefined,
+        currency: input.currency,
+        transactionDate: input.transactionDate
+          ? new Date(input.transactionDate)
+          : undefined,
+        categoryId:
+          input.categoryId !== undefined ? input.categoryId : undefined,
+        memo: input.memo !== undefined ? input.memo : undefined,
+        paidByUserId,
+      },
+      include: {
+        category: true,
+        paidBy: true,
+      },
+    });
+
     return this.toResponse(transaction);
   }
 
