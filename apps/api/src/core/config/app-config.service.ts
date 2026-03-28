@@ -141,4 +141,20 @@ export class AppConfigService {
       '5,20,35,50 * * * *'
     );
   }
+
+  get recurringFailureNotificationWebhookUrl(): string | undefined {
+    return (
+      this.configService.get<string>(
+        'RECURRING_FAILURE_NOTIFICATION_WEBHOOK_URL',
+      ) || undefined
+    );
+  }
+
+  get recurringFailureNotificationThrottleMinutes(): number {
+    return Number(
+      this.configService.get<string>(
+        'RECURRING_FAILURE_NOTIFICATION_THROTTLE_MINUTES',
+      ) ?? 60,
+    );
+  }
 }

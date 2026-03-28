@@ -10,6 +10,7 @@ import { ExecuteRecurringTransactionsResponseDto } from '../dto/execute-recurrin
 import { RecurringExecutionRunResponseDto } from '../dto/recurring-execution-run-response.dto';
 import { RerunRecurringTransactionsRequestDto } from '../dto/rerun-recurring-transactions-request.dto';
 import { RerunRecurringTransactionsResponseDto } from '../dto/rerun-recurring-transactions-response.dto';
+import { RecurringExecutionFailureNotificationsService } from './recurring-execution-failure-notifications.service';
 import { RecurringTransactionsService } from './recurring-transactions.service';
 import {
   RecurringExecutionRunWithInitiator,
@@ -22,6 +23,7 @@ export class RecurringTransactionExecutionRunsService {
     private readonly prisma: PrismaService,
     private readonly workspacesService: WorkspacesService,
     private readonly recurringTransactionsService: RecurringTransactionsService,
+    private readonly recurringExecutionFailureNotificationsService: RecurringExecutionFailureNotificationsService,
   ) {}
 
   async listRuns(
@@ -93,9 +95,12 @@ export class RecurringTransactionExecutionRunsService {
         result,
       };
     } catch (error) {
-      await this.failRun(
+      const failedRun = await this.failRun(
         run.id,
         error instanceof Error ? error.message : 'Unknown execution error.',
+      );
+      await this.recurringExecutionFailureNotificationsService.notifyRunFailure(
+        failedRun.id,
       );
       throw error;
     }
@@ -126,6 +131,9 @@ export class RecurringTransactionExecutionRunsService {
       const failedRun = await this.failRun(
         run.id,
         error instanceof Error ? error.message : 'Unknown execution error.',
+      );
+      await this.recurringExecutionFailureNotificationsService.notifyRunFailure(
+        failedRun.id,
       );
       return toRecurringExecutionRunResponse(failedRun);
     }
