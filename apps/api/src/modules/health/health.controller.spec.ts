@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppConfigService } from '../../core/config/app-config.service';
 import { HealthController } from './health.controller';
@@ -9,7 +10,16 @@ describe('HealthController', () => {
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
       controllers: [HealthController],
-      providers: [HealthService, AppConfigService],
+      providers: [
+        HealthService,
+        AppConfigService,
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn(),
+          },
+        },
+      ],
     }).compile();
 
     healthController = app.get<HealthController>(HealthController);

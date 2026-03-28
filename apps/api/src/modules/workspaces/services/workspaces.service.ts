@@ -10,6 +10,7 @@ import {
   WorkspaceMemberStatus,
 } from '@budgetflow/database';
 import { PrismaService } from '../../../core/database/prisma.service';
+import { buildStarterCategories } from '../constants/starter-categories';
 import { CreateWorkspaceRequestDto } from '../dto/create-workspace-request.dto';
 import { WorkspaceListItemResponseDto } from '../dto/workspace-list-item-response.dto';
 import { WorkspaceResponseDto } from '../dto/workspace-response.dto';
@@ -51,6 +52,10 @@ export class WorkspacesService {
           status: WorkspaceMemberStatus.ACTIVE,
           joinedAt: new Date(),
         },
+      });
+
+      await tx.category.createMany({
+        data: buildStarterCategories(createdWorkspace.id),
       });
 
       return createdWorkspace;

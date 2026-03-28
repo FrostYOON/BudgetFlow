@@ -1,6 +1,6 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { WorkspaceType } from '@budgetflow/database';
+import { CategoryType, WorkspaceType } from '@budgetflow/database';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
@@ -147,6 +147,54 @@ describe('API onboarding flow (e2e)', () => {
       memberRole: 'OWNER',
     });
 
+    const expenseCategoriesResponse = await request(app.getHttpServer())
+      .get(`/${apiPrefix}/workspaces/${workspaceBody.id}/categories`)
+      .query({ type: CategoryType.EXPENSE })
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(200);
+    const expenseCategories = expenseCategoriesResponse.body as CategoryBody[];
+
+    expect(expenseCategories).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'Groceries',
+          type: CategoryType.EXPENSE,
+          isDefault: true,
+          isArchived: false,
+        }),
+        expect.objectContaining({
+          name: 'Housing',
+          type: CategoryType.EXPENSE,
+          isDefault: true,
+          isArchived: false,
+        }),
+      ]),
+    );
+
+    const incomeCategoriesResponse = await request(app.getHttpServer())
+      .get(`/${apiPrefix}/workspaces/${workspaceBody.id}/categories`)
+      .query({ type: CategoryType.INCOME })
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(200);
+    const incomeCategories = incomeCategoriesResponse.body as CategoryBody[];
+
+    expect(incomeCategories).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'Salary',
+          type: CategoryType.INCOME,
+          isDefault: true,
+          isArchived: false,
+        }),
+        expect.objectContaining({
+          name: 'Bonus',
+          type: CategoryType.INCOME,
+          isDefault: true,
+          isArchived: false,
+        }),
+      ]),
+    );
+
     const signInResponse = await request(app.getHttpServer())
       .post(`/${apiPrefix}/auth/sign-in`)
       .send({
@@ -249,4 +297,14 @@ type WorkspaceListItemBody = {
   baseCurrency: string;
   timezone: string;
   memberRole: string;
+};
+
+type CategoryBody = {
+  id: string;
+  workspaceId: string;
+  name: string;
+  type: CategoryType;
+  sortOrder: number;
+  isDefault: boolean;
+  isArchived: boolean;
 };

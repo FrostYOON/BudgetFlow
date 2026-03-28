@@ -1,6 +1,7 @@
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import {
+  CategoryType,
   WorkspaceMemberRole,
   WorkspaceMemberStatus,
   WorkspaceType,
@@ -56,6 +57,9 @@ describe('WorkspacesService', () => {
       workspaceMember: {
         create: jest.fn().mockResolvedValue(undefined),
       },
+      category: {
+        createMany: jest.fn().mockResolvedValue({ count: 15 }),
+      },
     };
 
     prisma.$transaction.mockImplementation(
@@ -73,6 +77,35 @@ describe('WorkspacesService', () => {
 
     expect(result.name).toBe('Home');
     expect(prisma.$transaction).toHaveBeenCalled();
+
+    const [createManyInput] = transactionClient.category.createMany.mock
+      .calls[0] as [
+      {
+        data: Array<{
+          workspaceId: string;
+          name: string;
+          type: CategoryType;
+          isDefault: boolean;
+        }>;
+      },
+    ];
+
+    expect(createManyInput.data).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          workspaceId: '11111111-1111-1111-1111-111111111111',
+          name: 'Salary',
+          type: CategoryType.INCOME,
+          isDefault: true,
+        }),
+        expect.objectContaining({
+          workspaceId: '11111111-1111-1111-1111-111111111111',
+          name: 'Groceries',
+          type: CategoryType.EXPENSE,
+          isDefault: true,
+        }),
+      ]),
+    );
   });
 
   it('listForUser should return active memberships as workspace list items', async () => {
