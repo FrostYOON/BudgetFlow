@@ -16,7 +16,9 @@ export async function POST(request: NextRequest) {
     await signOutFromApi(accessToken);
   }
 
-  const response = NextResponse.redirect(new URL(redirectTo, request.url));
+  const redirectUrl = new URL(redirectTo, request.url);
+  redirectUrl.searchParams.set("toast", "signed_out");
+  const response = NextResponse.redirect(redirectUrl);
 
   response.cookies.set(AUTH_ACCESS_COOKIE_NAME, "", {
     httpOnly: true,

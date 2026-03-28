@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
 
   if (!email || !password) {
     return NextResponse.redirect(
-      new URL("/sign-in?error=missing_fields", request.url),
+      new URL(`/sign-in?error=missing_fields&next=${encodeURIComponent(redirectTo)}`, request.url),
     );
   }
 
@@ -49,7 +49,9 @@ export async function POST(request: NextRequest) {
     });
 
     const workspaces = await fetchWorkspaces(auth.accessToken);
-    const response = NextResponse.redirect(new URL(redirectTo, request.url));
+    const redirectUrl = new URL(redirectTo, request.url);
+    redirectUrl.searchParams.set("toast", "signed_in");
+    const response = NextResponse.redirect(redirectUrl);
 
     setAccessCookie(response, auth.accessToken);
 
@@ -70,7 +72,7 @@ export async function POST(request: NextRequest) {
     return response;
   } catch {
     return NextResponse.redirect(
-      new URL("/sign-in?error=invalid_credentials", request.url),
+      new URL(`/sign-in?error=invalid_credentials&next=${encodeURIComponent(redirectTo)}`, request.url),
     );
   }
 }

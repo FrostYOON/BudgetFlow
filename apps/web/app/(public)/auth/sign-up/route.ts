@@ -50,9 +50,9 @@ export async function POST(request: NextRequest) {
     });
 
     const workspaces = await fetchWorkspaces(auth.accessToken);
-    const response = NextResponse.redirect(
-      new URL("/app/dashboard", request.url),
-    );
+    const redirectUrl = new URL("/app/dashboard", request.url);
+    redirectUrl.searchParams.set("toast", "account_created");
+    const response = NextResponse.redirect(redirectUrl);
 
     setAccessCookie(response, auth.accessToken);
 
