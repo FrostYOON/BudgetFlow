@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { AUTH_COOKIE_NAME } from "@/src/features/auth/constants";
-import { getWorkspaceById } from "@/src/features/auth/server/preview-session";
+import { AUTH_COOKIE_NAME } from "@/lib/auth/constants";
+import { getWorkspaceById } from "@/lib/auth/preview-session";
 
 function buildRedirectResponse(
   request: NextRequest,

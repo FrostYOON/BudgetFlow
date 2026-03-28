@@ -1,5 +1,5 @@
-import { getPreviewSession } from "@/src/features/auth/server/preview-session";
-import { AppShellFrame } from "@/src/features/app-shell/components/app-shell-frame";
+import { AppShellFrame } from "@/components/app-shell/app-shell-frame";
+import { getPreviewSession } from "@/lib/auth/preview-session";
 
 export default async function ProtectedAppLayout({
   children,

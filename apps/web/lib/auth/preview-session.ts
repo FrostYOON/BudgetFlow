@@ -1,10 +1,10 @@
 import "server-only";
 import { cookies } from "next/headers";
-import { AUTH_COOKIE_NAME } from "@/src/features/auth/constants";
+import { AUTH_COOKIE_NAME } from "@/lib/auth/constants";
 import {
   PREVIEW_WORKSPACES,
   type PreviewWorkspace,
-} from "@/src/features/app-shell/data/preview-workspaces";
+} from "@/lib/preview-workspaces";
 
 export interface PreviewSession {
   userName: string;
