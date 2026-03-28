@@ -1,0 +1,67 @@
+name: Task
+description: Create an implementation task for BudgetFlow
+title: "[Task] "
+labels:
+  - type:feature
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Describe the concrete engineering task.
+      placeholder: Add recurring ops admin UI for workspace-level scheduler monitoring.
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: List the exact work included in this task.
+      placeholder: |
+        - add recurring ops page route
+        - fetch ops summary API
+        - render last run and recent failures
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance Criteria
+      description: Define what must be true for this issue to be done.
+      placeholder: |
+        - workspace member can open the ops page
+        - page shows scheduler status and recent failures
+        - loading and error states are handled
+    validations:
+      required: true
+
+  - type: input
+    id: area
+    attributes:
+      label: Area
+      description: API, Web, Database, Infra, or Product
+      placeholder: API
+    validations:
+      required: true
+
+  - type: input
+    id: priority
+    attributes:
+      label: Priority
+      description: P0, P1, or P2
+      placeholder: P1
+    validations:
+      required: true
+
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Link related docs, PRDs, issues, or API specs.
+      placeholder: |
+        - docs/API_SPEC_DRAFT.md
+        - #123
+    validations:
+      required: false

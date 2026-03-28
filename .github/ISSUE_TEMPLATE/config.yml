@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Task Management Workflow
+    url: https://github.com/FrostYOON/BudgetFlow/blob/develop/docs/TASK_MANAGEMENT.md
+    about: Read the repository task workflow before opening a new issue.
+  - name: GitHub Projects Setup
+    url: https://github.com/FrostYOON/BudgetFlow/blob/develop/docs/GITHUB_PROJECTS_SETUP.md
+    about: Read the recommended project board configuration and status rules.
