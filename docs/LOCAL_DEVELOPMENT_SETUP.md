@@ -66,5 +66,6 @@ pnpm --filter @budgetflow/api build
 - `apps/web/.env.local` is for Next.js app runtime values such as `BUDGETFLOW_API_URL`.
 - `apps/web` runs on `http://localhost:3001`.
 - `apps/api/.env.local` controls the Nest port with `PORT`.
+- `pnpm dev`, `pnpm dev:api`, and `pnpm dev:web` run a startup validation script before starting processes.
 - Do not commit real local secrets.
 - For shared or production databases, use deploy-time migrations instead of `migrate:dev`.
