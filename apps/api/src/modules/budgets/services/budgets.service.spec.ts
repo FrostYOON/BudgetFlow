@@ -193,6 +193,35 @@ describe('BudgetsService', () => {
     expect(result.categories[0]?.actualAmount).toBe('420000.00');
   });
 
+  it('replaceCategoryBudgets should allow clearing all category allocations', async () => {
+    prisma.budgetMonth.findUnique
+      .mockResolvedValueOnce(monthBudgetRecord)
+      .mockResolvedValueOnce({
+        ...monthBudgetRecord,
+        categoryBudgets: [],
+      });
+    prisma.$transaction.mockImplementation(
+      async (callback: (tx: typeof prisma) => Promise<unknown>) =>
+        callback(prisma),
+    );
+    prisma.transaction.groupBy.mockResolvedValue([]);
+
+    const result = await service.replaceCategoryBudgets(
+      'workspace-1',
+      2026,
+      3,
+      'user-1',
+      {
+        categories: [],
+      },
+    );
+
+    expect(prisma.budgetCategory.deleteMany).toHaveBeenCalled();
+    expect(prisma.budgetCategory.createMany).not.toHaveBeenCalled();
+    expect(result.categories).toHaveLength(0);
+    expect(result.allocatedAmount).toBe('0.00');
+  });
+
   it('deleteCategoryBudget should remove one category allocation and return refreshed totals', async () => {
     prisma.budgetMonth.findUnique
       .mockResolvedValueOnce(monthBudgetRecord)
