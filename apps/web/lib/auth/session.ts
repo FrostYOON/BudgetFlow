@@ -8,6 +8,7 @@ import { fetchMe, fetchWorkspaces } from "@/lib/auth/api";
 import type { AuthUser, WorkspaceSummary } from "@/lib/auth/types";
 
 export interface AppSession {
+  accessToken: string;
   user: AuthUser;
   workspaces: WorkspaceSummary[];
   currentWorkspace: WorkspaceSummary | null;
@@ -37,6 +38,7 @@ export async function getAppSession(): Promise<AppSession | null> {
     null;
 
   return {
+    accessToken,
     user,
     workspaces,
     currentWorkspace,
