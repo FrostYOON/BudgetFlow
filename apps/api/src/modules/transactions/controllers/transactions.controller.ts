@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   ParseUUIDPipe,
   Post,
   Query,
@@ -23,6 +24,7 @@ import { CreateTransactionRequestDto } from '../dto/create-transaction-request.d
 import { TransactionListResponseDto } from '../dto/transaction-list-response.dto';
 import { TransactionResponseDto } from '../dto/transaction-response.dto';
 import { ListTransactionsQueryDto } from '../dto/list-transactions-query.dto';
+import { UpdateTransactionRequestDto } from '../dto/update-transaction-request.dto';
 import { TransactionsService } from '../services/transactions.service';
 
 @ApiTags('Transactions')
@@ -67,6 +69,24 @@ export class TransactionsController {
       workspaceId,
       transactionId,
       user.userId,
+    );
+  }
+
+  @Patch(':transactionId')
+  @ApiOperation({ summary: 'Update a transaction' })
+  @ApiBody({ type: UpdateTransactionRequestDto })
+  @ApiOkResponse({ type: TransactionResponseDto })
+  update(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('workspaceId', new ParseUUIDPipe()) workspaceId: string,
+    @Param('transactionId', new ParseUUIDPipe()) transactionId: string,
+    @Body() input: UpdateTransactionRequestDto,
+  ): Promise<TransactionResponseDto> {
+    return this.transactionsService.update(
+      workspaceId,
+      transactionId,
+      user.userId,
+      input,
     );
   }
 
