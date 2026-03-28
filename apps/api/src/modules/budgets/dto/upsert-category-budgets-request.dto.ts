@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
-  ArrayNotEmpty,
   IsArray,
   IsInt,
   IsOptional,
@@ -34,7 +33,6 @@ export class CategoryBudgetInputDto {
 export class UpsertCategoryBudgetsRequestDto {
   @ApiProperty({ type: [CategoryBudgetInputDto] })
   @IsArray()
-  @ArrayNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => CategoryBudgetInputDto)
   categories!: CategoryBudgetInputDto[];

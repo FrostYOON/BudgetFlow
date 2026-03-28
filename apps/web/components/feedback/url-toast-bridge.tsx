@@ -49,6 +49,22 @@ const TOAST_MESSAGES: Record<string, { type: "success" | "error"; text: string }
     type: "error",
     text: "Failed to save household profile.",
   },
+  budget_saved: {
+    type: "success",
+    text: "Budget saved.",
+  },
+  allocations_saved: {
+    type: "success",
+    text: "Category plan saved.",
+  },
+  budget_save_failed: {
+    type: "error",
+    text: "Failed to save budget.",
+  },
+  allocations_save_failed: {
+    type: "error",
+    text: "Failed to save category plan.",
+  },
   workspace_missing: {
     type: "error",
     text: "Workspace is missing.",

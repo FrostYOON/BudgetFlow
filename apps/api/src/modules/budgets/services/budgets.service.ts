@@ -259,6 +259,10 @@ export class BudgetsService {
     workspaceId: string,
     items: CategoryBudgetInputDto[],
   ): Promise<Map<string, { id: string; name: string }>> {
+    if (items.length === 0) {
+      return new Map();
+    }
+
     const categories = await this.prisma.category.findMany({
       where: {
         id: {
