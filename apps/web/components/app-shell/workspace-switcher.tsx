@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   PREVIEW_WORKSPACES,
   type PreviewWorkspace,
-} from "@/src/features/app-shell/data/preview-workspaces";
+} from "@/lib/preview-workspaces";
 
 interface WorkspaceSwitcherProps {
   currentWorkspace: PreviewWorkspace;

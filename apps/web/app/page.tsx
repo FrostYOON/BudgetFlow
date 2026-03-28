@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PREVIEW_WORKSPACES } from "@/src/features/app-shell/data/preview-workspaces";
+import { PREVIEW_WORKSPACES } from "@/lib/preview-workspaces";
 
 export default function HomePage() {
   return (

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { APP_NAVIGATION } from "@/src/features/app-shell/config/navigation";
+import { APP_NAVIGATION } from "@/lib/navigation";
 
 export function AppSidebarNav() {
   const pathname = usePathname();

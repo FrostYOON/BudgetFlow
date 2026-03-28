@@ -1,7 +1,7 @@
 import Link from "next/link";
-import type { PreviewSession } from "@/src/features/auth/server/preview-session";
-import { AppSidebarNav } from "@/src/features/app-shell/components/app-sidebar-nav";
-import { WorkspaceSwitcher } from "@/src/features/app-shell/components/workspace-switcher";
+import type { PreviewSession } from "@/lib/auth/preview-session";
+import { AppSidebarNav } from "@/components/app-shell/app-sidebar-nav";
+import { WorkspaceSwitcher } from "@/components/app-shell/workspace-switcher";
 
 interface AppShellFrameProps {
   children: React.ReactNode;

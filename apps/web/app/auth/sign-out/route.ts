@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { AUTH_COOKIE_NAME } from "@/src/features/auth/constants";
+import { AUTH_COOKIE_NAME } from "@/lib/auth/constants";
 
 export async function POST(request: NextRequest) {
   const redirectTo = String(
