@@ -30,6 +30,8 @@ Default local ports:
 - api: `apps/api/.env.local`의 `PORT` 기준
 - swagger: `http://localhost:3000/docs`
 
+`pnpm dev`, `pnpm dev:api`, `pnpm dev:web` run a startup config check first. If a required local env file is missing, the command exits with the exact `cp ...` command to fix it.
+
 ## Local Database
 
 BudgetFlow uses Docker Compose for the default local PostgreSQL setup.
