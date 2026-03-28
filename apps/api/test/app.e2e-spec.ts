@@ -108,6 +108,27 @@ describe('API onboarding flow (e2e)', () => {
     expect(meBody).toMatchObject({
       email,
       name: 'Minji',
+      profileImageUrl: null,
+    });
+
+    const updateProfileResponse = await request(app.getHttpServer())
+      .patch(`/${apiPrefix}/users/me`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        name: 'Minji Kim',
+        locale: 'en-US',
+        timezone: 'America/Toronto',
+        profileImageUrl: 'https://example.com/avatar.png',
+      })
+      .expect(200);
+    const updatedProfile = updateProfileResponse.body as UserResponseBody;
+
+    expect(updatedProfile).toMatchObject({
+      email,
+      name: 'Minji Kim',
+      profileImageUrl: 'https://example.com/avatar.png',
+      locale: 'en-US',
+      timezone: 'America/Toronto',
     });
 
     const createWorkspaceResponse = await request(app.getHttpServer())
@@ -146,6 +167,38 @@ describe('API onboarding flow (e2e)', () => {
       timezone: 'Asia/Seoul',
       memberRole: 'OWNER',
     });
+
+    const updateMemberResponse = await request(app.getHttpServer())
+      .patch(`/${apiPrefix}/workspaces/${workspaceBody.id}/members/me`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        nickname: 'Mins',
+      })
+      .expect(200);
+    const updatedMember = updateMemberResponse.body as WorkspaceMemberBody;
+
+    expect(updatedMember).toMatchObject({
+      userId: meBody.id,
+      name: 'Minji Kim',
+      nickname: 'Mins',
+      role: 'OWNER',
+      status: 'ACTIVE',
+    });
+
+    const memberListResponse = await request(app.getHttpServer())
+      .get(`/${apiPrefix}/workspaces/${workspaceBody.id}/members`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(200);
+    const members = memberListResponse.body as WorkspaceMemberBody[];
+
+    expect(members).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          userId: meBody.id,
+          nickname: 'Mins',
+        }),
+      ]),
+    );
 
     const expenseCategoriesResponse = await request(app.getHttpServer())
       .get(`/${apiPrefix}/workspaces/${workspaceBody.id}/categories`)
@@ -219,7 +272,8 @@ describe('API onboarding flow (e2e)', () => {
 
     expect(refreshBody.user).toMatchObject({
       email,
-      name: 'Minji',
+      name: 'Minji Kim',
+      profileImageUrl: 'https://example.com/avatar.png',
     });
     expect(refreshBody.tokens.accessToken).toEqual(expect.any(String));
     expect(refreshResponse.headers['set-cookie']).toEqual(expect.any(Array));
@@ -269,6 +323,7 @@ type UserResponseBody = {
   id: string;
   email: string;
   name: string;
+  profileImageUrl: string | null;
   locale: string;
   timezone: string;
 };
@@ -297,6 +352,14 @@ type WorkspaceListItemBody = {
   baseCurrency: string;
   timezone: string;
   memberRole: string;
+};
+
+type WorkspaceMemberBody = {
+  userId: string;
+  name: string;
+  nickname: string | null;
+  role: string;
+  status: string;
 };
 
 type CategoryBody = {

@@ -19,7 +19,7 @@ export function AppShellFrame({ children, session }: AppShellFrameProps) {
                 BudgetFlow
               </p>
               <h1 className="mt-2 text-xl font-semibold tracking-tight text-slate-950">
-                MVP shell
+                Shared household budget
               </h1>
             </div>
             <form action="/auth/sign-out" method="post">
@@ -62,8 +62,8 @@ export function AppShellFrame({ children, session }: AppShellFrameProps) {
                 </p>
                 <p className="mt-1 text-sm text-slate-600">
                   {session.currentWorkspace
-                    ? "Protected workspace routes are active. Use this shell as the base for the next web issues."
-                    : "Your account is authenticated. The next step is to create or join a household workspace."}
+                    ? "Track spending, budgets, and recurring costs in one place."
+                    : "Create or join a household workspace to start budgeting."}
                 </p>
               </div>
               <div className="flex gap-3 text-sm">
@@ -71,13 +71,13 @@ export function AppShellFrame({ children, session }: AppShellFrameProps) {
                   href="/app/dashboard"
                   className="rounded-full border border-slate-300 px-4 py-2 text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
                 >
-                  View dashboard
+                  Dashboard
                 </Link>
                 <Link
-                  href="/"
+                  href="/app/settings"
                   className="rounded-full bg-slate-950 px-4 py-2 font-medium text-white transition hover:bg-slate-800"
                 >
-                  Landing page
+                  Settings
                 </Link>
               </div>
             </div>
