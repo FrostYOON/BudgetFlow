@@ -25,4 +25,9 @@ export const APP_NAVIGATION: AppNavigationItem[] = [
     label: "Recurring",
     description: "Automation and execution monitoring",
   },
+  {
+    href: "/app/settings",
+    label: "Settings",
+    description: "Account and household profile",
+  },
 ];

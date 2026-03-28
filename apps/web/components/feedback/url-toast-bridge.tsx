@@ -33,6 +33,26 @@ const TOAST_MESSAGES: Record<string, { type: "success" | "error"; text: string }
     type: "error",
     text: "Sign-up failed. Try another email.",
   },
+  settings_saved: {
+    type: "success",
+    text: "Settings saved.",
+  },
+  member_saved: {
+    type: "success",
+    text: "Household profile saved.",
+  },
+  settings_save_failed: {
+    type: "error",
+    text: "Failed to save settings.",
+  },
+  member_save_failed: {
+    type: "error",
+    text: "Failed to save household profile.",
+  },
+  workspace_missing: {
+    type: "error",
+    text: "Workspace is missing.",
+  },
 } as const;
 
 export function UrlToastBridge() {

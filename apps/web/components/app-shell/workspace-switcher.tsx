@@ -25,8 +25,7 @@ export function WorkspaceSwitcher({
           No household workspace yet
         </h2>
         <p className="mt-2 text-sm leading-6 text-slate-600">
-          Authentication is now real. The next onboarding step should create a
-          workspace or accept an invite.
+          Create one or accept an invite to start tracking together.
         </p>
       </section>
     );
