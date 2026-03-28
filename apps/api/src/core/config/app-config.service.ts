@@ -1,29 +1,32 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AppConfigService {
+  constructor(private readonly configService: ConfigService) {}
+
   get appName(): string {
-    return process.env.APP_NAME ?? 'BudgetFlow API';
+    return this.configService.get<string>('APP_NAME') ?? 'BudgetFlow API';
   }
 
   get appVersion(): string {
-    return process.env.APP_VERSION ?? '0.1.0';
+    return this.configService.get<string>('APP_VERSION') ?? '0.1.0';
   }
 
   get nodeEnv(): string {
-    return process.env.NODE_ENV ?? 'development';
+    return this.configService.get<string>('NODE_ENV') ?? 'development';
   }
 
   get port(): number {
-    return Number(process.env.PORT ?? 3000);
+    return Number(this.configService.get<string>('PORT') ?? 3000);
   }
 
   get apiPrefix(): string {
-    return process.env.API_PREFIX ?? 'api/v1';
+    return this.configService.get<string>('API_PREFIX') ?? 'api/v1';
   }
 
   get corsOrigins(): string[] {
-    const raw = process.env.CORS_ORIGINS ?? '';
+    const raw = this.configService.get<string>('CORS_ORIGINS') ?? '';
     return raw
       .split(',')
       .map((origin) => origin.trim())
@@ -31,11 +34,11 @@ export class AppConfigService {
   }
 
   get swaggerPath(): string {
-    return process.env.SWAGGER_PATH ?? 'docs';
+    return this.configService.get<string>('SWAGGER_PATH') ?? 'docs';
   }
 
   get databaseUrl(): string {
-    return process.env.DATABASE_URL ?? '';
+    return this.configService.get<string>('DATABASE_URL') ?? '';
   }
 
   get isProduction(): boolean {
@@ -43,40 +46,57 @@ export class AppConfigService {
   }
 
   get jwtAccessSecret(): string {
-    return process.env.JWT_ACCESS_SECRET ?? 'budgetflow-dev-access-secret';
+    return (
+      this.configService.get<string>('JWT_ACCESS_SECRET') ??
+      'budgetflow-dev-access-secret'
+    );
   }
 
   get jwtAccessExpiresInSeconds(): number {
-    return Number(process.env.JWT_ACCESS_EXPIRES_IN_SECONDS ?? 3600);
+    return Number(
+      this.configService.get<string>('JWT_ACCESS_EXPIRES_IN_SECONDS') ?? 3600,
+    );
   }
 
   get jwtRefreshSecret(): string {
-    return process.env.JWT_REFRESH_SECRET ?? 'budgetflow-dev-refresh-secret';
+    return (
+      this.configService.get<string>('JWT_REFRESH_SECRET') ??
+      'budgetflow-dev-refresh-secret'
+    );
   }
 
   get jwtRefreshExpiresInSeconds(): number {
-    return Number(process.env.JWT_REFRESH_EXPIRES_IN_SECONDS ?? 2_592_000);
+    return Number(
+      this.configService.get<string>('JWT_REFRESH_EXPIRES_IN_SECONDS') ??
+        2_592_000,
+    );
   }
 
   get authRefreshCookieName(): string {
-    return process.env.AUTH_REFRESH_COOKIE_NAME ?? 'budgetflow_refresh_token';
+    return (
+      this.configService.get<string>('AUTH_REFRESH_COOKIE_NAME') ??
+      'budgetflow_refresh_token'
+    );
   }
 
   get authRefreshCookieDomain(): string | undefined {
-    return process.env.AUTH_REFRESH_COOKIE_DOMAIN || undefined;
+    return (
+      this.configService.get<string>('AUTH_REFRESH_COOKIE_DOMAIN') || undefined
+    );
   }
 
   get authRefreshCookieSameSite(): 'lax' | 'strict' | 'none' {
     const sameSite = (
-      process.env.AUTH_REFRESH_COOKIE_SAME_SITE ?? 'lax'
+      this.configService.get<string>('AUTH_REFRESH_COOKIE_SAME_SITE') ?? 'lax'
     ).toLowerCase();
 
     return sameSite === 'strict' || sameSite === 'none' ? sameSite : 'lax';
   }
 
   get authRefreshCookieSecure(): boolean {
-    return (process.env.AUTH_REFRESH_COOKIE_SECURE ?? '').toLowerCase() ===
-      'true'
+    return (
+      this.configService.get<string>('AUTH_REFRESH_COOKIE_SECURE') ?? ''
+    ).toLowerCase() === 'true'
       ? true
       : this.isProduction;
   }
@@ -84,28 +104,41 @@ export class AppConfigService {
   get authExposeRefreshTokenInResponse(): boolean {
     return (
       (
-        process.env.AUTH_EXPOSE_REFRESH_TOKEN_IN_RESPONSE ?? 'false'
+        this.configService.get<string>(
+          'AUTH_EXPOSE_REFRESH_TOKEN_IN_RESPONSE',
+        ) ?? 'false'
       ).toLowerCase() === 'true'
     );
   }
 
   get trustProxy(): boolean {
-    return (process.env.TRUST_PROXY ?? 'false').toLowerCase() === 'true';
+    return (
+      (
+        this.configService.get<string>('TRUST_PROXY') ?? 'false'
+      ).toLowerCase() === 'true'
+    );
   }
 
   get passwordHashSaltRounds(): number {
-    return Number(process.env.PASSWORD_HASH_SALT_ROUNDS ?? 10);
+    return Number(
+      this.configService.get<string>('PASSWORD_HASH_SALT_ROUNDS') ?? 10,
+    );
   }
 
   get recurringExecutionSchedulerEnabled(): boolean {
     return (
       (
-        process.env.RECURRING_EXECUTION_SCHEDULER_ENABLED ?? 'true'
+        this.configService.get<string>(
+          'RECURRING_EXECUTION_SCHEDULER_ENABLED',
+        ) ?? 'true'
       ).toLowerCase() === 'true'
     );
   }
 
   get recurringExecutionCron(): string {
-    return process.env.RECURRING_EXECUTION_CRON ?? '5,20,35,50 * * * *';
+    return (
+      this.configService.get<string>('RECURRING_EXECUTION_CRON') ??
+      '5,20,35,50 * * * *'
+    );
   }
 }
