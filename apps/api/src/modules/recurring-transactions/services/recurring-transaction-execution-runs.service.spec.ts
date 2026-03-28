@@ -5,6 +5,7 @@ import {
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../../../core/database/prisma.service';
 import { WorkspacesService } from '../../workspaces/services/workspaces.service';
+import { RecurringExecutionFailureNotificationsService } from './recurring-execution-failure-notifications.service';
 import { RecurringTransactionsService } from './recurring-transactions.service';
 import { RecurringTransactionExecutionRunsService } from './recurring-transaction-execution-runs.service';
 
@@ -23,6 +24,9 @@ describe('RecurringTransactionExecutionRunsService', () => {
   let recurringTransactionsService: {
     executeAutomaticDaily: jest.Mock;
   };
+  let recurringExecutionFailureNotificationsService: {
+    notifyRunFailure: jest.Mock;
+  };
 
   beforeEach(async () => {
     prisma = {
@@ -37,6 +41,9 @@ describe('RecurringTransactionExecutionRunsService', () => {
     };
     recurringTransactionsService = {
       executeAutomaticDaily: jest.fn(),
+    };
+    recurringExecutionFailureNotificationsService = {
+      notifyRunFailure: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -53,6 +60,10 @@ describe('RecurringTransactionExecutionRunsService', () => {
         {
           provide: RecurringTransactionsService,
           useValue: recurringTransactionsService,
+        },
+        {
+          provide: RecurringExecutionFailureNotificationsService,
+          useValue: recurringExecutionFailureNotificationsService,
         },
       ],
     }).compile();
@@ -165,5 +176,41 @@ describe('RecurringTransactionExecutionRunsService', () => {
 
     expect(result.run).toBeNull();
     expect(prisma.recurringExecutionRun.create).not.toHaveBeenCalled();
+  });
+
+  it('runScheduledForDate should notify when the execution fails', async () => {
+    prisma.recurringExecutionRun.create.mockResolvedValue({
+      id: 'run-1',
+    });
+    recurringTransactionsService.executeAutomaticDaily.mockRejectedValue(
+      new Error('Webhook provider timeout'),
+    );
+    prisma.recurringExecutionRun.update.mockResolvedValue({
+      id: 'run-1',
+      workspaceId: 'workspace-1',
+      triggerType: RecurringExecutionTriggerType.SCHEDULED,
+      status: RecurringExecutionRunStatus.FAILED,
+      targetDate: new Date('2026-03-25T00:00:00.000Z'),
+      initiatedByUserId: null,
+      initiatedBy: null,
+      candidateCount: null,
+      createdCount: null,
+      skippedCount: null,
+      errorMessage: 'Webhook provider timeout',
+      startedAt: new Date('2026-03-25T00:05:00.000Z'),
+      finishedAt: new Date('2026-03-25T00:05:05.000Z'),
+      createdAt: new Date('2026-03-25T00:05:00.000Z'),
+      updatedAt: new Date('2026-03-25T00:05:05.000Z'),
+    });
+
+    const result = await service.runScheduledForDate(
+      'workspace-1',
+      new Date('2026-03-25T00:00:00.000Z'),
+    );
+
+    expect(result.status).toBe(RecurringExecutionRunStatus.FAILED);
+    expect(
+      recurringExecutionFailureNotificationsService.notifyRunFailure,
+    ).toHaveBeenCalledWith('run-1');
   });
 });
