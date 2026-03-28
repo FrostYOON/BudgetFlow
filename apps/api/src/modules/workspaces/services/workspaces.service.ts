@@ -187,6 +187,7 @@ export class WorkspacesService {
       response.members = workspace.members.map((member) => ({
         userId: member.userId,
         name: member.user.name,
+        nickname: member.nickname,
         role: member.role,
         status: member.status,
       }));
