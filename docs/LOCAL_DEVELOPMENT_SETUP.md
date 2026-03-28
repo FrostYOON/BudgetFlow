@@ -63,5 +63,7 @@ pnpm --filter @budgetflow/api build
 - `.env` is for Docker Compose variables.
 - `packages/database/.env` is for Prisma CLI commands.
 - `apps/api/.env.local` is for Nest runtime config.
+- `apps/web` runs on `http://localhost:3001`.
+- `apps/api` runs on `http://localhost:3000`.
 - Do not commit real local secrets.
 - For shared or production databases, use deploy-time migrations instead of `migrate:dev`.

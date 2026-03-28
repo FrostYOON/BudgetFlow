@@ -24,6 +24,12 @@ pnpm prisma:generate
 pnpm dev
 ```
 
+Default local ports:
+
+- web: `http://localhost:3001`
+- api: `http://localhost:3000`
+- swagger: `http://localhost:3000/docs`
+
 ## Local Database
 
 BudgetFlow uses Docker Compose for the default local PostgreSQL setup.
