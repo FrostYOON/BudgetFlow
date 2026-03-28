@@ -66,3 +66,11 @@ Operational notes:
 - `prisma:migrate:deploy` is for CI/CD or production deploy steps.
 - `prisma:validate`, `prisma:migrate:status`, and all migration commands require a real `DATABASE_URL`.
 - The current migration workflow is documented in [docs/DB_MIGRATION_WORKFLOW.md](/Users/yoon-yongseol/WorkSpace/BudgetFlow/docs/DB_MIGRATION_WORKFLOW.md).
+
+## Task Management
+
+BudgetFlow tracks active engineering work with GitHub Issues and GitHub Projects.
+
+- workflow guide: [docs/TASK_MANAGEMENT.md](/Users/yoon-yongseol/WorkSpace/BudgetFlow/docs/TASK_MANAGEMENT.md)
+- project board setup: [docs/GITHUB_PROJECTS_SETUP.md](/Users/yoon-yongseol/WorkSpace/BudgetFlow/docs/GITHUB_PROJECTS_SETUP.md)
+- issue and PR templates: [.github](/Users/yoon-yongseol/WorkSpace/BudgetFlow/.github)

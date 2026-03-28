@@ -1,0 +1,59 @@
+name: Bug Report
+description: Report a product or engineering defect
+title: "[Bug] "
+labels:
+  - type:bug
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Problem Summary
+      description: Describe the bug in one or two sentences.
+      placeholder: Refresh token rotation fails when cookie is missing and the request falls back to body input.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Write the exact steps needed to reproduce the issue.
+      placeholder: |
+        1. Sign in
+        2. Delete refresh cookie
+        3. Call refresh endpoint with stale token
+        4. Observe incorrect status code
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      placeholder: The API should return 401 with a stable auth error code.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      placeholder: The API returns 500 and does not expose the intended auth error code.
+    validations:
+      required: true
+
+  - type: input
+    id: area
+    attributes:
+      label: Area
+      placeholder: API
+    validations:
+      required: true
+
+  - type: input
+    id: priority
+    attributes:
+      label: Priority
+      placeholder: P1
+    validations:
+      required: true
