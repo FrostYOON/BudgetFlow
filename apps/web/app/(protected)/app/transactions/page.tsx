@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getAppSession } from "@/lib/auth/session";
+import { fetchWorkspaceMembers, type WorkspaceMemberSummary } from "@/lib/settings";
 import {
+  fetchWorkspaceCategories,
   fetchWorkspaceTransactions,
   formatCurrency,
   formatDateLabel,
@@ -9,6 +11,8 @@ import {
   getMonthRange,
   getNextMonth,
   getPreviousMonth,
+  type TransactionCategory,
+  type WorkspaceTransaction,
 } from "@/lib/transactions";
 
 function clampMonth(value: number) {
@@ -49,6 +53,367 @@ function getType(
   return "ALL";
 }
 
+function buildTransactionsHref(input: {
+  year: number;
+  month: number;
+  type: "INCOME" | "EXPENSE" | "ALL";
+  visibility: "SHARED" | "PERSONAL" | "ALL";
+}) {
+  const params = new URLSearchParams({
+    year: String(input.year),
+    month: String(input.month),
+    type: input.type,
+    visibility: input.visibility,
+  });
+
+  return `/app/transactions?${params.toString()}`;
+}
+
+function buildEditHref(baseHref: string, transactionId: string) {
+  return `${baseHref}&edit=${transactionId}`;
+}
+
+function formatInputAmount(value: string) {
+  const amount = Number(value);
+  return Number.isFinite(amount) ? amount.toFixed(0) : "";
+}
+
+function getDefaultTransactionDate(
+  requestedPeriod: { year: number; month: number },
+  monthRange: { from: string; to: string },
+) {
+  const now = new Date();
+  const isCurrentMonth =
+    requestedPeriod.year === now.getFullYear() &&
+    requestedPeriod.month === now.getMonth() + 1;
+
+  if (isCurrentMonth) {
+    return now.toISOString().slice(0, 10);
+  }
+
+  return monthRange.from;
+}
+
+function CategorySelect({
+  categories,
+  name,
+  defaultValue,
+  transactionType,
+}: {
+  categories: TransactionCategory[];
+  name: string;
+  defaultValue?: string | null;
+  transactionType?: "INCOME" | "EXPENSE";
+}) {
+  const incomeCategories = categories.filter((item) => item.type === "INCOME");
+  const expenseCategories = categories.filter((item) => item.type === "EXPENSE");
+  const filteredCategories = transactionType
+    ? categories.filter((item) => item.type === transactionType)
+    : categories;
+
+  return (
+    <select
+      name={name}
+      defaultValue={defaultValue ?? ""}
+      className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
+    >
+      <option value="">No category</option>
+      {transactionType ? (
+        filteredCategories.map((category) => (
+          <option key={category.id} value={category.id}>
+            {category.name}
+          </option>
+        ))
+      ) : (
+        <>
+          <optgroup label="Expense">
+            {expenseCategories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </optgroup>
+          <optgroup label="Income">
+            {incomeCategories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </optgroup>
+        </>
+      )}
+    </select>
+  );
+}
+
+function MemberSelect({
+  members,
+  name,
+  defaultValue,
+}: {
+  members: WorkspaceMemberSummary[];
+  name: string;
+  defaultValue?: string | null;
+}) {
+  return (
+    <select
+      name={name}
+      defaultValue={defaultValue ?? ""}
+      className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
+    >
+      <option value="">Use current member</option>
+      {members.map((member) => (
+        <option key={member.userId} value={member.userId}>
+          {member.nickname ?? member.name}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+function QuickAddCard({
+  categories,
+  currency,
+  defaultDate,
+  defaultType,
+  members,
+  returnTo,
+}: {
+  categories: TransactionCategory[];
+  currency: string;
+  defaultDate: string;
+  defaultType: "INCOME" | "EXPENSE";
+  members: WorkspaceMemberSummary[];
+  returnTo: string;
+}) {
+  return (
+    <form
+      action="/app/transactions/create"
+      method="post"
+      className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6"
+    >
+      <input type="hidden" name="returnTo" value={returnTo} />
+      <input type="hidden" name="currency" value={currency} />
+
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold text-slate-950">Quick add</p>
+          <p className="mt-1 text-sm text-slate-500">Add one transaction fast.</p>
+        </div>
+        <div className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
+          {currency}
+        </div>
+      </div>
+
+      <div className="mt-5 grid gap-4 sm:grid-cols-2">
+        <label className="block">
+          <span className="text-sm font-medium text-slate-700">Type</span>
+          <select
+            name="type"
+            defaultValue={defaultType}
+            className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
+          >
+            <option value="EXPENSE">Expense</option>
+            <option value="INCOME">Income</option>
+          </select>
+        </label>
+
+        <label className="block">
+          <span className="text-sm font-medium text-slate-700">Visibility</span>
+          <select
+            name="visibility"
+            defaultValue="SHARED"
+            className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
+          >
+            <option value="SHARED">Shared</option>
+            <option value="PERSONAL">Personal</option>
+          </select>
+        </label>
+
+        <label className="block">
+          <span className="text-sm font-medium text-slate-700">Amount</span>
+          <input
+            name="amount"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="0"
+            className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
+          />
+        </label>
+
+        <label className="block">
+          <span className="text-sm font-medium text-slate-700">Date</span>
+          <input
+            name="transactionDate"
+            type="date"
+            defaultValue={defaultDate}
+            className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
+          />
+        </label>
+      </div>
+
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <label className="block">
+          <span className="text-sm font-medium text-slate-700">Category</span>
+          <CategorySelect categories={categories} name="categoryId" />
+        </label>
+
+        <label className="block">
+          <span className="text-sm font-medium text-slate-700">Paid by</span>
+          <MemberSelect members={members} name="paidByUserId" />
+        </label>
+      </div>
+
+      <label className="mt-4 block">
+        <span className="text-sm font-medium text-slate-700">Memo</span>
+        <textarea
+          name="memo"
+          rows={3}
+          placeholder="Optional note"
+          className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
+        />
+      </label>
+
+      <div className="mt-5 flex justify-end">
+        <button
+          type="submit"
+          className="rounded-full bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
+        >
+          Save transaction
+        </button>
+      </div>
+    </form>
+  );
+}
+
+function EditTransactionCard({
+  categories,
+  currency,
+  members,
+  returnTo,
+  transaction,
+}: {
+  categories: TransactionCategory[];
+  currency: string;
+  members: WorkspaceMemberSummary[];
+  returnTo: string;
+  transaction: WorkspaceTransaction;
+}) {
+  return (
+    <form
+      action="/app/transactions/update"
+      method="post"
+      className="rounded-[1.75rem] border border-emerald-200 bg-emerald-50 px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.04)] sm:px-6"
+    >
+      <input type="hidden" name="returnTo" value={returnTo} />
+      <input type="hidden" name="transactionId" value={transaction.id} />
+      <input type="hidden" name="currency" value={currency} />
+
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold text-slate-950">Edit transaction</p>
+          <p className="mt-1 text-sm text-slate-500">
+            Type stays {transaction.type.toLowerCase()} for this edit.
+          </p>
+        </div>
+        <Link
+          href={returnTo}
+          className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+        >
+          Cancel
+        </Link>
+      </div>
+
+      <div className="mt-5 grid gap-4 sm:grid-cols-2">
+        <label className="block">
+          <span className="text-sm font-medium text-slate-700">Visibility</span>
+          <select
+            name="visibility"
+            defaultValue={transaction.visibility}
+            className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400"
+          >
+            <option value="SHARED">Shared</option>
+            <option value="PERSONAL">Personal</option>
+          </select>
+        </label>
+
+        <label className="block">
+          <span className="text-sm font-medium text-slate-700">Amount</span>
+          <input
+            name="amount"
+            type="number"
+            min="0"
+            step="0.01"
+            defaultValue={formatInputAmount(transaction.amount)}
+            className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400"
+          />
+        </label>
+
+        <label className="block">
+          <span className="text-sm font-medium text-slate-700">Date</span>
+          <input
+            name="transactionDate"
+            type="date"
+            defaultValue={transaction.transactionDate}
+            className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400"
+          />
+        </label>
+
+        <label className="block">
+          <span className="text-sm font-medium text-slate-700">Category</span>
+          <CategorySelect
+            categories={categories}
+            name="categoryId"
+            defaultValue={transaction.categoryId}
+            transactionType={transaction.type}
+          />
+        </label>
+      </div>
+
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <label className="block">
+          <span className="text-sm font-medium text-slate-700">Paid by</span>
+          <MemberSelect
+            members={members}
+            name="paidByUserId"
+            defaultValue={transaction.paidByUserId}
+          />
+        </label>
+
+        <label className="block">
+          <span className="text-sm font-medium text-slate-700">Currency</span>
+          <input
+            name="currency"
+            type="text"
+            defaultValue={transaction.currency}
+            className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400"
+          />
+        </label>
+      </div>
+
+      <label className="mt-4 block">
+        <span className="text-sm font-medium text-slate-700">Memo</span>
+        <textarea
+          name="memo"
+          rows={3}
+          defaultValue={transaction.memo ?? ""}
+          className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400"
+        />
+      </label>
+
+      <div className="mt-5 flex justify-end">
+        <button
+          type="submit"
+          className="rounded-full bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
+        >
+          Update transaction
+        </button>
+      </div>
+    </form>
+  );
+}
+
 export default async function TransactionsPage({
   searchParams,
 }: {
@@ -57,6 +422,7 @@ export default async function TransactionsPage({
     month?: string;
     type?: string;
     visibility?: string;
+    edit?: string;
   }>;
 }) {
   const session = await getAppSession();
@@ -77,18 +443,42 @@ export default async function TransactionsPage({
     requestedPeriod.year,
     requestedPeriod.month,
   );
-  const transactions = await fetchWorkspaceTransactions({
-    accessToken: session.accessToken,
-    workspaceId: session.currentWorkspace.id,
-    from: monthRange.from,
-    to: monthRange.to,
-    type: type === "ALL" ? undefined : type,
-    visibility: visibility === "ALL" ? undefined : visibility,
-  });
+
+  const [transactions, categories, members] = await Promise.all([
+    fetchWorkspaceTransactions({
+      accessToken: session.accessToken,
+      workspaceId: session.currentWorkspace.id,
+      from: monthRange.from,
+      to: monthRange.to,
+      type: type === "ALL" ? undefined : type,
+      visibility: visibility === "ALL" ? undefined : visibility,
+    }),
+    fetchWorkspaceCategories({
+      accessToken: session.accessToken,
+      workspaceId: session.currentWorkspace.id,
+    }),
+    fetchWorkspaceMembers({
+      accessToken: session.accessToken,
+      workspaceId: session.currentWorkspace.id,
+    }),
+  ]);
 
   const locale = session.user.locale === "ko-KR" ? "ko-KR" : "en-CA";
   const prev = getPreviousMonth(requestedPeriod.year, requestedPeriod.month);
   const next = getNextMonth(requestedPeriod.year, requestedPeriod.month);
+  const baseHref = buildTransactionsHref({
+    year: requestedPeriod.year,
+    month: requestedPeriod.month,
+    type,
+    visibility,
+  });
+  const editableTransaction =
+    transactions.items.find((item) => item.id === params.edit) ?? null;
+  const defaultCreateDate = getDefaultTransactionDate(
+    requestedPeriod,
+    monthRange,
+  );
+  const defaultCreateType = type === "ALL" ? "EXPENSE" : type;
 
   const grouped = Object.entries(
     transactions.items.reduce<Record<string, typeof transactions.items>>(
@@ -143,19 +533,48 @@ export default async function TransactionsPage({
 
         <div className="mt-5 flex items-center gap-3 text-sm">
           <Link
-            href={`/app/transactions?year=${prev.year}&month=${prev.month}&type=${type}&visibility=${visibility}`}
+            href={buildTransactionsHref({
+              year: prev.year,
+              month: prev.month,
+              type,
+              visibility,
+            })}
             className="rounded-full border border-slate-300 px-4 py-2 text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
           >
             Prev
           </Link>
           <Link
-            href={`/app/transactions?year=${next.year}&month=${next.month}&type=${type}&visibility=${visibility}`}
+            href={buildTransactionsHref({
+              year: next.year,
+              month: next.month,
+              type,
+              visibility,
+            })}
             className="rounded-full border border-slate-300 px-4 py-2 text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
           >
             Next
           </Link>
         </div>
       </section>
+
+      <QuickAddCard
+        categories={categories}
+        currency={session.currentWorkspace.baseCurrency}
+        defaultDate={defaultCreateDate}
+        defaultType={defaultCreateType}
+        members={members}
+        returnTo={baseHref}
+      />
+
+      {editableTransaction ? (
+        <EditTransactionCard
+          categories={categories}
+          currency={session.currentWorkspace.baseCurrency}
+          members={members}
+          returnTo={baseHref}
+          transaction={editableTransaction}
+        />
+      ) : null}
 
       <section className="grid gap-3 sm:grid-cols-2">
         <article className="rounded-[1.5rem] border border-slate-900/8 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
@@ -212,7 +631,12 @@ export default async function TransactionsPage({
             return (
               <Link
                 key={item.value}
-                href={`/app/transactions?year=${requestedPeriod.year}&month=${requestedPeriod.month}&type=${item.value}&visibility=${visibility}`}
+                href={buildTransactionsHref({
+                  year: requestedPeriod.year,
+                  month: requestedPeriod.month,
+                  type: item.value as "INCOME" | "EXPENSE" | "ALL",
+                  visibility,
+                })}
                 className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
                   active
                     ? "bg-emerald-500 text-slate-950"
@@ -236,7 +660,12 @@ export default async function TransactionsPage({
             return (
               <Link
                 key={item.value}
-                href={`/app/transactions?year=${requestedPeriod.year}&month=${requestedPeriod.month}&type=${type}&visibility=${item.value}`}
+                href={buildTransactionsHref({
+                  year: requestedPeriod.year,
+                  month: requestedPeriod.month,
+                  type,
+                  visibility: item.value as "SHARED" | "PERSONAL" | "ALL",
+                })}
                 className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
                   active
                     ? "bg-slate-950 text-white"
@@ -271,7 +700,11 @@ export default async function TransactionsPage({
                 {items.map((transaction) => (
                   <article
                     key={transaction.id}
-                    className="rounded-[1.5rem] border border-slate-900/8 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)]"
+                    className={`rounded-[1.5rem] border px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)] ${
+                      editableTransaction?.id === transaction.id
+                        ? "border-emerald-300 bg-emerald-50"
+                        : "border-slate-900/8 bg-white"
+                    }`}
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div>
@@ -294,6 +727,15 @@ export default async function TransactionsPage({
                           {transaction.type} · {transaction.visibility}
                         </p>
                       </div>
+                    </div>
+
+                    <div className="mt-4 flex justify-end">
+                      <Link
+                        href={buildEditHref(baseHref, transaction.id)}
+                        className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+                      >
+                        Edit
+                      </Link>
                     </div>
                   </article>
                 ))}

@@ -77,6 +77,22 @@ const TOAST_MESSAGES: Record<string, { type: "success" | "error"; text: string }
     type: "error",
     text: "Failed to create household.",
   },
+  transaction_created: {
+    type: "success",
+    text: "Transaction added.",
+  },
+  transaction_updated: {
+    type: "success",
+    text: "Transaction updated.",
+  },
+  transaction_save_failed: {
+    type: "error",
+    text: "Failed to save transaction.",
+  },
+  transaction_update_failed: {
+    type: "error",
+    text: "Failed to update transaction.",
+  },
   workspace_missing: {
     type: "error",
     text: "Workspace is missing.",
