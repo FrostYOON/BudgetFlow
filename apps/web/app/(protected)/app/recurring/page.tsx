@@ -7,6 +7,7 @@ import {
   type TransactionCategory,
 } from "@/lib/transactions";
 import {
+  fetchRecurringExecutionRuns,
   fetchRecurringOpsSummary,
   fetchRecurringTransactions,
   formatDateLabel,
@@ -249,6 +250,127 @@ function RunSnapshot({
         </div>
       </dl>
     </article>
+  );
+}
+
+function ManualExecutionCard({ workspaceId }: { workspaceId: string }) {
+  const today = new Date().toISOString().slice(0, 10);
+
+  return (
+    <form
+      action="/app/recurring/rerun"
+      method="post"
+      className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6"
+    >
+      <input type="hidden" name="workspaceId" value={workspaceId} />
+
+      <div className="border-b border-slate-900/8 pb-4">
+        <h2 className="text-lg font-semibold text-slate-950">Manual run</h2>
+      </div>
+
+      <div className="mt-5 grid gap-4 sm:grid-cols-2">
+        <label className="block">
+          <span className="text-sm font-medium text-slate-700">
+            Execution date
+          </span>
+          <input
+            name="executionDate"
+            type="date"
+            defaultValue={today}
+            className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
+          />
+        </label>
+
+        <label className="block">
+          <span className="text-sm font-medium text-slate-700">Mode</span>
+          <select
+            name="dryRun"
+            defaultValue="false"
+            className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
+          >
+            <option value="false">Create transactions</option>
+            <option value="true">Dry run only</option>
+          </select>
+        </label>
+      </div>
+
+      <button
+        type="submit"
+        className="mt-5 inline-flex w-full items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+      >
+        Run now
+      </button>
+    </form>
+  );
+}
+
+function ExecutionHistory({
+  locale,
+  runs,
+  timeZone,
+}: {
+  locale: string;
+  runs: RecurringExecutionRun[];
+  timeZone: string;
+}) {
+  return (
+    <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
+      <div className="flex items-center justify-between gap-4 border-b border-slate-900/8 pb-4">
+        <h2 className="text-lg font-semibold text-slate-950">
+          Execution history
+        </h2>
+        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+          {runs.length}
+        </span>
+      </div>
+
+      <div className="mt-5 space-y-3">
+        {runs.length === 0 ? (
+          <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50 px-5 py-8 text-center">
+            <p className="text-sm font-medium text-slate-950">
+              No execution history yet
+            </p>
+          </div>
+        ) : (
+          runs.map((run) => (
+            <article
+              key={run.id}
+              className="rounded-[1.5rem] border border-slate-900/8 bg-slate-50 px-4 py-4"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-slate-950">
+                    {formatDateLabel(run.targetDate, locale)}
+                  </p>
+                  <p className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">
+                    {run.triggerType} · {run.initiatedByUserName ?? "Scheduler"}
+                  </p>
+                </div>
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-semibold ${getRunStatusTone(
+                    run.status,
+                  )}`}
+                >
+                  {run.status}
+                </span>
+              </div>
+
+              <div className="mt-4 grid gap-2 text-sm text-slate-600 sm:grid-cols-3">
+                <p>Created {run.createdCount ?? 0}</p>
+                <p>Skipped {run.skippedCount ?? 0}</p>
+                <p>
+                  {formatDateTimeLabel(run.finishedAt ?? run.startedAt, locale, timeZone)}
+                </p>
+              </div>
+
+              {run.errorMessage ? (
+                <p className="mt-3 text-sm text-rose-700">{run.errorMessage}</p>
+              ) : null}
+            </article>
+          ))
+        )}
+      </div>
+    </section>
   );
 }
 
@@ -564,10 +686,16 @@ export default async function RecurringPage({
 
   const locale = getLocale(session.user.locale);
   const params = await searchParams;
-  const [ops, recurringItems, members, categories] = await Promise.all([
+  const [ops, executionRuns, recurringItems, members, categories] =
+    await Promise.all([
     fetchRecurringOpsSummary({
       accessToken: session.accessToken,
       workspaceId: session.currentWorkspace.id,
+    }),
+    fetchRecurringExecutionRuns({
+      accessToken: session.accessToken,
+      workspaceId: session.currentWorkspace.id,
+      limit: 8,
     }),
     fetchRecurringTransactions({
       accessToken: session.accessToken,
@@ -582,7 +710,7 @@ export default async function RecurringPage({
       accessToken: session.accessToken,
       workspaceId: session.currentWorkspace.id,
     }),
-  ]);
+    ]);
   const editableItem =
     recurringItems.find((item) => item.id === normalizeEditValue(params.edit)) ??
     null;
@@ -720,6 +848,15 @@ export default async function RecurringPage({
             {ops.last7Days.failedRuns}
           </p>
         </article>
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <ExecutionHistory
+          locale={locale}
+          runs={executionRuns}
+          timeZone={ops.scheduler.workspaceTimezone}
+        />
+        <ManualExecutionCard workspaceId={session.currentWorkspace.id} />
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">

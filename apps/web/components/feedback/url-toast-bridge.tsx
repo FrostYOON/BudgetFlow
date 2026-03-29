@@ -157,6 +157,18 @@ const TOAST_MESSAGES: Record<string, { type: "success" | "error"; text: string }
     type: "error",
     text: "Failed to pause recurring rule.",
   },
+  recurring_rerun_complete: {
+    type: "success",
+    text: "Recurring run completed.",
+  },
+  recurring_dry_run_complete: {
+    type: "success",
+    text: "Recurring dry run completed.",
+  },
+  recurring_rerun_failed: {
+    type: "error",
+    text: "Failed to run recurring execution.",
+  },
   workspace_settings_saved: {
     type: "success",
     text: "Household settings saved.",

@@ -71,6 +71,29 @@ export interface RecurringOpsSummary {
   recentFailures: RecurringExecutionRun[];
 }
 
+export interface RerunRecurringExecutionResponse {
+  run: RecurringExecutionRun | null;
+  result: {
+    year: number;
+    month: number;
+    dryRun: boolean;
+    summary: {
+      candidateCount: number;
+      createdCount: number;
+      skippedCount: number;
+    };
+    items: Array<{
+      recurringTransactionId: string;
+      transactionId: string | null;
+      transactionDate: string;
+      memo: string | null;
+      amount: string;
+      skipped: boolean;
+      skipReason: string | null;
+    }>;
+  };
+}
+
 function getApiBaseUrl() {
   return process.env.BUDGETFLOW_API_URL ?? "http://localhost:3000/api/v1";
 }
@@ -246,6 +269,69 @@ export async function deactivateRecurringTransaction(input: {
   }
 
   return response.json();
+}
+
+export async function fetchRecurringExecutionRuns(input: {
+  accessToken: string;
+  workspaceId: string;
+  limit?: number;
+}) {
+  const params = new URLSearchParams();
+
+  if (input.limit) {
+    params.set("limit", String(input.limit));
+  }
+
+  const response = await fetch(
+    `${getApiBaseUrl()}/workspaces/${input.workspaceId}/recurring-transactions/execution-runs${
+      params.toString().length > 0 ? `?${params.toString()}` : ""
+    }`,
+    {
+      headers: {
+        Authorization: `Bearer ${input.accessToken}`,
+      },
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(response, "Failed to load recurring runs."),
+    );
+  }
+
+  return (await response.json()) as RecurringExecutionRun[];
+}
+
+export async function rerunRecurringExecution(input: {
+  accessToken: string;
+  workspaceId: string;
+  executionDate: string;
+  dryRun: boolean;
+}) {
+  const response = await fetch(
+    `${getApiBaseUrl()}/workspaces/${input.workspaceId}/recurring-transactions/execution-runs/rerun`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${input.accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        executionDate: input.executionDate,
+        dryRun: input.dryRun,
+      }),
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(response, "Failed to rerun recurring execution."),
+    );
+  }
+
+  return (await response.json()) as RerunRecurringExecutionResponse;
 }
 
 export function formatDateLabel(input: string, locale = "en-CA") {
