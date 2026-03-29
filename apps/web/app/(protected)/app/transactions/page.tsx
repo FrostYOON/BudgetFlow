@@ -107,6 +107,10 @@ function buildEditHref(baseHref: string, transactionId: string) {
   return `${baseHref}&edit=${transactionId}`;
 }
 
+function buildViewHref(baseHref: string, transactionId: string) {
+  return `${baseHref}&view=${transactionId}`;
+}
+
 function formatInputAmount(value: string) {
   const amount = Number(value);
   return Number.isFinite(amount) ? amount.toFixed(0) : "";
@@ -462,6 +466,104 @@ function EditTransactionCard({
   );
 }
 
+function TransactionDetailCard({
+  currency,
+  locale,
+  returnTo,
+  transaction,
+}: {
+  currency: string;
+  locale: string;
+  returnTo: string;
+  transaction: WorkspaceTransaction;
+}) {
+  return (
+    <AppSurface padding="md">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold text-slate-950">Transaction detail</p>
+          <p className="mt-1 text-sm text-slate-500">{transaction.transactionDate}</p>
+        </div>
+        <AppButtonLink href={returnTo} size="sm" tone="secondary">
+          Close
+        </AppButtonLink>
+      </div>
+
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <div className="rounded-[1.1rem] bg-slate-50 px-4 py-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+            Category
+          </p>
+          <p className="mt-2 text-sm font-semibold text-slate-950">
+            {transaction.categoryName ?? "Uncategorized"}
+          </p>
+        </div>
+        <div className="rounded-[1.1rem] bg-slate-50 px-4 py-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+            Amount
+          </p>
+          <p className="mt-2 text-sm font-semibold text-slate-950">
+            {formatCurrency(transaction.amount, currency, locale)}
+          </p>
+        </div>
+        <div className="rounded-[1.1rem] bg-slate-50 px-4 py-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+            Type
+          </p>
+          <p className="mt-2 text-sm font-semibold text-slate-950">
+            {transaction.type}
+          </p>
+        </div>
+        <div className="rounded-[1.1rem] bg-slate-50 px-4 py-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+            Visibility
+          </p>
+          <p className="mt-2 text-sm font-semibold text-slate-950">
+            {transaction.visibility}
+          </p>
+        </div>
+        <div className="rounded-[1.1rem] bg-slate-50 px-4 py-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+            Paid by
+          </p>
+          <p className="mt-2 text-sm font-semibold text-slate-950">
+            {transaction.paidByUserName ?? "Unknown"}
+          </p>
+        </div>
+        <div className="rounded-[1.1rem] bg-slate-50 px-4 py-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+            Currency
+          </p>
+          <p className="mt-2 text-sm font-semibold text-slate-950">
+            {transaction.currency}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-[1.1rem] bg-slate-50 px-4 py-4">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+          Memo
+        </p>
+        <p className="mt-2 text-sm text-slate-700">
+          {transaction.memo ?? "No note"}
+        </p>
+      </div>
+
+      <div className="mt-5 flex gap-3">
+        <AppButtonLink
+          href={buildEditHref(returnTo, transaction.id)}
+          className="flex-1"
+        >
+          Edit
+        </AppButtonLink>
+        <AppButtonLink href={returnTo} tone="secondary" className="flex-1">
+          Back
+        </AppButtonLink>
+      </div>
+    </AppSurface>
+  );
+}
+
 export default async function TransactionsPage({
   searchParams,
 }: {
@@ -477,6 +579,7 @@ export default async function TransactionsPage({
     q?: string;
     type?: string;
     visibility?: string;
+    view?: string;
   }>;
 }) {
   const session = await getAppSession();
@@ -580,6 +683,10 @@ export default async function TransactionsPage({
   const editableTransaction =
     filteredTransactions.find((item) => item.id === params.edit) ??
     transactions.items.find((item) => item.id === params.edit) ??
+    null;
+  const viewedTransaction =
+    filteredTransactions.find((item) => item.id === params.view) ??
+    transactions.items.find((item) => item.id === params.view) ??
     null;
   const defaultCreateDate = getDefaultTransactionDate(
     requestedPeriod,
@@ -703,6 +810,17 @@ export default async function TransactionsPage({
             returnTo={baseHref}
             transaction={editableTransaction}
             workspaceId={currentWorkspace.id}
+          />
+        </Reveal>
+      ) : null}
+
+      {viewedTransaction && !editableTransaction ? (
+        <Reveal delay={0.11}>
+          <TransactionDetailCard
+            currency={currentWorkspace.baseCurrency}
+            locale={locale}
+            returnTo={baseHref}
+            transaction={viewedTransaction}
           />
         </Reveal>
       ) : null}
@@ -1015,6 +1133,13 @@ export default async function TransactionsPage({
                             Delete
                           </button>
                         </form>
+                        <AppButtonLink
+                          href={buildViewHref(baseHref, transaction.id)}
+                          tone="secondary"
+                          size="sm"
+                        >
+                          View
+                        </AppButtonLink>
                         <Link
                           href={buildEditHref(baseHref, transaction.id)}
                           className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950 active:scale-[0.98]"
