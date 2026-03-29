@@ -193,6 +193,35 @@ export class TransactionsService {
     return this.toResponse(transaction);
   }
 
+  async restore(
+    workspaceId: string,
+    transactionId: string,
+    userId: string,
+  ): Promise<TransactionResponseDto> {
+    await this.workspacesService.assertMemberAccess(workspaceId, userId);
+
+    const existingTransaction =
+      await this.findTransactionIncludingDeletedOrThrow(
+        workspaceId,
+        transactionId,
+      );
+
+    if (!existingTransaction.isDeleted) {
+      return this.toResponse(existingTransaction);
+    }
+
+    const transaction = await this.prisma.transaction.update({
+      where: { id: transactionId },
+      data: { isDeleted: false },
+      include: {
+        category: true,
+        paidBy: true,
+      },
+    });
+
+    return this.toResponse(transaction);
+  }
+
   private async findTransactionOrThrow(
     workspaceId: string,
     transactionId: string,
@@ -202,6 +231,28 @@ export class TransactionsService {
         id: transactionId,
         workspaceId,
         isDeleted: false,
+      },
+      include: {
+        category: true,
+        paidBy: true,
+      },
+    });
+
+    if (!transaction) {
+      throw new NotFoundException('Transaction was not found.');
+    }
+
+    return transaction;
+  }
+
+  private async findTransactionIncludingDeletedOrThrow(
+    workspaceId: string,
+    transactionId: string,
+  ): Promise<TransactionWithRelations> {
+    const transaction = await this.prisma.transaction.findFirst({
+      where: {
+        id: transactionId,
+        workspaceId,
       },
       include: {
         category: true,

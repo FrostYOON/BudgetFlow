@@ -84,4 +84,19 @@ export class CategoriesController {
   ): Promise<CategoryResponseDto> {
     return this.categoriesService.archive(workspaceId, categoryId, user.userId);
   }
+
+  @Post(':categoryId/unarchive')
+  @ApiOperation({ summary: 'Unarchive a workspace category' })
+  @ApiOkResponse({ type: CategoryResponseDto })
+  unarchive(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('workspaceId', new ParseUUIDPipe()) workspaceId: string,
+    @Param('categoryId', new ParseUUIDPipe()) categoryId: string,
+  ): Promise<CategoryResponseDto> {
+    return this.categoriesService.unarchive(
+      workspaceId,
+      categoryId,
+      user.userId,
+    );
+  }
 }

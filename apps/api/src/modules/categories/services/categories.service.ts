@@ -116,6 +116,33 @@ export class CategoriesService {
     return this.toResponse(category);
   }
 
+  async unarchive(
+    workspaceId: string,
+    categoryId: string,
+    userId: string,
+  ): Promise<CategoryResponseDto> {
+    await this.workspacesService.assertMemberAccess(workspaceId, userId);
+    const existing = await this.findCategoryOrThrow(workspaceId, categoryId);
+
+    if (!existing.isArchived) {
+      return this.toResponse(existing);
+    }
+
+    try {
+      const category = await this.prisma.category.update({
+        where: { id: categoryId },
+        data: {
+          isArchived: false,
+        },
+      });
+
+      return this.toResponse(category);
+    } catch (error) {
+      this.handleUniqueConstraint(error);
+      throw error;
+    }
+  }
+
   private async findCategoryOrThrow(
     workspaceId: string,
     categoryId: string,
