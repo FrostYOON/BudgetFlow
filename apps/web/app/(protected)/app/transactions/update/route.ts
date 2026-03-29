@@ -23,6 +23,20 @@ function getReturnTo(value: FormDataEntryValue | null) {
     : "/app/transactions";
 }
 
+function buildReturnUrl(
+  request: NextRequest,
+  returnTo: string,
+  entries: Record<string, string>,
+) {
+  const url = new URL(returnTo, request.url);
+
+  for (const [key, value] of Object.entries(entries)) {
+    url.searchParams.set(key, value);
+  }
+
+  return url;
+}
+
 export async function POST(request: NextRequest) {
   const accessToken = request.cookies.get(AUTH_ACCESS_COOKIE_NAME)?.value;
 
@@ -52,7 +66,7 @@ export async function POST(request: NextRequest) {
     !transactionDate
   ) {
     return NextResponse.redirect(
-      new URL(`${returnTo}?error=transaction_update_failed`, request.url),
+      buildReturnUrl(request, returnTo, { error: "transaction_update_failed" }),
     );
   }
 
@@ -71,11 +85,11 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.redirect(
-      new URL(`${returnTo}?toast=transaction_updated`, request.url),
+      buildReturnUrl(request, returnTo, { toast: "transaction_updated" }),
     );
   } catch {
     return NextResponse.redirect(
-      new URL(`${returnTo}?error=transaction_update_failed`, request.url),
+      buildReturnUrl(request, returnTo, { error: "transaction_update_failed" }),
     );
   }
 }

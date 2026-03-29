@@ -327,9 +327,7 @@ function ExecutionHistory({
       <div className="mt-5 space-y-3">
         {runs.length === 0 ? (
           <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50 px-5 py-8 text-center">
-            <p className="text-sm font-medium text-slate-950">
-              No execution history yet
-            </p>
+            <p className="text-sm font-medium text-slate-950">No runs yet</p>
           </div>
         ) : (
           runs.map((run) => (
@@ -397,9 +395,6 @@ function QuickRuleForm({
       <div className="flex items-center justify-between gap-4">
         <div>
           <p className="text-sm font-semibold text-slate-950">Quick rule</p>
-          <p className="mt-1 text-sm text-slate-500">
-            Add rent, subscriptions, or fixed income.
-          </p>
         </div>
         <div className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
           {currency}

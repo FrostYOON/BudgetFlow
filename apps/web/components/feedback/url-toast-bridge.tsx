@@ -53,9 +53,25 @@ const TOAST_MESSAGES: Record<string, { type: "success" | "error"; text: string }
     type: "success",
     text: "Invite created.",
   },
+  invite_resent: {
+    type: "success",
+    text: "Invite link refreshed.",
+  },
+  invite_revoked: {
+    type: "success",
+    text: "Invite revoked.",
+  },
   invite_create_failed: {
     type: "error",
     text: "Failed to create invite.",
+  },
+  invite_resend_failed: {
+    type: "error",
+    text: "Failed to resend invite.",
+  },
+  invite_revoke_failed: {
+    type: "error",
+    text: "Failed to revoke invite.",
   },
   invite_accepted: {
     type: "success",
@@ -77,6 +93,10 @@ const TOAST_MESSAGES: Record<string, { type: "success" | "error"; text: string }
     type: "success",
     text: "Category archived.",
   },
+  category_restored: {
+    type: "success",
+    text: "Category restored.",
+  },
   category_create_failed: {
     type: "error",
     text: "Failed to create category.",
@@ -88,6 +108,10 @@ const TOAST_MESSAGES: Record<string, { type: "success" | "error"; text: string }
   category_archive_failed: {
     type: "error",
     text: "Failed to archive category.",
+  },
+  category_restore_failed: {
+    type: "error",
+    text: "Failed to restore category.",
   },
   budget_saved: {
     type: "success",
@@ -125,6 +149,14 @@ const TOAST_MESSAGES: Record<string, { type: "success" | "error"; text: string }
     type: "success",
     text: "Transaction updated.",
   },
+  transaction_deleted: {
+    type: "success",
+    text: "Transaction deleted.",
+  },
+  transaction_restored: {
+    type: "success",
+    text: "Transaction restored.",
+  },
   transaction_save_failed: {
     type: "error",
     text: "Failed to save transaction.",
@@ -132,6 +164,14 @@ const TOAST_MESSAGES: Record<string, { type: "success" | "error"; text: string }
   transaction_update_failed: {
     type: "error",
     text: "Failed to update transaction.",
+  },
+  transaction_delete_failed: {
+    type: "error",
+    text: "Failed to delete transaction.",
+  },
+  transaction_restore_failed: {
+    type: "error",
+    text: "Failed to restore transaction.",
   },
   recurring_saved: {
     type: "success",

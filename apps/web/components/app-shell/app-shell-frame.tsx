@@ -95,11 +95,11 @@ export function AppShellFrame({ children, session }: AppShellFrameProps) {
                   <p className="text-sm font-medium text-slate-500">
                     {session.currentWorkspace?.name ?? "No workspace selected"}
                   </p>
-                  <p className="mt-1 text-sm text-slate-600">
-                    {session.currentWorkspace
-                      ? "Track spending, budgets, and recurring costs in one place."
-                      : "Create or join a household workspace to start budgeting."}
-                  </p>
+                  {session.currentWorkspace ? (
+                    <p className="mt-1 text-sm text-slate-600">
+                      {session.currentWorkspace.baseCurrency} · {session.currentWorkspace.memberRole}
+                    </p>
+                  ) : null}
                 </div>
                 <div className="flex gap-3 text-sm">
                   <Link

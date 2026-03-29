@@ -222,7 +222,7 @@ export default async function ReportsPage({
       <CardSection title="Insights">
         <div className="space-y-3">
           {report.insights.length === 0 ? (
-            <p className="text-sm text-slate-500">No active insights.</p>
+            <p className="text-sm text-slate-500">No insights.</p>
           ) : (
             report.insights.map((insight) => (
               <div

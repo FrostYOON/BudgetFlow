@@ -73,11 +73,8 @@ export default async function DashboardPage({
             <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
               {session.currentWorkspace.name}
             </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
-              Live dashboard summary for{" "}
-              {formatMonthLabel(dashboard.period.year, dashboard.period.month)}.
-              This screen is backed by the real dashboard API and current
-              authenticated workspace context.
+            <p className="mt-3 text-sm text-slate-500">
+              {formatMonthLabel(dashboard.period.year, dashboard.period.month)}
             </p>
           </div>
 
@@ -179,9 +176,6 @@ export default async function DashboardPage({
                 <h2 className="text-lg font-semibold text-slate-950">
                   Top categories
                 </h2>
-                <p className="mt-1 text-sm text-slate-500">
-                  Highest expense categories for the selected month.
-                </p>
               </div>
             </div>
 
@@ -219,17 +213,12 @@ export default async function DashboardPage({
                 <h2 className="text-lg font-semibold text-slate-950">
                   Recent transactions
                 </h2>
-                <p className="mt-1 text-sm text-slate-500">
-                  Latest recorded entries in the selected workspace.
-                </p>
               </div>
             </div>
 
             <div className="mt-5 space-y-3">
               {dashboard.recentTransactions.length === 0 ? (
-                <p className="text-sm text-slate-500">
-                  No transactions have been recorded yet.
-                </p>
+                <p className="text-sm text-slate-500">No transactions yet.</p>
               ) : (
                 dashboard.recentTransactions.map((transaction) => (
                   <div
@@ -257,15 +246,11 @@ export default async function DashboardPage({
         <aside className="space-y-8">
           <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-6 py-6 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
             <h2 className="text-lg font-semibold text-slate-950">Insights</h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Rule-based insights from the current month.
-            </p>
 
             <div className="mt-5 space-y-3">
               {dashboard.insights.length === 0 ? (
                 <div className="rounded-2xl bg-emerald-50 px-4 py-4 text-sm text-emerald-900">
-                  No active insights for this month. Budget and spending look
-                  stable.
+                  No insights this month.
                 </div>
               ) : (
                 dashboard.insights.map((insight, index) => (

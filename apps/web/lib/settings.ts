@@ -31,6 +31,18 @@ function getApiBaseUrl() {
   return process.env.BUDGETFLOW_API_URL ?? "http://localhost:3000/api/v1";
 }
 
+async function readErrorMessage(response: Response, fallback: string) {
+  try {
+    const payload = (await response.json()) as { message?: string | string[] };
+    if (Array.isArray(payload.message)) {
+      return payload.message[0] ?? fallback;
+    }
+    return payload.message ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 export async function fetchWorkspaceMembers(input: {
   accessToken: string;
   workspaceId: string;
@@ -46,7 +58,9 @@ export async function fetchWorkspaceMembers(input: {
   );
 
   if (!response.ok) {
-    throw new Error("Failed to load workspace members.");
+    throw new Error(
+      await readErrorMessage(response, "Failed to load workspace members."),
+    );
   }
 
   return (await response.json()) as WorkspaceMemberSummary[];
@@ -70,7 +84,9 @@ export async function updateCurrentUser(input: {
   });
 
   if (!response.ok) {
-    throw new Error("Failed to update account settings.");
+    throw new Error(
+      await readErrorMessage(response, "Failed to update account settings."),
+    );
   }
 
   return response.json();
@@ -97,7 +113,9 @@ export async function updateCurrentWorkspaceMember(input: {
   );
 
   if (!response.ok) {
-    throw new Error("Failed to update household profile.");
+    throw new Error(
+      await readErrorMessage(response, "Failed to update household profile."),
+    );
   }
 
   return response.json();
@@ -123,7 +141,9 @@ export async function updateWorkspaceSettings(input: WorkspaceSettingsInput) {
   );
 
   if (!response.ok) {
-    throw new Error("Failed to update household settings.");
+    throw new Error(
+      await readErrorMessage(response, "Failed to update household settings."),
+    );
   }
 
   return response.json();
@@ -144,7 +164,9 @@ export async function fetchWorkspaceInvites(input: {
   );
 
   if (!response.ok) {
-    throw new Error("Failed to load household invites.");
+    throw new Error(
+      await readErrorMessage(response, "Failed to load household invites."),
+    );
   }
 
   return (await response.json()) as WorkspaceInviteSummary[];
@@ -173,7 +195,9 @@ export async function createWorkspaceInvite(input: {
   );
 
   if (!response.ok) {
-    throw new Error("Failed to create household invite.");
+    throw new Error(
+      await readErrorMessage(response, "Failed to create household invite."),
+    );
   }
 
   return (await response.json()) as WorkspaceInviteSummary;
@@ -195,11 +219,63 @@ export async function acceptWorkspaceInvite(input: {
   );
 
   if (!response.ok) {
-    throw new Error("Failed to accept household invite.");
+    throw new Error(
+      await readErrorMessage(response, "Failed to accept household invite."),
+    );
   }
 
   return (await response.json()) as {
     workspaceId: string;
     memberStatus: string;
   };
+}
+
+export async function revokeWorkspaceInvite(input: {
+  accessToken: string;
+  workspaceId: string;
+  inviteId: string;
+}) {
+  const response = await fetch(
+    `${getApiBaseUrl()}/workspaces/${input.workspaceId}/invites/${input.inviteId}/revoke`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${input.accessToken}`,
+      },
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(response, "Failed to revoke household invite."),
+    );
+  }
+
+  return (await response.json()) as WorkspaceInviteSummary;
+}
+
+export async function resendWorkspaceInvite(input: {
+  accessToken: string;
+  workspaceId: string;
+  inviteId: string;
+}) {
+  const response = await fetch(
+    `${getApiBaseUrl()}/workspaces/${input.workspaceId}/invites/${input.inviteId}/resend`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${input.accessToken}`,
+      },
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(response, "Failed to resend household invite."),
+    );
+  }
+
+  return (await response.json()) as WorkspaceInviteSummary;
 }
