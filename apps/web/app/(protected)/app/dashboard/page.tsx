@@ -83,6 +83,12 @@ export default async function DashboardPage({
 
           <div className="flex items-center gap-3 text-sm">
             <Link
+              href={`/app/reports?year=${dashboard.period.year}&month=${dashboard.period.month}`}
+              className="rounded-full bg-emerald-400 px-4 py-2 font-semibold text-slate-950 transition hover:bg-emerald-300"
+            >
+              Report
+            </Link>
+            <Link
               href={`/app/dashboard?year=${prev.year}&month=${prev.month}`}
               className="rounded-full border border-slate-300 px-4 py-2 text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
             >
