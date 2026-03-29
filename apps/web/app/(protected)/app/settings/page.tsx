@@ -1,6 +1,11 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getAppSession } from "@/lib/auth/session";
-import { fetchWorkspaceMembers } from "@/lib/settings";
+import {
+  fetchWorkspaceInvites,
+  fetchWorkspaceMembers,
+  type WorkspaceInviteSummary,
+} from "@/lib/settings";
 import { WORKSPACE_TYPE_OPTIONS } from "@/lib/workspace-options";
 
 function getLocaleOptions() {
@@ -33,6 +38,13 @@ function getWorkspaceTypeOptions() {
   }));
 }
 
+function formatInviteDate(input: string) {
+  return new Intl.DateTimeFormat("en-CA", {
+    month: "short",
+    day: "numeric",
+  }).format(new Date(input));
+}
+
 export default async function SettingsPage() {
   const session = await getAppSession();
 
@@ -50,6 +62,14 @@ export default async function SettingsPage() {
   const currentMember =
     members.find((member) => member.userId === session.user.id) ?? null;
   const isOwner = session.currentWorkspace?.memberRole === "OWNER";
+  const invites =
+    session.currentWorkspace && isOwner
+      ? await fetchWorkspaceInvites({
+          accessToken: session.accessToken,
+          workspaceId: session.currentWorkspace.id,
+        })
+      : [];
+  const pendingInvites = invites.filter((invite) => invite.status === "INVITED");
 
   return (
     <div className="space-y-8">
@@ -255,6 +275,86 @@ export default async function SettingsPage() {
 
         <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6 xl:col-span-2">
           <div className="border-b border-slate-900/8 pb-4">
+            <h2 className="text-lg font-semibold text-slate-950">
+              Household invites
+            </h2>
+          </div>
+
+          {session.currentWorkspace ? (
+            isOwner ? (
+              <div className="mt-5 space-y-5">
+                <form
+                  action="/app/settings/invites/create"
+                  method="post"
+                  className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_140px_auto]"
+                >
+                  <input
+                    type="hidden"
+                    name="workspaceId"
+                    value={session.currentWorkspace.id}
+                  />
+                  <label className="block sm:col-span-1">
+                    <span className="mb-2 block text-sm font-medium text-slate-700">
+                      Email
+                    </span>
+                    <input
+                      name="email"
+                      type="email"
+                      required
+                      placeholder="partner@example.com"
+                      className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-emerald-500"
+                    />
+                  </label>
+
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-slate-700">
+                      Role
+                    </span>
+                    <select
+                      name="role"
+                      defaultValue="MEMBER"
+                      className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-950 outline-none transition focus:border-emerald-500"
+                    >
+                      <option value="MEMBER">Member</option>
+                    </select>
+                  </label>
+
+                  <div className="flex items-end">
+                    <button
+                      type="submit"
+                      className="inline-flex w-full items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                    >
+                      Send invite
+                    </button>
+                  </div>
+                </form>
+
+                {pendingInvites.length > 0 ? (
+                  <div className="space-y-3">
+                    {pendingInvites.map((invite) => (
+                      <InviteCard key={invite.id} invite={invite} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm text-slate-500">
+                    No pending invites.
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm text-slate-500">
+                Only owners can send or review invites.
+              </div>
+            )
+          ) : (
+            <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-sm text-slate-500">
+              Create or join a workspace before inviting anyone.
+            </div>
+          )}
+        </section>
+
+        <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6 xl:col-span-2">
+          <div className="border-b border-slate-900/8 pb-4">
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-lg font-semibold text-slate-950">
                 Household settings
@@ -415,5 +515,38 @@ export default async function SettingsPage() {
         </section>
       </div>
     </div>
+  );
+}
+
+function InviteCard({ invite }: { invite: WorkspaceInviteSummary }) {
+  const joinPath = `/join/${invite.token}`;
+
+  return (
+    <article className="rounded-[1.5rem] border border-slate-900/8 bg-slate-50 px-4 py-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold text-slate-950">{invite.email}</p>
+          <p className="mt-1 text-xs text-slate-500">
+            {invite.role} · expires {formatInviteDate(invite.expiresAt)}
+          </p>
+        </div>
+        <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
+          {invite.status}
+        </span>
+      </div>
+
+      <div className="mt-4 rounded-2xl border border-slate-200 bg-white px-3 py-3 text-xs text-slate-600">
+        {joinPath}
+      </div>
+
+      <div className="mt-3 flex justify-end">
+        <Link
+          href={joinPath}
+          className="inline-flex items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+        >
+          Open invite link
+        </Link>
+      </div>
+    </article>
   );
 }
