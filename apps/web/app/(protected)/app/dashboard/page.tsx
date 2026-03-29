@@ -188,6 +188,8 @@ export default async function DashboardPage({
             currency={currency}
             locale={locale}
             month={dashboard.period.month}
+            nextHref={`/app/dashboard?year=${next.year}&month=${next.month}`}
+            previousHref={`/app/dashboard?year=${prev.year}&month=${prev.month}`}
             transactions={monthlyTransactions.items}
             year={dashboard.period.year}
           />

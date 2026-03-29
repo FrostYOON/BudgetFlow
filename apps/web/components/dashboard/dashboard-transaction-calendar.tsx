@@ -5,9 +5,11 @@ import {
   LazyMotion,
   domAnimation,
   m,
+  useReducedMotion,
 } from "framer-motion";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import {
   detectHolidayContext,
   type HolidayContext,
@@ -220,15 +222,22 @@ export function DashboardTransactionCalendar({
   currency,
   locale,
   month,
+  nextHref,
+  previousHref,
   transactions,
   year,
 }: {
   currency: string;
   locale: string;
   month: number;
+  nextHref: string;
+  previousHref: string;
   transactions: DashboardCalendarTransaction[];
   year: number;
 }) {
+  const router = useRouter();
+  const reduceMotion = useReducedMotion();
+  const [isPending, startNavigation] = useTransition();
   const daySummaries = buildDaySummaries(transactions);
   const [selectedDate, setSelectedDate] = useState(
     getDefaultSelectedDate(year, month, daySummaries),
@@ -287,6 +296,30 @@ export function DashboardTransactionCalendar({
   const selectedHoliday = holidayMap.get(selectedDate) ?? null;
   const selectedNet = selectedSummary.income - selectedSummary.expense;
 
+  function navigateToMonth(href: string) {
+    startNavigation(() => {
+      router.push(href);
+    });
+  }
+
+  function handleCalendarDragEnd(offsetX: number, velocityX: number) {
+    if (isPending) {
+      return;
+    }
+
+    const swipeThreshold = 64;
+    const velocityThreshold = 380;
+
+    if (offsetX <= -swipeThreshold || velocityX <= -velocityThreshold) {
+      navigateToMonth(nextHref);
+      return;
+    }
+
+    if (offsetX >= swipeThreshold || velocityX >= velocityThreshold) {
+      navigateToMonth(previousHref);
+    }
+  }
+
   return (
     <LazyMotion features={domAnimation}>
       <section className="overflow-hidden rounded-[2rem] border border-slate-900/8 bg-[linear-gradient(180deg,#fffdf8_0%,#ffffff_34%,#f8fafc_100%)] px-4 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
@@ -300,8 +333,30 @@ export function DashboardTransactionCalendar({
               {monthLabel}
             </h2>
           </div>
-          <div className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-            {transactions.length} entries
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 rounded-full border border-slate-200 bg-white/90 p-1 shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
+              <button
+                type="button"
+                aria-label="Go to previous month"
+                onClick={() => navigateToMonth(previousHref)}
+                disabled={isPending}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full text-base font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 disabled:cursor-wait disabled:opacity-50"
+              >
+                ←
+              </button>
+              <button
+                type="button"
+                aria-label="Go to next month"
+                onClick={() => navigateToMonth(nextHref)}
+                disabled={isPending}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full text-base font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 disabled:cursor-wait disabled:opacity-50"
+              >
+                →
+              </button>
+            </div>
+            <div className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+              {transactions.length} entries
+            </div>
           </div>
         </div>
 
@@ -318,16 +373,30 @@ export function DashboardTransactionCalendar({
       <AnimatePresence mode="wait" initial={false}>
         <m.div
           key={`${year}-${month}`}
-          initial={{ opacity: 0, x: 20, filter: "blur(6px)" }}
-          animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
-          exit={{ opacity: 0, x: -14, filter: "blur(4px)" }}
+          drag={reduceMotion ? false : "x"}
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.08}
+          dragSnapToOrigin
+          onDragEnd={(_, info) =>
+            handleCalendarDragEnd(info.offset.x, info.velocity.x)
+          }
+          initial={
+            reduceMotion ? { opacity: 0 } : { opacity: 0, x: 20, filter: "blur(6px)" }
+          }
+          animate={
+            reduceMotion ? { opacity: 1 } : { opacity: 1, x: 0, filter: "blur(0px)" }
+          }
+          exit={
+            reduceMotion ? { opacity: 0 } : { opacity: 0, x: -14, filter: "blur(4px)" }
+          }
           transition={{
             type: "spring",
             stiffness: 180,
             damping: 24,
             mass: 0.9,
           }}
-          className="mt-3 grid grid-cols-7 gap-2"
+          whileDrag={reduceMotion ? undefined : { scale: 0.992 }}
+          className="mt-3 grid cursor-grab grid-cols-7 gap-2 active:cursor-grabbing"
         >
           {calendarDays.map((day) => {
           const summary = daySummaries.get(day.dateKey);
@@ -454,9 +523,21 @@ export function DashboardTransactionCalendar({
       <AnimatePresence mode="wait" initial={false}>
         <m.div
           key={selectedDate}
-          initial={{ opacity: 0, y: 14, scale: 0.985, filter: "blur(6px)" }}
-          animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-          exit={{ opacity: 0, y: -10, scale: 0.99, filter: "blur(4px)" }}
+          initial={
+            reduceMotion
+              ? { opacity: 0 }
+              : { opacity: 0, y: 14, scale: 0.985, filter: "blur(6px)" }
+          }
+          animate={
+            reduceMotion
+              ? { opacity: 1 }
+              : { opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }
+          }
+          exit={
+            reduceMotion
+              ? { opacity: 0 }
+              : { opacity: 0, y: -10, scale: 0.99, filter: "blur(4px)" }
+          }
           transition={{
             type: "spring",
             stiffness: 210,
