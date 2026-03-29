@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useState } from "react";
 import {
-  detectHolidayRegion,
+  detectHolidayContext,
   getHolidayInfo,
-  type HolidayRegion,
+  type HolidayContext,
 } from "@/lib/holiday-calendar";
 
 type DashboardCalendarTransaction = {
@@ -198,9 +198,15 @@ export function DashboardTransactionCalendar({
   const [selectedDate, setSelectedDate] = useState(
     getDefaultSelectedDate(year, month, daySummaries),
   );
-  const [holidayRegion] = useState<HolidayRegion>(() => {
+  const [holidayContext] = useState<HolidayContext>(() => {
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    return detectHolidayRegion(timeZone);
+    const localeHint =
+      typeof navigator !== "undefined" ? navigator.language : locale;
+
+    return detectHolidayContext({
+      locale: localeHint,
+      timeZone,
+    });
   });
 
   const selectedSummary =
@@ -217,7 +223,7 @@ export function DashboardTransactionCalendar({
   const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const formattedSelectedDate = formatDateLabel(selectedDate, locale);
   const monthLabel = formatMonthLabel(year, month, locale);
-  const selectedHoliday = getHolidayInfo(selectedDate, holidayRegion);
+  const selectedHoliday = getHolidayInfo(selectedDate, holidayContext.region);
   const selectedNet = selectedSummary.income - selectedSummary.expense;
 
   return (
@@ -244,9 +250,9 @@ export function DashboardTransactionCalendar({
           <span className="rounded-full bg-sky-50 px-2.5 py-1 text-sky-600">
             Saturdays
           </span>
-          {holidayRegion === "ON" ? (
+          {holidayContext.label ? (
             <span className="rounded-full bg-amber-50 px-2.5 py-1 text-amber-700">
-              Ontario holidays
+              {holidayContext.label}
             </span>
           ) : null}
         </div>
@@ -264,7 +270,7 @@ export function DashboardTransactionCalendar({
         {calendarDays.map((day) => {
           const summary = daySummaries.get(day.dateKey);
           const isSelected = selectedDate === day.dateKey;
-          const holiday = getHolidayInfo(day.dateKey, holidayRegion);
+          const holiday = getHolidayInfo(day.dateKey, holidayContext.region);
           const incomeLabel = formatMiniAmount(summary?.income ?? 0, locale);
           const expenseLabel = formatMiniAmount(summary?.expense ?? 0, locale);
           const tone = getDayTone(day.weekday);
@@ -374,7 +380,10 @@ export function DashboardTransactionCalendar({
         })}
       </div>
 
-      <div className="mt-5 rounded-[1.6rem] border border-slate-900/8 bg-white/90 px-4 py-4 shadow-[0_12px_32px_rgba(15,23,42,0.06)]">
+      <div
+        key={selectedDate}
+        className="mt-5 rounded-[1.6rem] border border-slate-900/8 bg-white/90 px-4 py-4 shadow-[0_12px_32px_rgba(15,23,42,0.06)] motion-safe:animate-page-enter"
+      >
         <div className="flex items-start justify-between gap-3">
           <div>
             <h3 className="text-base font-semibold text-slate-950">
@@ -387,6 +396,11 @@ export function DashboardTransactionCalendar({
               {selectedHoliday ? (
                 <span className="rounded-full bg-amber-100 px-2.5 py-1 text-amber-800">
                   {selectedHoliday.name}
+                </span>
+              ) : null}
+              {holidayContext.timeZone ? (
+                <span className="rounded-full bg-sky-100 px-2.5 py-1 text-sky-800">
+                  {holidayContext.timeZone}
                 </span>
               ) : null}
               <span

@@ -17,13 +17,17 @@ export function AppBottomNav() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center justify-center rounded-2xl px-2 py-2 text-center transition ${
+              className={`flex flex-col items-center justify-center rounded-2xl px-2 py-2 text-center transition-all duration-300 ease-out ${
                 isActive
-                  ? "bg-slate-950 text-white"
-                  : "text-slate-500 hover:bg-slate-100 hover:text-slate-950"
+                  ? "bg-slate-950 text-white shadow-[0_12px_28px_rgba(15,23,42,0.2)]"
+                  : "text-slate-500 hover:-translate-y-0.5 hover:bg-slate-100 hover:text-slate-950"
               }`}
             >
-              <span className="text-[11px] font-semibold uppercase tracking-[0.18em]">
+              <span
+                className={`text-[11px] font-semibold uppercase tracking-[0.18em] transition-transform duration-300 ${
+                  isActive ? "scale-105" : ""
+                }`}
+              >
                 {item.shortLabel.slice(0, 1)}
               </span>
               <span className="mt-1 text-[11px] font-medium">

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { AppSession } from "@/lib/auth/session";
 import { AppBottomNav } from "@/components/app-shell/app-bottom-nav";
+import { PageTransitionShell } from "@/components/app-shell/page-transition-shell";
 import { AppSidebarNav } from "@/components/app-shell/app-sidebar-nav";
 import { WorkspaceSwitcher } from "@/components/app-shell/workspace-switcher";
 
@@ -120,7 +121,7 @@ export function AppShellFrame({ children, session }: AppShellFrameProps) {
           </header>
 
           <main className="flex-1 px-4 py-6 sm:px-6 xl:px-10 xl:py-10">
-            {children}
+            <PageTransitionShell>{children}</PageTransitionShell>
           </main>
         </div>
       </div>

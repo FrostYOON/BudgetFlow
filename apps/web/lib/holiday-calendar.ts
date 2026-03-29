@@ -5,6 +5,12 @@ export type HolidayInfo = {
   shortName: string;
 };
 
+export type HolidayContext = {
+  region: HolidayRegion;
+  label: string | null;
+  timeZone: string | null;
+};
+
 const ONTARIO_TIME_ZONES = new Set([
   "America/Toronto",
   "America/Nipigon",
@@ -90,12 +96,32 @@ function buildOntarioHolidayMap(year: number) {
   ]);
 }
 
-export function detectHolidayRegion(timeZone: string | null | undefined) {
-  if (timeZone && ONTARIO_TIME_ZONES.has(timeZone)) {
-    return "ON" satisfies HolidayRegion;
+export function detectHolidayContext({
+  locale,
+  timeZone,
+}: {
+  locale?: string | null;
+  timeZone?: string | null;
+}) {
+  const normalizedLocale = locale?.toLowerCase() ?? "";
+
+  if (
+    (timeZone && ONTARIO_TIME_ZONES.has(timeZone)) ||
+    normalizedLocale === "en-ca" ||
+    normalizedLocale.endsWith("-ca")
+  ) {
+    return {
+      region: "ON" satisfies HolidayRegion,
+      label: "Ontario holidays",
+      timeZone: timeZone ?? null,
+    } satisfies HolidayContext;
   }
 
-  return "NONE" satisfies HolidayRegion;
+  return {
+    region: "NONE" satisfies HolidayRegion,
+    label: null,
+    timeZone: timeZone ?? null,
+  } satisfies HolidayContext;
 }
 
 export function getHolidayInfo(
