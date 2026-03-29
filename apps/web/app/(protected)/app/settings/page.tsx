@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getAppSession } from "@/lib/auth/session";
 import { fetchWorkspaceMembers } from "@/lib/settings";
+import { WORKSPACE_TYPE_OPTIONS } from "@/lib/workspace-options";
 
 function getLocaleOptions() {
   return [
@@ -26,12 +27,10 @@ function getCurrencyOptions() {
 }
 
 function getWorkspaceTypeOptions() {
-  return [
-    { value: "COUPLE", label: "Couple" },
-    { value: "FAMILY", label: "Family" },
-    { value: "ROOMMATES", label: "Roommates" },
-    { value: "TEAM", label: "Team" },
-  ];
+  return WORKSPACE_TYPE_OPTIONS.map((option) => ({
+    value: option.value,
+    label: option.label,
+  }));
 }
 
 export default async function SettingsPage() {
