@@ -49,6 +49,26 @@ const TOAST_MESSAGES: Record<string, { type: "success" | "error"; text: string }
     type: "error",
     text: "Failed to save household profile.",
   },
+  password_changed: {
+    type: "success",
+    text: "Password changed.",
+  },
+  password_change_failed: {
+    type: "error",
+    text: "Failed to change password.",
+  },
+  session_revoked: {
+    type: "success",
+    text: "Session revoked.",
+  },
+  other_sessions_revoked: {
+    type: "success",
+    text: "Other sessions revoked.",
+  },
+  session_revoke_failed: {
+    type: "error",
+    text: "Failed to revoke session.",
+  },
   invite_created: {
     type: "success",
     text: "Invite created.",

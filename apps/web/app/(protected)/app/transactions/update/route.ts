@@ -16,6 +16,26 @@ function normalizeOptionalValue(value: FormDataEntryValue | null) {
   return normalized.length > 0 ? normalized : undefined;
 }
 
+function parseSplitParticipants(value: FormDataEntryValue | null) {
+  const normalized = normalizeValue(value);
+
+  if (!normalized) {
+    return undefined;
+  }
+
+  try {
+    const parsed = JSON.parse(normalized) as {
+      userId: string;
+      shareType: "EQUAL" | "FIXED" | "PERCENTAGE";
+      shareValue?: string;
+    }[];
+
+    return parsed.filter((participant) => participant.userId);
+  } catch {
+    return undefined;
+  }
+}
+
 function getReturnTo(value: FormDataEntryValue | null) {
   const normalized = normalizeValue(value);
   return normalized.startsWith("/app/transactions")
@@ -82,6 +102,7 @@ export async function POST(request: NextRequest) {
       categoryId: normalizeNullableValue(formData.get("categoryId")),
       memo: normalizeNullableValue(formData.get("memo")),
       paidByUserId: normalizeOptionalValue(formData.get("paidByUserId")),
+      participants: parseSplitParticipants(formData.get("splitParticipants")),
     });
 
     return NextResponse.redirect(

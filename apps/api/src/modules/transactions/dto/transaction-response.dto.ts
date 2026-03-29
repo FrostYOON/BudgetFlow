@@ -1,5 +1,23 @@
-import { TransactionType, TransactionVisibility } from '@budgetflow/database';
+import {
+  ShareType,
+  TransactionType,
+  TransactionVisibility,
+} from '@budgetflow/database';
 import { ApiProperty } from '@nestjs/swagger';
+
+export class TransactionParticipantResponseDto {
+  @ApiProperty()
+  userId!: string;
+
+  @ApiProperty({ example: 'Minji' })
+  userName!: string;
+
+  @ApiProperty({ enum: ShareType, example: ShareType.EQUAL })
+  shareType!: ShareType;
+
+  @ApiProperty({ required: false, nullable: true, example: '25000.00' })
+  shareValue!: string | null;
+}
 
 export class TransactionResponseDto {
   @ApiProperty()
@@ -43,6 +61,9 @@ export class TransactionResponseDto {
 
   @ApiProperty({ required: false, nullable: true, example: 'Minji' })
   paidByUserName!: string | null;
+
+  @ApiProperty({ type: [TransactionParticipantResponseDto] })
+  participants!: TransactionParticipantResponseDto[];
 
   @ApiProperty({ example: false })
   isDeleted!: boolean;

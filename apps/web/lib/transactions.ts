@@ -14,8 +14,16 @@ export interface WorkspaceTransaction {
   createdByUserId: string;
   paidByUserId: string | null;
   paidByUserName: string | null;
+  participants: WorkspaceTransactionParticipant[];
   isDeleted: boolean;
   createdAt: string;
+}
+
+export interface WorkspaceTransactionParticipant {
+  userId: string;
+  userName: string;
+  shareType: "EQUAL" | "FIXED" | "PERCENTAGE";
+  shareValue: string | null;
 }
 
 export interface TransactionListResponse {
@@ -125,6 +133,11 @@ export async function createWorkspaceTransaction(input: {
   categoryId?: string;
   memo?: string;
   paidByUserId?: string;
+  participants?: {
+    userId: string;
+    shareType: "EQUAL" | "FIXED" | "PERCENTAGE";
+    shareValue?: string;
+  }[];
 }) {
   const { accessToken, workspaceId, ...payload } = input;
   const response = await fetch(
@@ -160,6 +173,11 @@ export async function updateWorkspaceTransaction(input: {
   categoryId: string | null;
   memo: string | null;
   paidByUserId?: string;
+  participants?: {
+    userId: string;
+    shareType: "EQUAL" | "FIXED" | "PERCENTAGE";
+    shareValue?: string;
+  }[];
 }) {
   const { accessToken, workspaceId, transactionId, ...payload } = input;
   const response = await fetch(

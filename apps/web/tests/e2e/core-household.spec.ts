@@ -18,8 +18,13 @@ test("sign up and create first household", async ({ page }) => {
     page.getByRole("heading", { name: "Create your first shared budget space" }),
   ).toBeVisible();
 
-  await page.locator('input[name="name"]').fill(householdName);
-  await page.getByRole("button", { name: "Create household" }).click();
+  const createHouseholdForm = page.locator(
+    'form[action="/app/onboarding/create-workspace"]',
+  );
+  await createHouseholdForm.locator('input[name="name"]').fill(householdName);
+  await createHouseholdForm.evaluate((form: HTMLFormElement) =>
+    form.requestSubmit(),
+  );
 
   await expect(page).toHaveURL(/\/app\/dashboard/);
   await expect(
@@ -47,7 +52,7 @@ test("sign up and create first household", async ({ page }) => {
   await expect(page.locator('input[name="totalBudgetAmount"]')).toHaveValue("1500");
 
   await page.goto("/app/settings");
-  await page.getByRole("button", { name: "Sign out" }).click();
+  await page.getByRole("button", { name: "Sign out", exact: true }).click();
 
   await expect(page).toHaveURL(/\/sign-in/);
 

@@ -31,6 +31,26 @@ export interface DashboardRecentTransaction {
   paidByName: string | null;
 }
 
+export interface DashboardSettlementBalance {
+  userId: string;
+  name: string;
+  netAmount: string;
+}
+
+export interface DashboardSettlementTransfer {
+  fromUserId: string;
+  fromName: string;
+  toUserId: string;
+  toName: string;
+  amount: string;
+}
+
+export interface DashboardSettlementSummary {
+  totalSharedExpense: string;
+  balances: DashboardSettlementBalance[];
+  suggestedTransfers: DashboardSettlementTransfer[];
+}
+
 export interface DashboardResponse {
   period: {
     year: number;
@@ -40,6 +60,7 @@ export interface DashboardResponse {
   topCategories: DashboardTopCategory[];
   recentTransactions: DashboardRecentTransaction[];
   insights: DashboardInsight[];
+  settlement: DashboardSettlementSummary;
 }
 
 function getApiBaseUrl() {

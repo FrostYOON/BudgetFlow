@@ -60,6 +60,45 @@ export class DashboardRecentTransactionDto {
   paidByName!: string | null;
 }
 
+export class DashboardSettlementBalanceDto {
+  @ApiProperty()
+  userId!: string;
+
+  @ApiProperty({ example: 'Jisu' })
+  name!: string;
+
+  @ApiProperty({ example: '12000.00' })
+  netAmount!: string;
+}
+
+export class DashboardSettlementTransferDto {
+  @ApiProperty()
+  fromUserId!: string;
+
+  @ApiProperty({ example: 'Minji' })
+  fromName!: string;
+
+  @ApiProperty()
+  toUserId!: string;
+
+  @ApiProperty({ example: 'Jisu' })
+  toName!: string;
+
+  @ApiProperty({ example: '12000.00' })
+  amount!: string;
+}
+
+export class DashboardSettlementSummaryDto {
+  @ApiProperty({ example: '340000.00' })
+  totalSharedExpense!: string;
+
+  @ApiProperty({ type: [DashboardSettlementBalanceDto] })
+  balances!: DashboardSettlementBalanceDto[];
+
+  @ApiProperty({ type: [DashboardSettlementTransferDto] })
+  suggestedTransfers!: DashboardSettlementTransferDto[];
+}
+
 export class DashboardResponseDto {
   @ApiProperty({ type: DashboardPeriodDto })
   period!: DashboardPeriodDto;
@@ -75,4 +114,7 @@ export class DashboardResponseDto {
 
   @ApiProperty({ type: [InsightResponseDto] })
   insights!: InsightResponseDto[];
+
+  @ApiProperty({ type: DashboardSettlementSummaryDto })
+  settlement!: DashboardSettlementSummaryDto;
 }
