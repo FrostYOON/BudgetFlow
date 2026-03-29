@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { TypeDrivenCategoryFields } from "@/components/categories/type-driven-category-fields";
+import {
+  Reveal,
+  StaggerItem,
+  StaggerReveal,
+} from "@/components/motion/reveal";
 import { getAppSession } from "@/lib/auth/session";
 import { fetchWorkspaceMembers, type WorkspaceMemberSummary } from "@/lib/settings";
 import {
@@ -270,7 +275,7 @@ function QuickAddCard({
       <div className="mt-5 flex justify-end">
         <button
           type="submit"
-          className="rounded-full bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
+          className="rounded-full bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 active:scale-[0.98]"
         >
           Save transaction
         </button>
@@ -312,7 +317,7 @@ function EditTransactionCard({
         </div>
         <Link
           href={returnTo}
-          className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+          className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950 active:scale-[0.98]"
         >
           Cancel
         </Link>
@@ -398,7 +403,7 @@ function EditTransactionCard({
       <div className="mt-5 flex justify-end">
         <button
           type="submit"
-          className="rounded-full bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
+          className="rounded-full bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 active:scale-[0.98]"
         >
           Update transaction
         </button>
@@ -513,7 +518,8 @@ export default async function TransactionsPage({
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
+      <Reveal delay={0.02}>
+        <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
           Transactions
         </p>
@@ -539,7 +545,7 @@ export default async function TransactionsPage({
               type,
               visibility,
             })}
-            className="rounded-full border border-slate-300 px-4 py-2 text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+            className="rounded-full border border-slate-300 px-4 py-2 text-slate-700 transition hover:border-slate-950 hover:text-slate-950 active:scale-[0.98]"
           >
             Prev
           </Link>
@@ -550,36 +556,42 @@ export default async function TransactionsPage({
               type,
               visibility,
             })}
-            className="rounded-full border border-slate-300 px-4 py-2 text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+            className="rounded-full border border-slate-300 px-4 py-2 text-slate-700 transition hover:border-slate-950 hover:text-slate-950 active:scale-[0.98]"
           >
             Next
           </Link>
         </div>
-      </section>
+        </section>
+      </Reveal>
 
-      <QuickAddCard
-        categories={categories}
-        currency={currentWorkspace.baseCurrency}
-        defaultDate={defaultCreateDate}
-        defaultType={defaultCreateType}
-        members={members}
-        returnTo={baseHref}
-        workspaceId={currentWorkspace.id}
-      />
-
-      {editableTransaction ? (
-        <EditTransactionCard
+      <Reveal delay={0.06}>
+        <QuickAddCard
           categories={categories}
           currency={currentWorkspace.baseCurrency}
+          defaultDate={defaultCreateDate}
+          defaultType={defaultCreateType}
           members={members}
           returnTo={baseHref}
-          transaction={editableTransaction}
           workspaceId={currentWorkspace.id}
         />
+      </Reveal>
+
+      {editableTransaction ? (
+        <Reveal delay={0.1}>
+          <EditTransactionCard
+            categories={categories}
+            currency={currentWorkspace.baseCurrency}
+            members={members}
+            returnTo={baseHref}
+            transaction={editableTransaction}
+            workspaceId={currentWorkspace.id}
+          />
+        </Reveal>
       ) : null}
 
       {deletedTransactionId ? (
-        <section className="rounded-[1.5rem] border border-amber-200 bg-amber-50 px-5 py-4">
+        <Reveal delay={0.12}>
+          <section className="rounded-[1.5rem] border border-amber-200 bg-amber-50 px-5 py-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm font-semibold text-slate-950">
@@ -599,17 +611,19 @@ export default async function TransactionsPage({
               <input type="hidden" name="returnTo" value={baseHref} />
               <button
                 type="submit"
-                className="inline-flex items-center justify-center rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+                className="inline-flex items-center justify-center rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 active:scale-[0.98]"
               >
                 Restore
               </button>
             </form>
           </div>
-        </section>
+          </section>
+        </Reveal>
       ) : null}
 
-      <section className="grid gap-3 sm:grid-cols-2">
-        <article className="rounded-[1.5rem] border border-slate-900/8 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
+      <StaggerReveal className="grid gap-3 sm:grid-cols-2">
+        <StaggerItem>
+          <article className="rounded-[1.5rem] border border-slate-900/8 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
           <p className="text-sm text-slate-500">Income</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
             {formatCurrency(
@@ -618,8 +632,10 @@ export default async function TransactionsPage({
               locale,
             )}
           </p>
-        </article>
-        <article className="rounded-[1.5rem] border border-slate-900/8 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
+          </article>
+        </StaggerItem>
+        <StaggerItem>
+          <article className="rounded-[1.5rem] border border-slate-900/8 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
           <p className="text-sm text-slate-500">Expense</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
             {formatCurrency(
@@ -628,8 +644,10 @@ export default async function TransactionsPage({
               locale,
             )}
           </p>
-        </article>
-        <article className="rounded-[1.5rem] border border-slate-900/8 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
+          </article>
+        </StaggerItem>
+        <StaggerItem>
+          <article className="rounded-[1.5rem] border border-slate-900/8 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
           <p className="text-sm text-slate-500">Shared</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
             {formatCurrency(
@@ -638,8 +656,10 @@ export default async function TransactionsPage({
               locale,
             )}
           </p>
-        </article>
-        <article className="rounded-[1.5rem] border border-slate-900/8 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
+          </article>
+        </StaggerItem>
+        <StaggerItem>
+          <article className="rounded-[1.5rem] border border-slate-900/8 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
           <p className="text-sm text-slate-500">Personal</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
             {formatCurrency(
@@ -648,10 +668,12 @@ export default async function TransactionsPage({
               locale,
             )}
           </p>
-        </article>
-      </section>
+          </article>
+        </StaggerItem>
+      </StaggerReveal>
 
-      <section className="space-y-3">
+      <Reveal delay={0.16}>
+        <section className="space-y-3">
         <div className="flex gap-2 overflow-x-auto pb-1">
           {[
             { label: "All", value: "ALL" },
@@ -709,14 +731,18 @@ export default async function TransactionsPage({
             );
           })}
         </div>
-      </section>
+        </section>
+      </Reveal>
 
       {grouped.length === 0 ? (
-        <section className="rounded-[1.75rem] border border-dashed border-slate-300 bg-white px-6 py-10 text-center">
+        <Reveal delay={0.2}>
+          <section className="rounded-[1.75rem] border border-dashed border-slate-300 bg-white px-6 py-10 text-center">
           <p className="text-sm font-medium text-slate-950">No entries</p>
-        </section>
+          </section>
+        </Reveal>
       ) : (
-        <div className="space-y-6">
+        <Reveal delay={0.2}>
+          <div className="space-y-6">
           {grouped.map(([date, items]) => (
             <section key={date} className="space-y-3">
               <div className="flex items-center justify-between">
@@ -775,14 +801,14 @@ export default async function TransactionsPage({
                           <input type="hidden" name="returnTo" value={baseHref} />
                           <button
                             type="submit"
-                            className="rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:border-rose-400 hover:text-rose-800"
+                            className="rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:border-rose-400 hover:text-rose-800 active:scale-[0.98]"
                           >
                             Delete
                           </button>
                         </form>
                         <Link
                           href={buildEditHref(baseHref, transaction.id)}
-                          className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+                          className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950 active:scale-[0.98]"
                         >
                           Edit
                         </Link>
@@ -793,7 +819,8 @@ export default async function TransactionsPage({
               </div>
             </section>
           ))}
-        </div>
+          </div>
+        </Reveal>
       )}
     </div>
   );
