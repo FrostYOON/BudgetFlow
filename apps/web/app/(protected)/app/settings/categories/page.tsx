@@ -1,5 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import {
+  Reveal,
+  StaggerItem,
+  StaggerReveal,
+} from "@/components/motion/reveal";
 import { getAppSession } from "@/lib/auth/session";
 import {
   fetchWorkspaceCategoriesForSettings,
@@ -101,7 +106,7 @@ function CategoryForm({
 
       <button
         type="submit"
-        className="inline-flex w-full items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+        className="inline-flex w-full items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 active:scale-[0.98]"
       >
         {submitLabel}
       </button>
@@ -146,7 +151,7 @@ function CategoryRow({
       <div className="mt-4 flex flex-wrap gap-2">
         <Link
           href={`/app/settings/categories?edit=${category.id}`}
-          className="inline-flex items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+          className="inline-flex items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950 active:scale-[0.98]"
         >
           Edit
         </Link>
@@ -156,7 +161,7 @@ function CategoryRow({
             <input type="hidden" name="categoryId" value={category.id} />
             <button
               type="submit"
-              className="inline-flex items-center justify-center rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:border-rose-400 hover:text-rose-800"
+              className="inline-flex items-center justify-center rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:border-rose-400 hover:text-rose-800 active:scale-[0.98]"
             >
               Archive
             </button>
@@ -167,7 +172,7 @@ function CategoryRow({
             <input type="hidden" name="categoryId" value={category.id} />
             <button
               type="submit"
-              className="inline-flex items-center justify-center rounded-full border border-emerald-200 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:border-emerald-400 hover:text-emerald-800"
+              className="inline-flex items-center justify-center rounded-full border border-emerald-200 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:border-emerald-400 hover:text-emerald-800 active:scale-[0.98]"
             >
               Restore
             </button>
@@ -206,7 +211,8 @@ export default async function CategorySettingsPage({
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
+      <Reveal delay={0.02}>
+        <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
@@ -218,15 +224,17 @@ export default async function CategorySettingsPage({
           </div>
           <Link
             href="/app/settings"
-            className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+            className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950 active:scale-[0.98]"
           >
             Back
           </Link>
         </div>
-      </section>
+        </section>
+      </Reveal>
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
-        <div className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
+        <Reveal delay={0.06}>
+          <div className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
           <div className="border-b border-slate-900/8 pb-4">
             <h2 className="text-lg font-semibold text-slate-950">
               {editCategory ? "Edit category" : "New category"}
@@ -248,16 +256,18 @@ export default async function CategorySettingsPage({
             {editCategory ? (
               <Link
                 href="/app/settings/categories"
-                className="mt-3 inline-flex w-full items-center justify-center rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+                className="mt-3 inline-flex w-full items-center justify-center rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950 active:scale-[0.98]"
               >
                 Cancel edit
               </Link>
             ) : null}
           </div>
-        </div>
+          </div>
+        </Reveal>
 
         <div className="space-y-6">
-          <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
+          <Reveal delay={0.1}>
+            <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
             <div className="flex items-center justify-between gap-4 border-b border-slate-900/8 pb-4">
               <h2 className="text-lg font-semibold text-slate-950">
                 Expense categories
@@ -267,18 +277,21 @@ export default async function CategorySettingsPage({
               </span>
             </div>
 
-            <div className="mt-5 space-y-3">
-              {expense.active.map((category) => (
-                <CategoryRow
-                  key={category.id}
-                  category={category}
-                  workspaceId={session.currentWorkspace!.id}
-                />
-              ))}
-            </div>
-          </section>
+              <StaggerReveal className="mt-5 space-y-3">
+                {expense.active.map((category) => (
+                  <StaggerItem key={category.id}>
+                    <CategoryRow
+                      category={category}
+                      workspaceId={session.currentWorkspace!.id}
+                    />
+                  </StaggerItem>
+                ))}
+              </StaggerReveal>
+            </section>
+          </Reveal>
 
-          <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
+          <Reveal delay={0.14}>
+            <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
             <div className="flex items-center justify-between gap-4 border-b border-slate-900/8 pb-4">
               <h2 className="text-lg font-semibold text-slate-950">
                 Income categories
@@ -288,19 +301,22 @@ export default async function CategorySettingsPage({
               </span>
             </div>
 
-            <div className="mt-5 space-y-3">
-              {income.active.map((category) => (
-                <CategoryRow
-                  key={category.id}
-                  category={category}
-                  workspaceId={session.currentWorkspace!.id}
-                />
-              ))}
-            </div>
-          </section>
+              <StaggerReveal className="mt-5 space-y-3">
+                {income.active.map((category) => (
+                  <StaggerItem key={category.id}>
+                    <CategoryRow
+                      category={category}
+                      workspaceId={session.currentWorkspace!.id}
+                    />
+                  </StaggerItem>
+                ))}
+              </StaggerReveal>
+            </section>
+          </Reveal>
 
           {expense.archived.length + income.archived.length > 0 ? (
-            <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
+            <Reveal delay={0.18}>
+              <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
               <div className="flex items-center justify-between gap-4 border-b border-slate-900/8 pb-4">
                 <h2 className="text-lg font-semibold text-slate-950">
                   Archived
@@ -310,16 +326,18 @@ export default async function CategorySettingsPage({
                 </span>
               </div>
 
-              <div className="mt-5 space-y-3">
-                {[...expense.archived, ...income.archived].map((category) => (
-                  <CategoryRow
-                    key={category.id}
-                    category={category}
-                    workspaceId={session.currentWorkspace!.id}
-                  />
-                ))}
-              </div>
-            </section>
+                <StaggerReveal className="mt-5 space-y-3">
+                  {[...expense.archived, ...income.archived].map((category) => (
+                    <StaggerItem key={category.id}>
+                      <CategoryRow
+                        category={category}
+                        workspaceId={session.currentWorkspace!.id}
+                      />
+                    </StaggerItem>
+                  ))}
+                </StaggerReveal>
+              </section>
+            </Reveal>
           ) : null}
         </div>
       </section>
