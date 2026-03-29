@@ -1,10 +1,12 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   Reveal,
   StaggerItem,
   StaggerReveal,
 } from "@/components/motion/reveal";
+import { AppBadge } from "@/components/ui/app-badge";
+import { AppButton, AppButtonLink } from "@/components/ui/app-button";
+import { AppMetricSurface, AppSurface } from "@/components/ui/app-surface";
 import { getAppSession } from "@/lib/auth/session";
 import {
   fetchExpenseCategories,
@@ -77,7 +79,7 @@ export default async function BudgetsPage({
   return (
     <div className="space-y-6">
       <Reveal delay={0.02}>
-        <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
+        <AppSurface padding="md">
         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
           Budgets
         </p>
@@ -90,31 +92,33 @@ export default async function BudgetsPage({
               {session.currentWorkspace.name}
             </p>
           </div>
-          <div className="rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white">
+          <AppBadge tone="default" className="px-4 py-2 text-sm font-semibold">
             {categories.length} categories
-          </div>
+          </AppBadge>
         </div>
 
         <div className="mt-5 flex items-center gap-3 text-sm">
-          <Link
+          <AppButtonLink
             href={`/app/budgets?year=${prev.year}&month=${prev.month}`}
-            className="rounded-full border border-slate-300 px-4 py-2 text-slate-700 transition hover:border-slate-950 hover:text-slate-950 active:scale-[0.98]"
+            size="sm"
+            tone="secondary"
           >
             Prev
-          </Link>
-          <Link
+          </AppButtonLink>
+          <AppButtonLink
             href={`/app/budgets?year=${next.year}&month=${next.month}`}
-            className="rounded-full border border-slate-300 px-4 py-2 text-slate-700 transition hover:border-slate-950 hover:text-slate-950 active:scale-[0.98]"
+            size="sm"
+            tone="secondary"
           >
             Next
-          </Link>
+          </AppButtonLink>
         </div>
-        </section>
+        </AppSurface>
       </Reveal>
 
       <StaggerReveal className="grid gap-3 sm:grid-cols-2">
         <StaggerItem>
-          <article className="rounded-[1.5rem] border border-slate-900/8 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
+          <AppMetricSurface>
           <p className="text-sm text-slate-500">Monthly total</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
             {formatCurrency(
@@ -123,18 +127,18 @@ export default async function BudgetsPage({
               locale,
             )}
           </p>
-          </article>
+          </AppMetricSurface>
         </StaggerItem>
         <StaggerItem>
-          <article className="rounded-[1.5rem] border border-slate-900/8 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
+          <AppMetricSurface>
           <p className="text-sm text-slate-500">Allocated</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
             {formatCurrency(budget?.allocatedAmount ?? "0.00", currency, locale)}
           </p>
-          </article>
+          </AppMetricSurface>
         </StaggerItem>
         <StaggerItem>
-          <article className="rounded-[1.5rem] border border-slate-900/8 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
+          <AppMetricSurface>
           <p className="text-sm text-slate-500">Unallocated</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
             {formatCurrency(
@@ -143,15 +147,15 @@ export default async function BudgetsPage({
               locale,
             )}
           </p>
-          </article>
+          </AppMetricSurface>
         </StaggerItem>
         <StaggerItem>
-          <article className="rounded-[1.5rem] border border-slate-900/8 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
+          <AppMetricSurface>
           <p className="text-sm text-slate-500">Spent</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
             {formatCurrency(budget?.actualAmount ?? "0.00", currency, locale)}
           </p>
-          </article>
+          </AppMetricSurface>
         </StaggerItem>
       </StaggerReveal>
 
@@ -159,8 +163,9 @@ export default async function BudgetsPage({
         <form
           action="/app/budgets/monthly"
           method="post"
-          className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6"
+          className=""
         >
+        <AppSurface as="div" padding="md">
         <input type="hidden" name="workspaceId" value={session.currentWorkspace.id} />
         <input type="hidden" name="year" value={requestedPeriod.year} />
         <input type="hidden" name="month" value={requestedPeriod.month} />
@@ -174,12 +179,9 @@ export default async function BudgetsPage({
               Set the household limit first.
             </p>
           </div>
-          <button
-            type="submit"
-            className="rounded-full bg-emerald-400 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300 active:scale-[0.98]"
-          >
+          <AppButton type="submit" tone="success" size="sm">
             Save total
-          </button>
+          </AppButton>
         </div>
 
         <label className="mt-5 block">
@@ -194,6 +196,7 @@ export default async function BudgetsPage({
             className="mt-2 w-full rounded-[1.25rem] border border-slate-200 bg-slate-50 px-4 py-3 text-base text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
           />
         </label>
+        </AppSurface>
         </form>
       </Reveal>
 
@@ -201,8 +204,9 @@ export default async function BudgetsPage({
         <form
           action="/app/budgets/categories"
           method="post"
-          className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6"
+          className=""
         >
+        <AppSurface as="div" padding="md">
         <input type="hidden" name="workspaceId" value={session.currentWorkspace.id} />
         <input type="hidden" name="year" value={requestedPeriod.year} />
         <input type="hidden" name="month" value={requestedPeriod.month} />
@@ -216,12 +220,9 @@ export default async function BudgetsPage({
               Leave a field blank to keep it unallocated.
             </p>
           </div>
-          <button
-            type="submit"
-            className="rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 active:scale-[0.98]"
-          >
+          <AppButton type="submit" tone="primary" size="sm">
             Save plan
-          </button>
+          </AppButton>
         </div>
 
         <div className="mt-5 space-y-3">
@@ -273,6 +274,7 @@ export default async function BudgetsPage({
             );
           })}
         </div>
+        </AppSurface>
         </form>
       </Reveal>
     </div>

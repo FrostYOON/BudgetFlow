@@ -1,6 +1,8 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Reveal } from "@/components/motion/reveal";
+import { AppBadge } from "@/components/ui/app-badge";
+import { AppButton, AppButtonLink } from "@/components/ui/app-button";
+import { AppSurface } from "@/components/ui/app-surface";
 import { getAppSession } from "@/lib/auth/session";
 import {
   fetchWorkspaceInvites,
@@ -109,7 +111,7 @@ export default async function SettingsPage() {
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <Reveal delay={0.06}>
-          <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
+          <AppSurface padding="md">
           <div className="border-b border-slate-900/8 pb-4">
             <h2 className="text-lg font-semibold text-slate-950">Account</h2>
           </div>
@@ -191,18 +193,15 @@ export default async function SettingsPage() {
               />
             </label>
 
-            <button
-              type="submit"
-              className="inline-flex w-full items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 active:scale-[0.98]"
-            >
+            <AppButton type="submit" className="w-full">
               Save account
-            </button>
+            </AppButton>
           </form>
-          </section>
+          </AppSurface>
         </Reveal>
 
         <Reveal delay={0.1}>
-          <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
+          <AppSurface padding="md">
           <div className="border-b border-slate-900/8 pb-4">
             <h2 className="text-lg font-semibold text-slate-950">Household</h2>
           </div>
@@ -265,23 +264,20 @@ export default async function SettingsPage() {
                 </label>
               </div>
 
-              <button
-                type="submit"
-                className="inline-flex w-full items-center justify-center rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950 active:scale-[0.98]"
-              >
+              <AppButton type="submit" tone="secondary" className="w-full">
                 Save household profile
-              </button>
+              </AppButton>
             </form>
           ) : (
             <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-sm text-slate-500">
               No household.
             </div>
           )}
-          </section>
+          </AppSurface>
         </Reveal>
 
         <Reveal delay={0.14}>
-          <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6 xl:col-span-2">
+          <AppSurface className="xl:col-span-2" padding="md">
           <div className="border-b border-slate-900/8 pb-4">
             <h2 className="text-lg font-semibold text-slate-950">
               Household invites
@@ -328,12 +324,9 @@ export default async function SettingsPage() {
                   </label>
 
                   <div className="flex items-end">
-                    <button
-                      type="submit"
-                      className="inline-flex w-full items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 active:scale-[0.98]"
-                    >
+                    <AppButton type="submit" className="w-full">
                       Send invite
-                    </button>
+                    </AppButton>
                   </div>
                 </form>
 
@@ -363,18 +356,18 @@ export default async function SettingsPage() {
               No household.
             </div>
           )}
-        </section>
+        </AppSurface>
 
-        <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6 xl:col-span-2">
+        <AppSurface className="xl:col-span-2" padding="md">
           <div className="border-b border-slate-900/8 pb-4">
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-lg font-semibold text-slate-950">
                 Household settings
               </h2>
               {session.currentWorkspace ? (
-                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-600">
+                <AppBadge tone="subtle" className="uppercase tracking-[0.18em]">
                   {session.currentWorkspace.memberRole}
-                </span>
+                </AppBadge>
               ) : null}
             </div>
           </div>
@@ -459,18 +452,16 @@ export default async function SettingsPage() {
                   </select>
                 </label>
 
-                <button
-                  type="submit"
-                  className="inline-flex w-full items-center justify-center rounded-full bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500 active:scale-[0.98]"
-                >
+                <AppButton type="submit" tone="success" className="w-full">
                   Save household settings
-                </button>
-                <Link
+                </AppButton>
+                <AppButtonLink
                   href="/app/settings/categories"
-                  className="inline-flex w-full items-center justify-center rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950 active:scale-[0.98]"
+                  tone="secondary"
+                  className="w-full"
                 >
                   Manage categories
-                </Link>
+                </AppButtonLink>
               </form>
             ) : (
               <div className="mt-5 space-y-4">
@@ -530,7 +521,7 @@ export default async function SettingsPage() {
               No household.
             </div>
           )}
-          </section>
+          </AppSurface>
         </Reveal>
       </div>
     </div>
@@ -555,9 +546,9 @@ function InviteCard({
             {invite.role} · expires {formatInviteDate(invite.expiresAt)}
           </p>
         </div>
-        <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
+        <AppBadge tone="warning">
           {invite.status}
-        </span>
+        </AppBadge>
       </div>
 
       <div className="mt-4 rounded-2xl border border-slate-200 bg-white px-3 py-3 text-xs text-slate-600">
@@ -568,29 +559,24 @@ function InviteCard({
         <form action="/app/settings/invites/resend" method="post">
           <input type="hidden" name="workspaceId" value={workspaceId} />
           <input type="hidden" name="inviteId" value={invite.id} />
-          <button
-            type="submit"
-            className="inline-flex items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950 active:scale-[0.98]"
-          >
+          <AppButton type="submit" tone="secondary" size="sm">
             Resend
-          </button>
+          </AppButton>
         </form>
         <form action="/app/settings/invites/revoke" method="post">
           <input type="hidden" name="workspaceId" value={workspaceId} />
           <input type="hidden" name="inviteId" value={invite.id} />
-          <button
-            type="submit"
-            className="inline-flex items-center justify-center rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:border-rose-400 hover:text-rose-800 active:scale-[0.98]"
-          >
+          <AppButton type="submit" tone="danger" size="sm">
             Revoke
-          </button>
+          </AppButton>
         </form>
-        <Link
+        <AppButtonLink
           href={joinPath}
-          className="inline-flex items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950 active:scale-[0.98]"
+          tone="secondary"
+          size="sm"
         >
           Open invite link
-        </Link>
+        </AppButtonLink>
       </div>
     </article>
   );
