@@ -126,15 +126,16 @@ export async function createWorkspaceTransaction(input: {
   memo?: string;
   paidByUserId?: string;
 }) {
+  const { accessToken, workspaceId, ...payload } = input;
   const response = await fetch(
-    `${getApiBaseUrl()}/workspaces/${input.workspaceId}/transactions`,
+    `${getApiBaseUrl()}/workspaces/${workspaceId}/transactions`,
     {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${input.accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(input),
+      body: JSON.stringify(payload),
       cache: "no-store",
     },
   );
@@ -160,15 +161,16 @@ export async function updateWorkspaceTransaction(input: {
   memo: string | null;
   paidByUserId?: string;
 }) {
+  const { accessToken, workspaceId, transactionId, ...payload } = input;
   const response = await fetch(
-    `${getApiBaseUrl()}/workspaces/${input.workspaceId}/transactions/${input.transactionId}`,
+    `${getApiBaseUrl()}/workspaces/${workspaceId}/transactions/${transactionId}`,
     {
       method: "PATCH",
       headers: {
-        Authorization: `Bearer ${input.accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(input),
+      body: JSON.stringify(payload),
       cache: "no-store",
     },
   );
@@ -250,6 +252,7 @@ export function formatMonthLabel(year: number, month: number) {
   return new Intl.DateTimeFormat("en-CA", {
     month: "long",
     year: "numeric",
+    timeZone: "UTC",
   }).format(new Date(Date.UTC(year, month - 1, 1)));
 }
 
@@ -284,5 +287,6 @@ export function formatDateLabel(input: string, locale = "en-CA") {
     month: "short",
     day: "numeric",
     weekday: "short",
+    timeZone: "UTC",
   }).format(new Date(`${input}T00:00:00.000Z`));
 }

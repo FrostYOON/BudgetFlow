@@ -178,6 +178,7 @@ function QuickAddCard({
   defaultType,
   members,
   returnTo,
+  workspaceId,
 }: {
   categories: TransactionCategory[];
   currency: string;
@@ -185,6 +186,7 @@ function QuickAddCard({
   defaultType: "INCOME" | "EXPENSE";
   members: WorkspaceMemberSummary[];
   returnTo: string;
+  workspaceId: string;
 }) {
   return (
     <form
@@ -192,6 +194,7 @@ function QuickAddCard({
       method="post"
       className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6"
     >
+      <input type="hidden" name="workspaceId" value={workspaceId} />
       <input type="hidden" name="returnTo" value={returnTo} />
       <input type="hidden" name="currency" value={currency} />
 
@@ -292,12 +295,14 @@ function EditTransactionCard({
   members,
   returnTo,
   transaction,
+  workspaceId,
 }: {
   categories: TransactionCategory[];
   currency: string;
   members: WorkspaceMemberSummary[];
   returnTo: string;
   transaction: WorkspaceTransaction;
+  workspaceId: string;
 }) {
   return (
     <form
@@ -305,6 +310,7 @@ function EditTransactionCard({
       method="post"
       className="rounded-[1.75rem] border border-emerald-200 bg-emerald-50 px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.04)] sm:px-6"
     >
+      <input type="hidden" name="workspaceId" value={workspaceId} />
       <input type="hidden" name="returnTo" value={returnTo} />
       <input type="hidden" name="transactionId" value={transaction.id} />
       <input type="hidden" name="currency" value={currency} />
@@ -568,6 +574,7 @@ export default async function TransactionsPage({
         defaultType={defaultCreateType}
         members={members}
         returnTo={baseHref}
+        workspaceId={currentWorkspace.id}
       />
 
       {editableTransaction ? (
@@ -577,6 +584,7 @@ export default async function TransactionsPage({
           members={members}
           returnTo={baseHref}
           transaction={editableTransaction}
+          workspaceId={currentWorkspace.id}
         />
       ) : null}
 

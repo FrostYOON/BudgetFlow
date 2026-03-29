@@ -87,6 +87,7 @@ export function formatMonthLabel(year: number, month: number) {
   return new Intl.DateTimeFormat("en-CA", {
     month: "long",
     year: "numeric",
+    timeZone: "UTC",
   }).format(new Date(Date.UTC(year, month - 1, 1)));
 }
 
