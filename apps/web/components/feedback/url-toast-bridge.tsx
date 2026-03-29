@@ -93,6 +93,30 @@ const TOAST_MESSAGES: Record<string, { type: "success" | "error"; text: string }
     type: "error",
     text: "Failed to update transaction.",
   },
+  recurring_saved: {
+    type: "success",
+    text: "Recurring rule saved.",
+  },
+  recurring_updated: {
+    type: "success",
+    text: "Recurring rule updated.",
+  },
+  recurring_deactivated: {
+    type: "success",
+    text: "Recurring rule paused.",
+  },
+  recurring_save_failed: {
+    type: "error",
+    text: "Failed to save recurring rule.",
+  },
+  recurring_update_failed: {
+    type: "error",
+    text: "Failed to update recurring rule.",
+  },
+  recurring_deactivate_failed: {
+    type: "error",
+    text: "Failed to pause recurring rule.",
+  },
   workspace_missing: {
     type: "error",
     text: "Workspace is missing.",
