@@ -115,9 +115,13 @@ function CategoryForm({
 
 function CategoryRow({
   category,
+  isFirst,
+  isLast,
   workspaceId,
 }: {
   category: WorkspaceCategory;
+  isFirst: boolean;
+  isLast: boolean;
   workspaceId: string;
 }) {
   return (
@@ -151,6 +155,22 @@ function CategoryRow({
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
+        <form action="/app/settings/categories/reorder" method="post">
+          <input type="hidden" name="workspaceId" value={workspaceId} />
+          <input type="hidden" name="categoryId" value={category.id} />
+          <input type="hidden" name="direction" value="up" />
+          <AppButton type="submit" tone="secondary" size="sm" disabled={isFirst}>
+            Up
+          </AppButton>
+        </form>
+        <form action="/app/settings/categories/reorder" method="post">
+          <input type="hidden" name="workspaceId" value={workspaceId} />
+          <input type="hidden" name="categoryId" value={category.id} />
+          <input type="hidden" name="direction" value="down" />
+          <AppButton type="submit" tone="secondary" size="sm" disabled={isLast}>
+            Down
+          </AppButton>
+        </form>
         <AppButtonLink
           href={`/app/settings/categories?edit=${category.id}`}
           tone="secondary"
@@ -277,10 +297,12 @@ export default async function CategorySettingsPage({
             </div>
 
               <StaggerReveal className="mt-5 space-y-3">
-                {expense.active.map((category) => (
+                {expense.active.map((category, index) => (
                   <StaggerItem key={category.id}>
                     <CategoryRow
                       category={category}
+                      isFirst={index === 0}
+                      isLast={index === expense.active.length - 1}
                       workspaceId={session.currentWorkspace!.id}
                     />
                   </StaggerItem>
@@ -301,10 +323,12 @@ export default async function CategorySettingsPage({
             </div>
 
               <StaggerReveal className="mt-5 space-y-3">
-                {income.active.map((category) => (
+                {income.active.map((category, index) => (
                   <StaggerItem key={category.id}>
                     <CategoryRow
                       category={category}
+                      isFirst={index === 0}
+                      isLast={index === income.active.length - 1}
                       workspaceId={session.currentWorkspace!.id}
                     />
                   </StaggerItem>
@@ -326,10 +350,12 @@ export default async function CategorySettingsPage({
               </div>
 
                 <StaggerReveal className="mt-5 space-y-3">
-                  {[...expense.archived, ...income.archived].map((category) => (
+                  {[...expense.archived, ...income.archived].map((category, index, all) => (
                     <StaggerItem key={category.id}>
                       <CategoryRow
                         category={category}
+                        isFirst={index === 0}
+                        isLast={index === all.length - 1}
                         workspaceId={session.currentWorkspace!.id}
                       />
                     </StaggerItem>
