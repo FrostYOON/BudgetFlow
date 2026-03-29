@@ -57,6 +57,36 @@ export class WorkspaceInvitesController {
     return this.workspaceInvitesService.listInvites(workspaceId, user.userId);
   }
 
+  @Post('workspaces/:workspaceId/invites/:inviteId/revoke')
+  @ApiOperation({ summary: 'Revoke a pending workspace invite' })
+  @ApiOkResponse({ type: WorkspaceInviteResponseDto })
+  revoke(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('workspaceId', new ParseUUIDPipe()) workspaceId: string,
+    @Param('inviteId', new ParseUUIDPipe()) inviteId: string,
+  ): Promise<WorkspaceInviteResponseDto> {
+    return this.workspaceInvitesService.revokeInvite(
+      workspaceId,
+      inviteId,
+      user.userId,
+    );
+  }
+
+  @Post('workspaces/:workspaceId/invites/:inviteId/resend')
+  @ApiOperation({ summary: 'Resend a pending workspace invite' })
+  @ApiOkResponse({ type: WorkspaceInviteResponseDto })
+  resend(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('workspaceId', new ParseUUIDPipe()) workspaceId: string,
+    @Param('inviteId', new ParseUUIDPipe()) inviteId: string,
+  ): Promise<WorkspaceInviteResponseDto> {
+    return this.workspaceInvitesService.resendInvite(
+      workspaceId,
+      inviteId,
+      user.userId,
+    );
+  }
+
   @Post('workspace-invites/:token/accept')
   @ApiOperation({ summary: 'Accept a workspace invite' })
   @ApiOkResponse({ type: AcceptWorkspaceInviteResponseDto })

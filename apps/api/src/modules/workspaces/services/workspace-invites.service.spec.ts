@@ -21,6 +21,8 @@ describe('WorkspaceInvitesService', () => {
       create: jest.Mock;
       findMany: jest.Mock;
       findUnique: jest.Mock;
+      findFirst: jest.Mock;
+      update: jest.Mock;
     };
     $transaction: jest.Mock;
   };
@@ -36,6 +38,8 @@ describe('WorkspaceInvitesService', () => {
         create: jest.fn(),
         findMany: jest.fn(),
         findUnique: jest.fn(),
+        findFirst: jest.fn(),
+        update: jest.fn(),
       },
       $transaction: jest.fn(),
     };
@@ -64,6 +68,7 @@ describe('WorkspaceInvitesService', () => {
   it('createInvite should create an invite after owner check', async () => {
     prisma.user.findUnique.mockResolvedValue(null);
     prisma.workspaceMember.findUnique.mockResolvedValue(null);
+    prisma.workspaceInvite.findFirst.mockResolvedValue(null);
     prisma.workspaceInvite.create.mockResolvedValue({
       id: 'invite-1',
       email: 'jisu@example.com',
@@ -84,6 +89,27 @@ describe('WorkspaceInvitesService', () => {
       'owner-1',
     );
     expect(result.email).toBe('jisu@example.com');
+  });
+
+  it('createInvite should reject when a pending invite already exists', async () => {
+    prisma.user.findUnique.mockResolvedValue(null);
+    prisma.workspaceMember.findUnique.mockResolvedValue(null);
+    prisma.workspaceInvite.findFirst.mockResolvedValue({
+      id: 'invite-1',
+      email: 'jisu@example.com',
+      role: WorkspaceMemberRole.MEMBER,
+      status: WorkspaceMemberStatus.INVITED,
+      workspaceId: 'workspace-1',
+      token: 'token-1',
+      expiresAt: new Date('2026-04-01T00:00:00.000Z'),
+    });
+
+    await expect(
+      service.createInvite('workspace-1', 'owner-1', {
+        email: 'jisu@example.com',
+        role: WorkspaceMemberRole.MEMBER,
+      }),
+    ).rejects.toBeInstanceOf(ConflictException);
   });
 
   it('listInvites should return invite list after owner check', async () => {
@@ -155,5 +181,68 @@ describe('WorkspaceInvitesService', () => {
         email: 'jisu@example.com',
       }),
     ).rejects.toBeInstanceOf(ConflictException);
+  });
+
+  it('revokeInvite should mark a pending invite as left', async () => {
+    prisma.workspaceInvite.findFirst.mockResolvedValue({
+      id: 'invite-1',
+      email: 'jisu@example.com',
+      role: WorkspaceMemberRole.MEMBER,
+      status: WorkspaceMemberStatus.INVITED,
+      workspaceId: 'workspace-1',
+      token: 'token-1',
+      expiresAt: new Date('2026-04-01T00:00:00.000Z'),
+    });
+    prisma.workspaceInvite.update.mockResolvedValue({
+      id: 'invite-1',
+      email: 'jisu@example.com',
+      role: WorkspaceMemberRole.MEMBER,
+      status: WorkspaceMemberStatus.LEFT,
+      workspaceId: 'workspace-1',
+      token: 'token-1',
+      expiresAt: new Date('2026-04-01T00:00:00.000Z'),
+    });
+
+    const result = await service.revokeInvite(
+      'workspace-1',
+      'invite-1',
+      'owner-1',
+    );
+
+    expect(result.status).toBe(WorkspaceMemberStatus.LEFT);
+    expect(workspacesService.assertOwner).toHaveBeenCalledWith(
+      'workspace-1',
+      'owner-1',
+    );
+  });
+
+  it('resendInvite should refresh token and expiry for pending invites', async () => {
+    prisma.workspaceInvite.findFirst.mockResolvedValue({
+      id: 'invite-1',
+      email: 'jisu@example.com',
+      role: WorkspaceMemberRole.MEMBER,
+      status: WorkspaceMemberStatus.INVITED,
+      workspaceId: 'workspace-1',
+      token: 'token-1',
+      expiresAt: new Date('2026-04-01T00:00:00.000Z'),
+    });
+    prisma.workspaceInvite.update.mockResolvedValue({
+      id: 'invite-1',
+      email: 'jisu@example.com',
+      role: WorkspaceMemberRole.MEMBER,
+      status: WorkspaceMemberStatus.INVITED,
+      workspaceId: 'workspace-1',
+      token: 'token-2',
+      expiresAt: new Date('2026-04-08T00:00:00.000Z'),
+    });
+
+    const result = await service.resendInvite(
+      'workspace-1',
+      'invite-1',
+      'owner-1',
+    );
+
+    expect(result.token).toBe('token-2');
+    expect(result.status).toBe(WorkspaceMemberStatus.INVITED);
   });
 });
