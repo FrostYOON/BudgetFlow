@@ -17,6 +17,7 @@
     "lint:api": "pnpm --filter @budgetflow/api lint",
     "test": "turbo run test",
     "test:api": "pnpm --filter @budgetflow/api test -- --runInBand",
+    "test:web:e2e": "pnpm --filter @budgetflow/web test:e2e",
     "format": "turbo run format",
     "format:api": "pnpm --filter @budgetflow/api format",
     "docker:start": "docker compose up -d postgres",
@@ -29,7 +30,8 @@
     "prisma:migrate:status": "pnpm --filter @budgetflow/database prisma:migrate:status",
     "prisma:migrate:dev": "pnpm --filter @budgetflow/database exec prisma migrate dev --schema ./prisma/schema.prisma",
     "prisma:migrate:deploy": "pnpm --filter @budgetflow/database exec prisma migrate deploy --schema ./prisma/schema.prisma",
-    "prisma:studio": "pnpm --filter @budgetflow/database prisma:studio"
+    "prisma:studio": "pnpm --filter @budgetflow/database prisma:studio",
+    "data:normalize:starter-categories": "node --env-file=packages/database/.env ./scripts/normalize-starter-category-labels.mjs"
   },
   "devDependencies": {
     "turbo": "^2.0.12"

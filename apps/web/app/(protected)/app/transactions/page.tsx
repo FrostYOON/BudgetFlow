@@ -1,5 +1,14 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { TypeDrivenCategoryFields } from "@/components/categories/type-driven-category-fields";
+import {
+  Reveal,
+  StaggerItem,
+  StaggerReveal,
+} from "@/components/motion/reveal";
+import { AppBadge } from "@/components/ui/app-badge";
+import { AppButton, AppButtonLink } from "@/components/ui/app-button";
+import { AppMetricSurface, AppSurface } from "@/components/ui/app-surface";
 import { getAppSession } from "@/lib/auth/session";
 import { fetchWorkspaceMembers, type WorkspaceMemberSummary } from "@/lib/settings";
 import {
@@ -178,6 +187,7 @@ function QuickAddCard({
   defaultType,
   members,
   returnTo,
+  workspaceId,
 }: {
   categories: TransactionCategory[];
   currency: string;
@@ -185,13 +195,16 @@ function QuickAddCard({
   defaultType: "INCOME" | "EXPENSE";
   members: WorkspaceMemberSummary[];
   returnTo: string;
+  workspaceId: string;
 }) {
   return (
     <form
       action="/app/transactions/create"
       method="post"
-      className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6"
+      className=""
     >
+      <AppSurface as="div" padding="md">
+      <input type="hidden" name="workspaceId" value={workspaceId} />
       <input type="hidden" name="returnTo" value={returnTo} />
       <input type="hidden" name="currency" value={currency} />
 
@@ -199,23 +212,17 @@ function QuickAddCard({
         <div>
           <p className="text-sm font-semibold text-slate-950">Quick add</p>
         </div>
-        <div className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
+        <AppBadge tone="success">
           {currency}
-        </div>
+        </AppBadge>
       </div>
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
-        <label className="block">
-          <span className="text-sm font-medium text-slate-700">Type</span>
-          <select
-            name="type"
-            defaultValue={defaultType}
-            className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
-          >
-            <option value="EXPENSE">Expense</option>
-            <option value="INCOME">Income</option>
-          </select>
-        </label>
+        <TypeDrivenCategoryFields
+          categories={categories}
+          defaultType={defaultType}
+          selectClassName="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
+        />
 
         <label className="block">
           <span className="text-sm font-medium text-slate-700">Visibility</span>
@@ -254,11 +261,6 @@ function QuickAddCard({
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <label className="block">
-          <span className="text-sm font-medium text-slate-700">Category</span>
-          <CategorySelect categories={categories} name="categoryId" />
-        </label>
-
-        <label className="block">
           <span className="text-sm font-medium text-slate-700">Paid by</span>
           <MemberSelect members={members} name="paidByUserId" />
         </label>
@@ -275,13 +277,11 @@ function QuickAddCard({
       </label>
 
       <div className="mt-5 flex justify-end">
-        <button
-          type="submit"
-          className="rounded-full bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
-        >
+        <AppButton type="submit">
           Save transaction
-        </button>
+        </AppButton>
       </div>
+      </AppSurface>
     </form>
   );
 }
@@ -292,19 +292,23 @@ function EditTransactionCard({
   members,
   returnTo,
   transaction,
+  workspaceId,
 }: {
   categories: TransactionCategory[];
   currency: string;
   members: WorkspaceMemberSummary[];
   returnTo: string;
   transaction: WorkspaceTransaction;
+  workspaceId: string;
 }) {
   return (
     <form
       action="/app/transactions/update"
       method="post"
-      className="rounded-[1.75rem] border border-emerald-200 bg-emerald-50 px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.04)] sm:px-6"
+      className=""
     >
+      <AppSurface as="div" padding="md" tone="success">
+      <input type="hidden" name="workspaceId" value={workspaceId} />
       <input type="hidden" name="returnTo" value={returnTo} />
       <input type="hidden" name="transactionId" value={transaction.id} />
       <input type="hidden" name="currency" value={currency} />
@@ -314,12 +318,13 @@ function EditTransactionCard({
           <p className="text-sm font-semibold text-slate-950">Edit transaction</p>
           <p className="mt-1 text-sm text-slate-500">{transaction.type}</p>
         </div>
-        <Link
+        <AppButtonLink
           href={returnTo}
-          className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+          size="sm"
+          tone="secondary"
         >
           Cancel
-        </Link>
+        </AppButtonLink>
       </div>
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -400,13 +405,11 @@ function EditTransactionCard({
       </label>
 
       <div className="mt-5 flex justify-end">
-        <button
-          type="submit"
-          className="rounded-full bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
-        >
+        <AppButton type="submit">
           Update transaction
-        </button>
+        </AppButton>
       </div>
+      </AppSurface>
     </form>
   );
 }
@@ -517,7 +520,8 @@ export default async function TransactionsPage({
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
+      <Reveal delay={0.02}>
+        <AppSurface padding="md">
         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
           Transactions
         </p>
@@ -530,58 +534,68 @@ export default async function TransactionsPage({
               {currentWorkspace.name}
             </p>
           </div>
-          <div className="rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white">
+          <AppBadge tone="default" className="px-4 py-2 text-sm font-semibold">
             {transactions.items.length} entries
-          </div>
+          </AppBadge>
         </div>
 
         <div className="mt-5 flex items-center gap-3 text-sm">
-          <Link
+          <AppButtonLink
             href={buildTransactionsHref({
               year: prev.year,
               month: prev.month,
               type,
               visibility,
             })}
-            className="rounded-full border border-slate-300 px-4 py-2 text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+            size="sm"
+            tone="secondary"
           >
             Prev
-          </Link>
-          <Link
+          </AppButtonLink>
+          <AppButtonLink
             href={buildTransactionsHref({
               year: next.year,
               month: next.month,
               type,
               visibility,
             })}
-            className="rounded-full border border-slate-300 px-4 py-2 text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+            size="sm"
+            tone="secondary"
           >
             Next
-          </Link>
+          </AppButtonLink>
         </div>
-      </section>
+        </AppSurface>
+      </Reveal>
 
-      <QuickAddCard
-        categories={categories}
-        currency={currentWorkspace.baseCurrency}
-        defaultDate={defaultCreateDate}
-        defaultType={defaultCreateType}
-        members={members}
-        returnTo={baseHref}
-      />
-
-      {editableTransaction ? (
-        <EditTransactionCard
+      <Reveal delay={0.06}>
+        <QuickAddCard
           categories={categories}
           currency={currentWorkspace.baseCurrency}
+          defaultDate={defaultCreateDate}
+          defaultType={defaultCreateType}
           members={members}
           returnTo={baseHref}
-          transaction={editableTransaction}
+          workspaceId={currentWorkspace.id}
         />
+      </Reveal>
+
+      {editableTransaction ? (
+        <Reveal delay={0.1}>
+          <EditTransactionCard
+            categories={categories}
+            currency={currentWorkspace.baseCurrency}
+            members={members}
+            returnTo={baseHref}
+            transaction={editableTransaction}
+            workspaceId={currentWorkspace.id}
+          />
+        </Reveal>
       ) : null}
 
       {deletedTransactionId ? (
-        <section className="rounded-[1.5rem] border border-amber-200 bg-amber-50 px-5 py-4">
+        <Reveal delay={0.12}>
+          <AppSurface padding="md" tone="muted" className="border-amber-200 bg-amber-50">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm font-semibold text-slate-950">
@@ -599,19 +613,18 @@ export default async function TransactionsPage({
               />
               <input type="hidden" name="transactionId" value={deletedTransactionId} />
               <input type="hidden" name="returnTo" value={baseHref} />
-              <button
-                type="submit"
-                className="inline-flex items-center justify-center rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
-              >
+              <AppButton type="submit" size="sm">
                 Restore
-              </button>
+              </AppButton>
             </form>
           </div>
-        </section>
+          </AppSurface>
+        </Reveal>
       ) : null}
 
-      <section className="grid gap-3 sm:grid-cols-2">
-        <article className="rounded-[1.5rem] border border-slate-900/8 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
+      <StaggerReveal className="grid gap-3 sm:grid-cols-2">
+        <StaggerItem>
+          <AppMetricSurface>
           <p className="text-sm text-slate-500">Income</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
             {formatCurrency(
@@ -620,8 +633,10 @@ export default async function TransactionsPage({
               locale,
             )}
           </p>
-        </article>
-        <article className="rounded-[1.5rem] border border-slate-900/8 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
+          </AppMetricSurface>
+        </StaggerItem>
+        <StaggerItem>
+          <AppMetricSurface>
           <p className="text-sm text-slate-500">Expense</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
             {formatCurrency(
@@ -630,8 +645,10 @@ export default async function TransactionsPage({
               locale,
             )}
           </p>
-        </article>
-        <article className="rounded-[1.5rem] border border-slate-900/8 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
+          </AppMetricSurface>
+        </StaggerItem>
+        <StaggerItem>
+          <AppMetricSurface>
           <p className="text-sm text-slate-500">Shared</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
             {formatCurrency(
@@ -640,8 +657,10 @@ export default async function TransactionsPage({
               locale,
             )}
           </p>
-        </article>
-        <article className="rounded-[1.5rem] border border-slate-900/8 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
+          </AppMetricSurface>
+        </StaggerItem>
+        <StaggerItem>
+          <AppMetricSurface>
           <p className="text-sm text-slate-500">Personal</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
             {formatCurrency(
@@ -650,10 +669,12 @@ export default async function TransactionsPage({
               locale,
             )}
           </p>
-        </article>
-      </section>
+          </AppMetricSurface>
+        </StaggerItem>
+      </StaggerReveal>
 
-      <section className="space-y-3">
+      <Reveal delay={0.16}>
+        <section className="space-y-3">
         <div className="flex gap-2 overflow-x-auto pb-1">
           {[
             { label: "All", value: "ALL" },
@@ -711,14 +732,18 @@ export default async function TransactionsPage({
             );
           })}
         </div>
-      </section>
+        </section>
+      </Reveal>
 
       {grouped.length === 0 ? (
-        <section className="rounded-[1.75rem] border border-dashed border-slate-300 bg-white px-6 py-10 text-center">
+        <Reveal delay={0.2}>
+          <section className="rounded-[1.75rem] border border-dashed border-slate-300 bg-white px-6 py-10 text-center">
           <p className="text-sm font-medium text-slate-950">No entries</p>
-        </section>
+          </section>
+        </Reveal>
       ) : (
-        <div className="space-y-6">
+        <Reveal delay={0.2}>
+          <div className="space-y-6">
           {grouped.map(([date, items]) => (
             <section key={date} className="space-y-3">
               <div className="flex items-center justify-between">
@@ -777,14 +802,14 @@ export default async function TransactionsPage({
                           <input type="hidden" name="returnTo" value={baseHref} />
                           <button
                             type="submit"
-                            className="rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:border-rose-400 hover:text-rose-800"
+                            className="rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:border-rose-400 hover:text-rose-800 active:scale-[0.98]"
                           >
                             Delete
                           </button>
                         </form>
                         <Link
                           href={buildEditHref(baseHref, transaction.id)}
-                          className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+                          className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950 active:scale-[0.98]"
                         >
                           Edit
                         </Link>
@@ -795,7 +820,8 @@ export default async function TransactionsPage({
               </div>
             </section>
           ))}
-        </div>
+          </div>
+        </Reveal>
       )}
     </div>
   );

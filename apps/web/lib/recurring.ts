@@ -339,6 +339,7 @@ export function formatDateLabel(input: string, locale = "en-CA") {
     month: "short",
     day: "numeric",
     year: "numeric",
+    timeZone: "UTC",
   }).format(new Date(`${input}T00:00:00.000Z`));
 }
 

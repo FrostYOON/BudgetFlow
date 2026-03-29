@@ -1,5 +1,13 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
+import { DashboardTransactionCalendar } from "@/components/dashboard/dashboard-transaction-calendar";
+import {
+  Reveal,
+  StaggerItem,
+  StaggerReveal,
+} from "@/components/motion/reveal";
+import { AppBadge } from "@/components/ui/app-badge";
+import { AppButtonLink } from "@/components/ui/app-button";
+import { AppMetricSurface, AppSurface } from "@/components/ui/app-surface";
 import { getAppSession } from "@/lib/auth/session";
 import {
   fetchWorkspaceDashboard,
@@ -8,6 +16,7 @@ import {
   getNextMonth,
   getPreviousMonth,
 } from "@/lib/dashboard";
+import { fetchWorkspaceTransactions, getMonthRange } from "@/lib/transactions";
 
 function clampMonth(value: number) {
   return Math.min(Math.max(value, 1), 12);
@@ -40,12 +49,24 @@ export default async function DashboardPage({
   }
 
   const requestedPeriod = getPeriod(await searchParams);
-  const dashboard = await fetchWorkspaceDashboard({
-    accessToken: session.accessToken,
-    workspaceId: session.currentWorkspace.id,
-    year: requestedPeriod.year,
-    month: requestedPeriod.month,
-  });
+  const monthRange = getMonthRange(
+    requestedPeriod.year,
+    requestedPeriod.month,
+  );
+  const [dashboard, monthlyTransactions] = await Promise.all([
+    fetchWorkspaceDashboard({
+      accessToken: session.accessToken,
+      workspaceId: session.currentWorkspace.id,
+      year: requestedPeriod.year,
+      month: requestedPeriod.month,
+    }),
+    fetchWorkspaceTransactions({
+      accessToken: session.accessToken,
+      workspaceId: session.currentWorkspace.id,
+      from: monthRange.from,
+      to: monthRange.to,
+    }),
+  ]);
 
   const prev = getPreviousMonth(dashboard.period.year, dashboard.period.month);
   const next = getNextMonth(dashboard.period.year, dashboard.period.month);
@@ -79,33 +100,37 @@ export default async function DashboardPage({
           </div>
 
           <div className="flex items-center gap-3 text-sm">
-            <Link
+            <AppButtonLink
               href={`/app/reports?year=${dashboard.period.year}&month=${dashboard.period.month}`}
-              className="rounded-full bg-emerald-400 px-4 py-2 font-semibold text-slate-950 transition hover:bg-emerald-300"
+              tone="success"
+              size="sm"
             >
               Report
-            </Link>
-            <Link
+            </AppButtonLink>
+            <AppButtonLink
               href={`/app/dashboard?year=${prev.year}&month=${prev.month}`}
-              className="rounded-full border border-slate-300 px-4 py-2 text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+              tone="secondary"
+              size="sm"
             >
               Previous
-            </Link>
-            <div className="rounded-full bg-slate-950 px-4 py-2 font-medium text-white">
+            </AppButtonLink>
+            <AppBadge tone="default" className="px-4 py-2 text-sm font-medium">
               {formatMonthLabel(dashboard.period.year, dashboard.period.month)}
-            </div>
-            <Link
+            </AppBadge>
+            <AppButtonLink
               href={`/app/dashboard?year=${next.year}&month=${next.month}`}
-              className="rounded-full border border-slate-300 px-4 py-2 text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+              tone="secondary"
+              size="sm"
             >
               Next
-            </Link>
+            </AppButtonLink>
           </div>
         </div>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-4">
-        <article className="rounded-[1.75rem] border border-slate-900/8 bg-white px-6 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
+      <StaggerReveal className="grid gap-6 xl:grid-cols-4">
+        <StaggerItem>
+          <AppMetricSurface>
           <p className="text-sm text-slate-500">Budget used</p>
           <p className="mt-3 text-4xl font-semibold tracking-tight text-slate-950">
             {budgetUsedPct.toFixed(0)}%
@@ -124,9 +149,11 @@ export default async function DashboardPage({
               locale,
             )}
           </p>
-        </article>
+          </AppMetricSurface>
+        </StaggerItem>
 
-        <article className="rounded-[1.75rem] border border-slate-900/8 bg-white px-6 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
+        <StaggerItem>
+          <AppMetricSurface>
           <p className="text-sm text-slate-500">Shared spend</p>
           <p className="mt-3 text-4xl font-semibold tracking-tight text-slate-950">
             {formatCurrency(dashboard.summary.sharedExpense, currency, locale)}
@@ -139,9 +166,11 @@ export default async function DashboardPage({
               locale,
             )}
           </p>
-        </article>
+          </AppMetricSurface>
+        </StaggerItem>
 
-        <article className="rounded-[1.75rem] border border-slate-900/8 bg-white px-6 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
+        <StaggerItem>
+          <AppMetricSurface>
           <p className="text-sm text-slate-500">Monthly budget</p>
           <p className="mt-3 text-4xl font-semibold tracking-tight text-slate-950">
             {formatCurrency(dashboard.summary.monthlyBudget, currency, locale)}
@@ -154,9 +183,11 @@ export default async function DashboardPage({
               locale,
             )}
           </p>
-        </article>
+          </AppMetricSurface>
+        </StaggerItem>
 
-        <article className="rounded-[1.75rem] border border-slate-900/8 bg-white px-6 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
+        <StaggerItem>
+          <AppMetricSurface>
           <p className="text-sm text-slate-500">Open insights</p>
           <p className="mt-3 text-4xl font-semibold tracking-tight text-slate-950">
             {dashboard.insights.length}
@@ -165,12 +196,26 @@ export default async function DashboardPage({
             Top expense{" "}
             {formatCurrency(dashboard.summary.totalExpense, currency, locale)}
           </p>
-        </article>
-      </section>
+          </AppMetricSurface>
+        </StaggerItem>
+      </StaggerReveal>
 
       <section className="grid gap-8 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
         <div className="space-y-8">
-          <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-6 py-6 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
+          <Reveal delay={0.04}>
+            <DashboardTransactionCalendar
+              currency={currency}
+              locale={locale}
+              month={dashboard.period.month}
+              nextHref={`/app/dashboard?year=${next.year}&month=${next.month}`}
+              previousHref={`/app/dashboard?year=${prev.year}&month=${prev.month}`}
+              transactions={monthlyTransactions.items}
+              year={dashboard.period.year}
+            />
+          </Reveal>
+
+          <Reveal delay={0.08}>
+            <AppSurface padding="lg">
             <div className="flex items-center justify-between gap-4 border-b border-slate-900/8 pb-4">
               <div>
                 <h2 className="text-lg font-semibold text-slate-950">
@@ -205,9 +250,11 @@ export default async function DashboardPage({
                 ))
               )}
             </div>
-          </section>
+            </AppSurface>
+          </Reveal>
 
-          <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-6 py-6 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
+          <Reveal delay={0.12}>
+            <AppSurface padding="lg">
             <div className="flex items-center justify-between gap-4 border-b border-slate-900/8 pb-4">
               <div>
                 <h2 className="text-lg font-semibold text-slate-950">
@@ -240,11 +287,13 @@ export default async function DashboardPage({
                 ))
               )}
             </div>
-          </section>
+            </AppSurface>
+          </Reveal>
         </div>
 
         <aside className="space-y-8">
-          <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-6 py-6 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
+          <Reveal delay={0.16}>
+            <AppSurface padding="lg">
             <h2 className="text-lg font-semibold text-slate-950">Insights</h2>
 
             <div className="mt-5 space-y-3">
@@ -271,9 +320,11 @@ export default async function DashboardPage({
                 ))
               )}
             </div>
-          </section>
+            </AppSurface>
+          </Reveal>
 
-          <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-6 py-6 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
+          <Reveal delay={0.2}>
+            <AppSurface padding="lg">
             <h2 className="text-lg font-semibold text-slate-950">
               Budget breakdown
             </h2>
@@ -319,7 +370,8 @@ export default async function DashboardPage({
                 </span>
               </div>
             </div>
-          </section>
+            </AppSurface>
+          </Reveal>
         </aside>
       </section>
     </div>

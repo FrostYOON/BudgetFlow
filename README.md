@@ -76,6 +76,18 @@ Operational notes:
 - `prisma:validate`, `prisma:migrate:status`, and all migration commands require a real `DATABASE_URL`.
 - The current migration workflow is documented in [docs/DB_MIGRATION_WORKFLOW.md](/Users/yoon-yongseol/WorkSpace/BudgetFlow/docs/DB_MIGRATION_WORKFLOW.md).
 
+## Test Commands
+
+```bash
+pnpm test:api
+pnpm test:web:e2e
+```
+
+Notes:
+- `pnpm test:web:e2e` starts the API and web app automatically through Playwright.
+- Local Postgres must already be running before web e2e starts.
+- In CI, Playwright browser installation and web e2e are handled by [validate.yml](/Users/yoon-yongseol/WorkSpace/BudgetFlow/.github/workflows/validate.yml).
+
 ## Task Management
 
 BudgetFlow tracks active engineering work with GitHub Issues and GitHub Projects.

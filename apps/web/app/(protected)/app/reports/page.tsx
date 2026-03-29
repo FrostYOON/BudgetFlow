@@ -1,5 +1,13 @@
-import Link from "next/link";
+import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
+import {
+  Reveal,
+  StaggerItem,
+  StaggerReveal,
+} from "@/components/motion/reveal";
+import { AppBadge } from "@/components/ui/app-badge";
+import { AppButtonLink } from "@/components/ui/app-button";
+import { AppMetricSurface, AppSurface } from "@/components/ui/app-surface";
 import { getAppSession } from "@/lib/auth/session";
 import {
   fetchMonthlyReport,
@@ -53,7 +61,7 @@ export default async function ReportsPage({
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
+      <AppSurface padding="lg">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
@@ -66,51 +74,70 @@ export default async function ReportsPage({
               {session.currentWorkspace.name}
             </p>
           </div>
-          <Link
+          <AppButtonLink
             href="/app/dashboard"
-            className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+            size="sm"
+            tone="secondary"
           >
             Dashboard
-          </Link>
+          </AppButtonLink>
         </div>
 
         <div className="mt-5 flex items-center gap-3 text-sm">
-          <Link
+          <AppButtonLink
             href={`/app/reports?year=${prev.year}&month=${prev.month}`}
-            className="rounded-full border border-slate-300 px-4 py-2 text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+            size="sm"
+            tone="secondary"
           >
             Prev
-          </Link>
-          <Link
+          </AppButtonLink>
+          <AppBadge tone="default" className="px-4 py-2 text-sm font-medium">
+            {formatMonthLabel(report.year, report.month)}
+          </AppBadge>
+          <AppButtonLink
             href={`/app/reports?year=${next.year}&month=${next.month}`}
-            className="rounded-full border border-slate-300 px-4 py-2 text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+            size="sm"
+            tone="secondary"
           >
             Next
-          </Link>
+          </AppButtonLink>
         </div>
-      </section>
+      </AppSurface>
 
-      <section className="grid gap-3 sm:grid-cols-2">
-        <SummaryCard
-          label="Income"
-          value={formatCurrency(report.summary.totalIncome, currency, locale)}
-        />
-        <SummaryCard
-          label="Expense"
-          value={formatCurrency(report.summary.totalExpense, currency, locale)}
-        />
-        <SummaryCard
-          label="Net"
-          value={formatCurrency(report.summary.netAmount, currency, locale)}
-        />
-        <SummaryCard
-          label="Remaining"
-          value={formatCurrency(report.summary.remainingBudget, currency, locale)}
-        />
-      </section>
+      <StaggerReveal className="grid gap-3 sm:grid-cols-2">
+        <StaggerItem>
+          <SummaryCard
+            label="Income"
+            value={formatCurrency(report.summary.totalIncome, currency, locale)}
+          />
+        </StaggerItem>
+        <StaggerItem>
+          <SummaryCard
+            label="Expense"
+            value={formatCurrency(report.summary.totalExpense, currency, locale)}
+          />
+        </StaggerItem>
+        <StaggerItem>
+          <SummaryCard
+            label="Net"
+            value={formatCurrency(report.summary.netAmount, currency, locale)}
+          />
+        </StaggerItem>
+        <StaggerItem>
+          <SummaryCard
+            label="Remaining"
+            value={formatCurrency(
+              report.summary.remainingBudget,
+              currency,
+              locale,
+            )}
+          />
+        </StaggerItem>
+      </StaggerReveal>
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <CardSection title="Category breakdown">
+        <Reveal delay={0.04}>
+          <CardSection title="Category breakdown">
           <div className="space-y-3">
             {report.categoryBreakdown.map((item) => (
               <div
@@ -131,9 +158,11 @@ export default async function ReportsPage({
               </div>
             ))}
           </div>
-        </CardSection>
+          </CardSection>
+        </Reveal>
 
-        <CardSection title="Paid by">
+        <Reveal delay={0.08}>
+          <CardSection title="Paid by">
           <div className="space-y-3">
             {report.payerBreakdown.map((item) => (
               <div
@@ -154,9 +183,11 @@ export default async function ReportsPage({
               </div>
             ))}
           </div>
-        </CardSection>
+          </CardSection>
+        </Reveal>
 
-        <CardSection title="Budget progress">
+        <Reveal delay={0.12}>
+          <CardSection title="Budget progress">
           <div className="space-y-3">
             {report.budgetProgress.map((item) => (
               <div
@@ -189,9 +220,11 @@ export default async function ReportsPage({
               </div>
             ))}
           </div>
-        </CardSection>
+          </CardSection>
+        </Reveal>
 
-        <CardSection title="Recurring upcoming">
+        <Reveal delay={0.16}>
+          <CardSection title="Recurring upcoming">
           <div className="space-y-3">
             {report.recurringUpcoming.length === 0 ? (
               <p className="text-sm text-slate-500">No recurring items.</p>
@@ -216,10 +249,12 @@ export default async function ReportsPage({
               ))
             )}
           </div>
-        </CardSection>
+          </CardSection>
+        </Reveal>
       </section>
 
-      <CardSection title="Insights">
+      <Reveal delay={0.2}>
+        <CardSection title="Insights">
         <div className="space-y-3">
           {report.insights.length === 0 ? (
             <p className="text-sm text-slate-500">No insights.</p>
@@ -239,19 +274,20 @@ export default async function ReportsPage({
             ))
           )}
         </div>
-      </CardSection>
+        </CardSection>
+      </Reveal>
     </div>
   );
 }
 
 function SummaryCard({ label, value }: { label: string; value: string }) {
   return (
-    <article className="rounded-[1.5rem] border border-slate-900/8 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
+    <AppMetricSurface>
       <p className="text-sm text-slate-500">{label}</p>
       <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
         {value}
       </p>
-    </article>
+    </AppMetricSurface>
   );
 }
 
@@ -259,15 +295,15 @@ function CardSection({
   children,
   title,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   title: string;
 }) {
   return (
-    <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
+    <AppSurface padding="md">
       <div className="border-b border-slate-900/8 pb-4">
         <h2 className="text-lg font-semibold text-slate-950">{title}</h2>
       </div>
       <div className="mt-5">{children}</div>
-    </section>
+    </AppSurface>
   );
 }

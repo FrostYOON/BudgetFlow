@@ -1,5 +1,14 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { TypeDrivenCategoryFields } from "@/components/categories/type-driven-category-fields";
+import {
+  Reveal,
+  StaggerItem,
+  StaggerReveal,
+} from "@/components/motion/reveal";
+import { AppBadge } from "@/components/ui/app-badge";
+import { AppButton, AppButtonLink } from "@/components/ui/app-button";
+import { AppMetricSurface, AppSurface } from "@/components/ui/app-surface";
 import { getAppSession } from "@/lib/auth/session";
 import { fetchWorkspaceMembers, type WorkspaceMemberSummary } from "@/lib/settings";
 import {
@@ -55,43 +64,6 @@ function formatInputAmount(value: string) {
 
 function normalizeEditValue(value?: string) {
   return value && value.length > 0 ? value : null;
-}
-
-function CategorySelect({
-  categories,
-  defaultValue,
-  name,
-}: {
-  categories: TransactionCategory[];
-  defaultValue?: string | null;
-  name: string;
-}) {
-  const expenseCategories = categories.filter((item) => item.type === "EXPENSE");
-  const incomeCategories = categories.filter((item) => item.type === "INCOME");
-
-  return (
-    <select
-      name={name}
-      defaultValue={defaultValue ?? ""}
-      className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
-    >
-      <option value="">No category</option>
-      <optgroup label="Expense">
-        {expenseCategories.map((category) => (
-          <option key={category.id} value={category.id}>
-            {category.name}
-          </option>
-        ))}
-      </optgroup>
-      <optgroup label="Income">
-        {incomeCategories.map((category) => (
-          <option key={category.id} value={category.id}>
-            {category.name}
-          </option>
-        ))}
-      </optgroup>
-    </select>
-  );
 }
 
 function MemberSelect({
@@ -260,8 +232,9 @@ function ManualExecutionCard({ workspaceId }: { workspaceId: string }) {
     <form
       action="/app/recurring/rerun"
       method="post"
-      className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6"
+      className=""
     >
+      <AppSurface as="div" padding="md">
       <input type="hidden" name="workspaceId" value={workspaceId} />
 
       <div className="border-b border-slate-900/8 pb-4">
@@ -294,12 +267,13 @@ function ManualExecutionCard({ workspaceId }: { workspaceId: string }) {
         </label>
       </div>
 
-      <button
+      <AppButton
         type="submit"
-        className="mt-5 inline-flex w-full items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+        className="mt-5 w-full"
       >
         Run now
-      </button>
+      </AppButton>
+      </AppSurface>
     </form>
   );
 }
@@ -314,14 +288,14 @@ function ExecutionHistory({
   timeZone: string;
 }) {
   return (
-    <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
+    <AppSurface padding="md">
       <div className="flex items-center justify-between gap-4 border-b border-slate-900/8 pb-4">
         <h2 className="text-lg font-semibold text-slate-950">
           Execution history
         </h2>
-        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+        <AppBadge tone="subtle">
           {runs.length}
-        </span>
+        </AppBadge>
       </div>
 
       <div className="mt-5 space-y-3">
@@ -368,7 +342,7 @@ function ExecutionHistory({
           ))
         )}
       </div>
-    </section>
+    </AppSurface>
   );
 }
 
@@ -389,32 +363,27 @@ function QuickRuleForm({
     <form
       action="/app/recurring/create"
       method="post"
-      className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6"
+      className=""
     >
+      <AppSurface as="div" padding="md">
       <input type="hidden" name="workspaceId" value={workspaceId} />
       <div className="flex items-center justify-between gap-4">
         <div>
           <p className="text-sm font-semibold text-slate-950">Quick rule</p>
         </div>
-        <div className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
+        <AppBadge tone="success">
           {currency}
-        </div>
+        </AppBadge>
       </div>
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
         <input type="hidden" name="currency" value={currency} />
 
-        <label className="block">
-          <span className="text-sm font-medium text-slate-700">Type</span>
-          <select
-            name="type"
-            defaultValue="EXPENSE"
-            className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
-          >
-            <option value="EXPENSE">Expense</option>
-            <option value="INCOME">Income</option>
-          </select>
-        </label>
+        <TypeDrivenCategoryFields
+          categories={categories}
+          defaultType="EXPENSE"
+          selectClassName="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
+        />
 
         <label className="block">
           <span className="text-sm font-medium text-slate-700">Visibility</span>
@@ -453,11 +422,6 @@ function QuickRuleForm({
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <label className="block">
-          <span className="text-sm font-medium text-slate-700">Category</span>
-          <CategorySelect categories={categories} name="categoryId" />
-        </label>
-
-        <label className="block">
           <span className="text-sm font-medium text-slate-700">Paid by</span>
           <MemberSelect members={members} name="paidByUserId" />
         </label>
@@ -487,13 +451,11 @@ function QuickRuleForm({
       </label>
 
       <div className="mt-5 flex justify-end">
-        <button
-          type="submit"
-          className="rounded-full bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
-        >
+        <AppButton type="submit">
           Save rule
-        </button>
+        </AppButton>
       </div>
+      </AppSurface>
     </form>
   );
 }
@@ -515,8 +477,9 @@ function EditRuleForm({
     <form
       action="/app/recurring/update"
       method="post"
-      className="rounded-[1.75rem] border border-emerald-200 bg-emerald-50 px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.04)] sm:px-6"
+      className=""
     >
+      <AppSurface as="div" padding="md" tone="success">
       <input type="hidden" name="workspaceId" value={workspaceId} />
       <input type="hidden" name="recurringTransactionId" value={item.id} />
       <input type="hidden" name="currency" value={currency} />
@@ -526,26 +489,22 @@ function EditRuleForm({
           <p className="text-sm font-semibold text-slate-950">Edit rule</p>
           <p className="mt-1 text-sm text-slate-500">{formatRecurringRule(item)}</p>
         </div>
-        <Link
+        <AppButtonLink
           href="/app/recurring"
-          className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+          size="sm"
+          tone="secondary"
         >
           Cancel
-        </Link>
+        </AppButtonLink>
       </div>
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
-        <label className="block">
-          <span className="text-sm font-medium text-slate-700">Type</span>
-          <select
-            name="type"
-            defaultValue={item.type}
-            className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400"
-          >
-            <option value="EXPENSE">Expense</option>
-            <option value="INCOME">Income</option>
-          </select>
-        </label>
+        <TypeDrivenCategoryFields
+          categories={categories}
+          defaultCategoryId={item.categoryId}
+          defaultType={item.type}
+          selectClassName="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400"
+        />
 
         <label className="block">
           <span className="text-sm font-medium text-slate-700">Visibility</span>
@@ -583,15 +542,6 @@ function EditRuleForm({
       </div>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        <label className="block">
-          <span className="text-sm font-medium text-slate-700">Category</span>
-          <CategorySelect
-            categories={categories}
-            defaultValue={item.categoryId}
-            name="categoryId"
-          />
-        </label>
-
         <label className="block">
           <span className="text-sm font-medium text-slate-700">Paid by</span>
           <MemberSelect
@@ -646,20 +596,19 @@ function EditRuleForm({
       </div>
 
       <div className="mt-5 flex items-center justify-between gap-3">
-        <button
+        <AppButton
           type="submit"
           formAction="/app/recurring/deactivate"
-          className="rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-100"
+          tone="danger"
+          size="sm"
         >
           Pause rule
-        </button>
-        <button
-          type="submit"
-          className="rounded-full bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
-        >
+        </AppButton>
+        <AppButton type="submit">
           Update rule
-        </button>
+        </AppButton>
       </div>
+      </AppSurface>
     </form>
   );
 }
@@ -716,7 +665,8 @@ export default async function RecurringPage({
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
+      <Reveal delay={0.02}>
+        <AppSurface padding="md">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
@@ -734,26 +684,32 @@ export default async function RecurringPage({
             {ops.scheduler.enabled ? "Scheduler on" : "Scheduler off"}
           </div>
         </div>
-      </section>
+        </AppSurface>
+      </Reveal>
 
-      <QuickRuleForm
-        categories={categories}
-        currency={session.currentWorkspace.baseCurrency}
-        members={members}
-        workspaceId={session.currentWorkspace.id}
-      />
-
-      {editableItem ? (
-        <EditRuleForm
+      <Reveal delay={0.06}>
+        <QuickRuleForm
           categories={categories}
           currency={session.currentWorkspace.baseCurrency}
-          item={editableItem}
           members={members}
           workspaceId={session.currentWorkspace.id}
         />
+      </Reveal>
+
+      {editableItem ? (
+        <Reveal delay={0.1}>
+          <EditRuleForm
+            categories={categories}
+            currency={session.currentWorkspace.baseCurrency}
+            item={editableItem}
+            members={members}
+            workspaceId={session.currentWorkspace.id}
+          />
+        </Reveal>
       ) : null}
 
-      <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
+      <Reveal delay={0.14}>
+        <AppSurface padding="md">
         <div className="flex items-center justify-between gap-4 border-b border-slate-900/8 pb-4">
           <div>
             <h2 className="text-lg font-semibold text-slate-950">Rules</h2>
@@ -761,9 +717,9 @@ export default async function RecurringPage({
               Active and paused recurring entries.
             </p>
           </div>
-          <div className="rounded-full bg-slate-950 px-3 py-1 text-xs font-semibold text-white">
+          <AppBadge tone="default">
             {recurringItems.length}
-          </div>
+          </AppBadge>
         </div>
 
         <div className="mt-5 space-y-3">
@@ -807,7 +763,7 @@ export default async function RecurringPage({
                 <div className="mt-4 flex justify-end">
                   <Link
                     href={`/app/recurring?edit=${item.id}`}
-                    className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+                    className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950 active:scale-[0.98]"
                   >
                     Edit
                   </Link>
@@ -816,46 +772,60 @@ export default async function RecurringPage({
             ))
           )}
         </div>
-      </section>
+        </AppSurface>
+      </Reveal>
 
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <article className="rounded-[1.5rem] border border-slate-900/8 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
+      <StaggerReveal className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <StaggerItem>
+          <AppMetricSurface>
           <p className="text-sm text-slate-500">Next target</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
             {formatDateLabel(ops.scheduler.nextTargetDate, locale)}
           </p>
-        </article>
-        <article className="rounded-[1.5rem] border border-slate-900/8 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
+          </AppMetricSurface>
+        </StaggerItem>
+        <StaggerItem>
+          <AppMetricSurface>
           <p className="text-sm text-slate-500">Active rules</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
             {ops.recurringTransactions.activeCount}
           </p>
-        </article>
-        <article className="rounded-[1.5rem] border border-slate-900/8 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
+          </AppMetricSurface>
+        </StaggerItem>
+        <StaggerItem>
+          <AppMetricSurface>
           <p className="text-sm text-slate-500">7-day success</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
             {formatPercent(successRate)}
           </p>
-        </article>
-        <article className="rounded-[1.5rem] border border-slate-900/8 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
+          </AppMetricSurface>
+        </StaggerItem>
+        <StaggerItem>
+          <AppMetricSurface>
           <p className="text-sm text-slate-500">Failures</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
             {ops.last7Days.failedRuns}
           </p>
-        </article>
+          </AppMetricSurface>
+        </StaggerItem>
+      </StaggerReveal>
+
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <Reveal delay={0.18}>
+          <ExecutionHistory
+            locale={locale}
+            runs={executionRuns}
+            timeZone={ops.scheduler.workspaceTimezone}
+          />
+        </Reveal>
+        <Reveal delay={0.22}>
+          <ManualExecutionCard workspaceId={session.currentWorkspace.id} />
+        </Reveal>
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <ExecutionHistory
-          locale={locale}
-          runs={executionRuns}
-          timeZone={ops.scheduler.workspaceTimezone}
-        />
-        <ManualExecutionCard workspaceId={session.currentWorkspace.id} />
-      </section>
-
-      <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
+        <Reveal delay={0.24}>
+          <AppSurface padding="md">
           <div className="flex items-center justify-between gap-4 border-b border-slate-900/8 pb-4">
             <h2 className="text-lg font-semibold text-slate-950">Run snapshots</h2>
             <div className="text-sm text-slate-500">{ops.scheduler.workspaceTimezone}</div>
@@ -881,9 +851,11 @@ export default async function RecurringPage({
               title="Last failure"
             />
           </div>
-        </section>
+          </AppSurface>
+        </Reveal>
 
-        <aside className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
+        <Reveal delay={0.28}>
+          <AppSurface as="aside" padding="md">
           <div className="border-b border-slate-900/8 pb-4">
             <h2 className="text-lg font-semibold text-slate-950">Recent failures</h2>
           </div>
@@ -937,7 +909,8 @@ export default async function RecurringPage({
               ))
             )}
           </div>
-        </aside>
+          </AppSurface>
+        </Reveal>
       </section>
     </div>
   );

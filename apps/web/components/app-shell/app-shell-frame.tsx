@@ -1,6 +1,7 @@
-import Link from "next/link";
+import { AppButton, AppButtonLink } from "@/components/ui/app-button";
 import type { AppSession } from "@/lib/auth/session";
 import { AppBottomNav } from "@/components/app-shell/app-bottom-nav";
+import { PageTransitionShell } from "@/components/app-shell/page-transition-shell";
 import { AppSidebarNav } from "@/components/app-shell/app-sidebar-nav";
 import { WorkspaceSwitcher } from "@/components/app-shell/workspace-switcher";
 
@@ -25,12 +26,9 @@ export function AppShellFrame({ children, session }: AppShellFrameProps) {
             </div>
             <form action="/auth/sign-out" method="post">
               <input type="hidden" name="redirectTo" value="/sign-in" />
-              <button
-                type="submit"
-                className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-slate-950 hover:text-slate-950"
-              >
+              <AppButton type="submit" tone="secondary" size="sm">
                 Sign out
-              </button>
+              </AppButton>
             </form>
           </div>
 
@@ -73,12 +71,9 @@ export function AppShellFrame({ children, session }: AppShellFrameProps) {
 
               <form action="/auth/sign-out" method="post">
                 <input type="hidden" name="redirectTo" value="/sign-in" />
-                <button
-                  type="submit"
-                  className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-slate-950 hover:text-slate-950"
-                >
+                <AppButton type="submit" tone="secondary" size="sm">
                   Sign out
-                </button>
+                </AppButton>
               </form>
             </div>
 
@@ -102,25 +97,27 @@ export function AppShellFrame({ children, session }: AppShellFrameProps) {
                   ) : null}
                 </div>
                 <div className="flex gap-3 text-sm">
-                  <Link
+                  <AppButtonLink
                     href="/app/dashboard"
-                    className="rounded-full border border-slate-300 px-4 py-2 text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+                    tone="secondary"
+                    size="sm"
                   >
                     Dashboard
-                  </Link>
-                  <Link
+                  </AppButtonLink>
+                  <AppButtonLink
                     href="/app/settings"
-                    className="rounded-full bg-slate-950 px-4 py-2 font-medium text-white transition hover:bg-slate-800"
+                    tone="primary"
+                    size="sm"
                   >
                     Settings
-                  </Link>
+                  </AppButtonLink>
                 </div>
               </div>
             </div>
           </header>
 
           <main className="flex-1 px-4 py-6 sm:px-6 xl:px-10 xl:py-10">
-            {children}
+            <PageTransitionShell>{children}</PageTransitionShell>
           </main>
         </div>
       </div>
