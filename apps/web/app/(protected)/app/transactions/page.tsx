@@ -63,8 +63,13 @@ function getType(
 }
 
 function buildTransactionsHref(input: {
+  categoryId?: string;
+  maxAmount?: string;
+  minAmount?: string;
   year: number;
   month: number;
+  paidByUserId?: string;
+  query?: string;
   type: "INCOME" | "EXPENSE" | "ALL";
   visibility: "SHARED" | "PERSONAL" | "ALL";
 }) {
@@ -75,6 +80,26 @@ function buildTransactionsHref(input: {
     visibility: input.visibility,
   });
 
+  if (input.query) {
+    params.set("q", input.query);
+  }
+
+  if (input.categoryId) {
+    params.set("categoryId", input.categoryId);
+  }
+
+  if (input.paidByUserId) {
+    params.set("paidByUserId", input.paidByUserId);
+  }
+
+  if (input.minAmount) {
+    params.set("minAmount", input.minAmount);
+  }
+
+  if (input.maxAmount) {
+    params.set("maxAmount", input.maxAmount);
+  }
+
   return `/app/transactions?${params.toString()}`;
 }
 
@@ -82,9 +107,32 @@ function buildEditHref(baseHref: string, transactionId: string) {
   return `${baseHref}&edit=${transactionId}`;
 }
 
+function buildViewHref(baseHref: string, transactionId: string) {
+  return `${baseHref}&view=${transactionId}`;
+}
+
 function formatInputAmount(value: string) {
   const amount = Number(value);
   return Number.isFinite(amount) ? amount.toFixed(0) : "";
+}
+
+function normalizeQuery(value?: string) {
+  return value?.trim() ? value.trim() : "";
+}
+
+function normalizeFilterValue(value?: string) {
+  return value?.trim() ? value.trim() : "";
+}
+
+function parseAmountFilter(value?: string) {
+  const normalized = normalizeFilterValue(value);
+
+  if (!normalized) {
+    return null;
+  }
+
+  const amount = Number(normalized);
+  return Number.isFinite(amount) ? amount : null;
 }
 
 function getDefaultTransactionDate(
@@ -105,11 +153,13 @@ function getDefaultTransactionDate(
 
 function CategorySelect({
   categories,
+  emptyLabel = "No category",
   name,
   defaultValue,
   transactionType,
 }: {
   categories: TransactionCategory[];
+  emptyLabel?: string;
   name: string;
   defaultValue?: string | null;
   transactionType?: "INCOME" | "EXPENSE";
@@ -126,7 +176,7 @@ function CategorySelect({
       defaultValue={defaultValue ?? ""}
       className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
     >
-      <option value="">No category</option>
+      <option value="">{emptyLabel}</option>
       {transactionType ? (
         filteredCategories.map((category) => (
           <option key={category.id} value={category.id}>
@@ -156,10 +206,12 @@ function CategorySelect({
 }
 
 function MemberSelect({
+  emptyLabel = "Use current member",
   members,
   name,
   defaultValue,
 }: {
+  emptyLabel?: string;
   members: WorkspaceMemberSummary[];
   name: string;
   defaultValue?: string | null;
@@ -170,7 +222,7 @@ function MemberSelect({
       defaultValue={defaultValue ?? ""}
       className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
     >
-      <option value="">Use current member</option>
+      <option value="">{emptyLabel}</option>
       {members.map((member) => (
         <option key={member.userId} value={member.userId}>
           {member.nickname ?? member.name}
@@ -414,16 +466,120 @@ function EditTransactionCard({
   );
 }
 
+function TransactionDetailCard({
+  currency,
+  locale,
+  returnTo,
+  transaction,
+}: {
+  currency: string;
+  locale: string;
+  returnTo: string;
+  transaction: WorkspaceTransaction;
+}) {
+  return (
+    <AppSurface padding="md">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold text-slate-950">Transaction detail</p>
+          <p className="mt-1 text-sm text-slate-500">{transaction.transactionDate}</p>
+        </div>
+        <AppButtonLink href={returnTo} size="sm" tone="secondary">
+          Close
+        </AppButtonLink>
+      </div>
+
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <div className="rounded-[1.1rem] bg-slate-50 px-4 py-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+            Category
+          </p>
+          <p className="mt-2 text-sm font-semibold text-slate-950">
+            {transaction.categoryName ?? "Uncategorized"}
+          </p>
+        </div>
+        <div className="rounded-[1.1rem] bg-slate-50 px-4 py-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+            Amount
+          </p>
+          <p className="mt-2 text-sm font-semibold text-slate-950">
+            {formatCurrency(transaction.amount, currency, locale)}
+          </p>
+        </div>
+        <div className="rounded-[1.1rem] bg-slate-50 px-4 py-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+            Type
+          </p>
+          <p className="mt-2 text-sm font-semibold text-slate-950">
+            {transaction.type}
+          </p>
+        </div>
+        <div className="rounded-[1.1rem] bg-slate-50 px-4 py-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+            Visibility
+          </p>
+          <p className="mt-2 text-sm font-semibold text-slate-950">
+            {transaction.visibility}
+          </p>
+        </div>
+        <div className="rounded-[1.1rem] bg-slate-50 px-4 py-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+            Paid by
+          </p>
+          <p className="mt-2 text-sm font-semibold text-slate-950">
+            {transaction.paidByUserName ?? "Unknown"}
+          </p>
+        </div>
+        <div className="rounded-[1.1rem] bg-slate-50 px-4 py-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+            Currency
+          </p>
+          <p className="mt-2 text-sm font-semibold text-slate-950">
+            {transaction.currency}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-[1.1rem] bg-slate-50 px-4 py-4">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+          Memo
+        </p>
+        <p className="mt-2 text-sm text-slate-700">
+          {transaction.memo ?? "No note"}
+        </p>
+      </div>
+
+      <div className="mt-5 flex gap-3">
+        <AppButtonLink
+          href={buildEditHref(returnTo, transaction.id)}
+          className="flex-1"
+        >
+          Edit
+        </AppButtonLink>
+        <AppButtonLink href={returnTo} tone="secondary" className="flex-1">
+          Back
+        </AppButtonLink>
+      </div>
+    </AppSurface>
+  );
+}
+
 export default async function TransactionsPage({
   searchParams,
 }: {
   searchParams: Promise<{
+    categoryId?: string;
     deleted?: string;
+    edit?: string;
+    maxAmount?: string;
     year?: string;
     month?: string;
+    minAmount?: string;
+    paidByUserId?: string;
+    q?: string;
     type?: string;
     visibility?: string;
-    edit?: string;
+    view?: string;
   }>;
 }) {
   const session = await getAppSession();
@@ -442,6 +598,13 @@ export default async function TransactionsPage({
   const requestedPeriod = getPeriod(params);
   const type = getType(params.type);
   const visibility = getVisibility(params.visibility);
+  const query = normalizeQuery(params.q);
+  const categoryId = normalizeFilterValue(params.categoryId);
+  const paidByUserId = normalizeFilterValue(params.paidByUserId);
+  const rawMinAmount = normalizeFilterValue(params.minAmount);
+  const rawMaxAmount = normalizeFilterValue(params.maxAmount);
+  const minAmount = parseAmountFilter(params.minAmount);
+  const maxAmount = parseAmountFilter(params.maxAmount);
   const monthRange = getMonthRange(
     requestedPeriod.year,
     requestedPeriod.month,
@@ -470,13 +633,61 @@ export default async function TransactionsPage({
   const prev = getPreviousMonth(requestedPeriod.year, requestedPeriod.month);
   const next = getNextMonth(requestedPeriod.year, requestedPeriod.month);
   const baseHref = buildTransactionsHref({
+    categoryId,
+    maxAmount: rawMaxAmount,
     year: requestedPeriod.year,
+    minAmount: rawMinAmount,
     month: requestedPeriod.month,
+    paidByUserId,
+    query,
     type,
     visibility,
   });
+  const filteredTransactions = transactions.items.filter((item) => {
+    if (categoryId && item.categoryId !== categoryId) {
+      return false;
+    }
+
+    if (paidByUserId && item.paidByUserId !== paidByUserId) {
+      return false;
+    }
+
+    const amount = Number(item.amount);
+    if (minAmount !== null && amount < minAmount) {
+      return false;
+    }
+
+    if (maxAmount !== null && amount > maxAmount) {
+      return false;
+    }
+
+    if (query) {
+      const haystack = [
+        item.categoryName,
+        item.memo,
+        item.paidByUserName,
+        item.type,
+        item.visibility,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      if (!haystack.includes(query.toLowerCase())) {
+        return false;
+      }
+    }
+
+    return true;
+  });
   const editableTransaction =
-    transactions.items.find((item) => item.id === params.edit) ?? null;
+    filteredTransactions.find((item) => item.id === params.edit) ??
+    transactions.items.find((item) => item.id === params.edit) ??
+    null;
+  const viewedTransaction =
+    filteredTransactions.find((item) => item.id === params.view) ??
+    transactions.items.find((item) => item.id === params.view) ??
+    null;
   const defaultCreateDate = getDefaultTransactionDate(
     requestedPeriod,
     monthRange,
@@ -488,7 +699,7 @@ export default async function TransactionsPage({
       : null;
 
   const grouped = Object.entries(
-    transactions.items.reduce<Record<string, typeof transactions.items>>(
+    filteredTransactions.reduce<Record<string, typeof filteredTransactions>>(
       (acc, item) => {
         acc[item.transactionDate] = acc[item.transactionDate]
           ? [...acc[item.transactionDate], item]
@@ -499,7 +710,7 @@ export default async function TransactionsPage({
     ),
   );
 
-  const totals = transactions.items.reduce(
+  const totals = filteredTransactions.reduce(
     (acc, item) => {
       const amount = Number(item.amount);
       if (item.type === "INCOME") {
@@ -535,7 +746,7 @@ export default async function TransactionsPage({
             </p>
           </div>
           <AppBadge tone="default" className="px-4 py-2 text-sm font-semibold">
-            {transactions.items.length} entries
+            {filteredTransactions.length} entries
           </AppBadge>
         </div>
 
@@ -544,6 +755,11 @@ export default async function TransactionsPage({
             href={buildTransactionsHref({
               year: prev.year,
               month: prev.month,
+              query,
+              categoryId,
+              paidByUserId,
+              minAmount: rawMinAmount,
+              maxAmount: rawMaxAmount,
               type,
               visibility,
             })}
@@ -556,6 +772,11 @@ export default async function TransactionsPage({
             href={buildTransactionsHref({
               year: next.year,
               month: next.month,
+              query,
+              categoryId,
+              paidByUserId,
+              minAmount: rawMinAmount,
+              maxAmount: rawMaxAmount,
               type,
               visibility,
             })}
@@ -589,6 +810,17 @@ export default async function TransactionsPage({
             returnTo={baseHref}
             transaction={editableTransaction}
             workspaceId={currentWorkspace.id}
+          />
+        </Reveal>
+      ) : null}
+
+      {viewedTransaction && !editableTransaction ? (
+        <Reveal delay={0.11}>
+          <TransactionDetailCard
+            currency={currentWorkspace.baseCurrency}
+            locale={locale}
+            returnTo={baseHref}
+            transaction={viewedTransaction}
           />
         </Reveal>
       ) : null}
@@ -674,7 +906,91 @@ export default async function TransactionsPage({
       </StaggerReveal>
 
       <Reveal delay={0.16}>
-        <section className="space-y-3">
+        <section className="space-y-4">
+        <form method="get">
+        <AppSurface as="div" padding="md" className="space-y-4">
+          <input type="hidden" name="year" value={requestedPeriod.year} />
+          <input type="hidden" name="month" value={requestedPeriod.month} />
+          <input type="hidden" name="type" value={type} />
+          <input type="hidden" name="visibility" value={visibility} />
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block sm:col-span-2">
+              <span className="text-sm font-medium text-slate-700">Search</span>
+              <input
+                name="q"
+                type="text"
+                defaultValue={query}
+                placeholder="Category, memo, payer"
+                className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
+              />
+            </label>
+
+            <label className="block">
+              <span className="text-sm font-medium text-slate-700">Category</span>
+              <CategorySelect
+                categories={categories}
+                name="categoryId"
+                defaultValue={categoryId}
+                emptyLabel="All categories"
+              />
+            </label>
+
+            <label className="block">
+              <span className="text-sm font-medium text-slate-700">Paid by</span>
+              <MemberSelect
+                members={members}
+                name="paidByUserId"
+                defaultValue={paidByUserId}
+                emptyLabel="All members"
+              />
+            </label>
+
+            <label className="block">
+              <span className="text-sm font-medium text-slate-700">Min amount</span>
+              <input
+                name="minAmount"
+                type="number"
+                min="0"
+                step="0.01"
+                defaultValue={rawMinAmount}
+                className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
+              />
+            </label>
+
+            <label className="block">
+              <span className="text-sm font-medium text-slate-700">Max amount</span>
+              <input
+                name="maxAmount"
+                type="number"
+                min="0"
+                step="0.01"
+                defaultValue={rawMaxAmount}
+                className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
+              />
+            </label>
+          </div>
+
+          <div className="flex gap-3">
+            <AppButton type="submit" className="flex-1">
+              Apply filters
+            </AppButton>
+            <AppButtonLink
+              href={buildTransactionsHref({
+                year: requestedPeriod.year,
+                month: requestedPeriod.month,
+                type,
+                visibility,
+              })}
+              tone="secondary"
+              className="flex-1"
+            >
+              Reset
+            </AppButtonLink>
+          </div>
+        </AppSurface>
+        </form>
+
         <div className="flex gap-2 overflow-x-auto pb-1">
           {[
             { label: "All", value: "ALL" },
@@ -689,6 +1005,11 @@ export default async function TransactionsPage({
                 href={buildTransactionsHref({
                   year: requestedPeriod.year,
                   month: requestedPeriod.month,
+                  query,
+                  categoryId,
+                  paidByUserId,
+                  minAmount: rawMinAmount,
+                  maxAmount: rawMaxAmount,
                   type: item.value as "INCOME" | "EXPENSE" | "ALL",
                   visibility,
                 })}
@@ -718,6 +1039,11 @@ export default async function TransactionsPage({
                 href={buildTransactionsHref({
                   year: requestedPeriod.year,
                   month: requestedPeriod.month,
+                  query,
+                  categoryId,
+                  paidByUserId,
+                  minAmount: rawMinAmount,
+                  maxAmount: rawMaxAmount,
                   type,
                   visibility: item.value as "SHARED" | "PERSONAL" | "ALL",
                 })}
@@ -807,6 +1133,13 @@ export default async function TransactionsPage({
                             Delete
                           </button>
                         </form>
+                        <AppButtonLink
+                          href={buildViewHref(baseHref, transaction.id)}
+                          tone="secondary"
+                          size="sm"
+                        >
+                          View
+                        </AppButtonLink>
                         <Link
                           href={buildEditHref(baseHref, transaction.id)}
                           className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950 active:scale-[0.98]"
