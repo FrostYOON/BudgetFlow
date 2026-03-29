@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  AnimatePresence,
+  LazyMotion,
+  domAnimation,
+  m,
+} from "framer-motion";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -254,7 +260,8 @@ export function DashboardTransactionCalendar({
   const selectedNet = selectedSummary.income - selectedSummary.expense;
 
   return (
-    <section className="overflow-hidden rounded-[2rem] border border-slate-900/8 bg-[linear-gradient(180deg,#fffdf8_0%,#ffffff_34%,#f8fafc_100%)] px-4 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
+    <LazyMotion features={domAnimation}>
+      <section className="overflow-hidden rounded-[2rem] border border-slate-900/8 bg-[linear-gradient(180deg,#fffdf8_0%,#ffffff_34%,#f8fafc_100%)] px-4 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
       <div className="flex flex-col gap-4 border-b border-slate-900/8 pb-5">
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -293,8 +300,21 @@ export function DashboardTransactionCalendar({
         ))}
       </div>
 
-      <div className="mt-3 grid grid-cols-7 gap-2">
-        {calendarDays.map((day) => {
+      <AnimatePresence mode="wait" initial={false}>
+        <m.div
+          key={`${year}-${month}`}
+          initial={{ opacity: 0, x: 20, filter: "blur(6px)" }}
+          animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+          exit={{ opacity: 0, x: -14, filter: "blur(4px)" }}
+          transition={{
+            type: "spring",
+            stiffness: 180,
+            damping: 24,
+            mass: 0.9,
+          }}
+          className="mt-3 grid grid-cols-7 gap-2"
+        >
+          {calendarDays.map((day) => {
           const summary = daySummaries.get(day.dateKey);
           const isSelected = selectedDate === day.dateKey;
           const holiday = holidayMap.get(day.dateKey) ?? null;
@@ -322,10 +342,12 @@ export function DashboardTransactionCalendar({
           }
 
           return (
-            <button
+            <m.button
               key={day.dateKey}
               type="button"
               onClick={() => setSelectedDate(day.dateKey)}
+              whileTap={{ scale: 0.975 }}
+              transition={{ type: "spring", stiffness: 520, damping: 32 }}
               className={className}
             >
               <div className="flex items-start justify-between gap-2">
@@ -402,119 +424,132 @@ export function DashboardTransactionCalendar({
                   />
                 </div>
               )}
-            </button>
+            </m.button>
           );
-        })}
-      </div>
+          })}
+        </m.div>
+      </AnimatePresence>
 
-      <div
-        key={selectedDate}
-        className="mt-5 rounded-[1.6rem] border border-slate-900/8 bg-white/90 px-4 py-4 shadow-[0_12px_32px_rgba(15,23,42,0.06)] motion-safe:animate-page-enter"
-      >
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h3 className="text-base font-semibold text-slate-950">
-              {formattedSelectedDate}
-            </h3>
-            <div className="mt-2 flex flex-wrap gap-2 text-[11px] font-semibold">
-              <span className="rounded-full bg-slate-100 px-2.5 py-1 text-slate-700">
-                {selectedSummary.count} items
-              </span>
-              {selectedHoliday ? (
-                <span className="rounded-full bg-amber-100 px-2.5 py-1 text-amber-800">
-                  {selectedHoliday.name}
+      <AnimatePresence mode="wait" initial={false}>
+        <m.div
+          key={selectedDate}
+          initial={{ opacity: 0, y: 14, scale: 0.985, filter: "blur(6px)" }}
+          animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+          exit={{ opacity: 0, y: -10, scale: 0.99, filter: "blur(4px)" }}
+          transition={{
+            type: "spring",
+            stiffness: 210,
+            damping: 24,
+            mass: 0.92,
+          }}
+          className="mt-5 rounded-[1.6rem] border border-slate-900/8 bg-white/90 px-4 py-4 shadow-[0_12px_32px_rgba(15,23,42,0.06)]"
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-base font-semibold text-slate-950">
+                {formattedSelectedDate}
+              </h3>
+              <div className="mt-2 flex flex-wrap gap-2 text-[11px] font-semibold">
+                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-slate-700">
+                  {selectedSummary.count} items
                 </span>
-              ) : null}
-              {holidayContext.timeZone ? (
-                <span className="rounded-full bg-sky-100 px-2.5 py-1 text-sky-800">
-                  {holidayContext.timeZone}
+                {selectedHoliday ? (
+                  <span className="rounded-full bg-amber-100 px-2.5 py-1 text-amber-800">
+                    {selectedHoliday.name}
+                  </span>
+                ) : null}
+                {holidayContext.timeZone ? (
+                  <span className="rounded-full bg-sky-100 px-2.5 py-1 text-sky-800">
+                    {holidayContext.timeZone}
+                  </span>
+                ) : null}
+                <span
+                  className={`rounded-full px-2.5 py-1 ${
+                    selectedNet >= 0
+                      ? "bg-emerald-100 text-emerald-700"
+                      : "bg-rose-100 text-rose-700"
+                  }`}
+                >
+                  Net {selectedNet >= 0 ? "+" : "-"}
+                  {formatMiniAmount(Math.abs(selectedNet), locale) ?? "0"}
                 </span>
-              ) : null}
-              <span
-                className={`rounded-full px-2.5 py-1 ${
-                  selectedNet >= 0
-                    ? "bg-emerald-100 text-emerald-700"
-                    : "bg-rose-100 text-rose-700"
-                }`}
-              >
-                Net {selectedNet >= 0 ? "+" : "-"}
-                {formatMiniAmount(Math.abs(selectedNet), locale) ?? "0"}
-              </span>
+              </div>
+            </div>
+
+            <Link
+              href={`/app/transactions?year=${year}&month=${month}&type=ALL&visibility=ALL`}
+              className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+            >
+              Open ledger
+            </Link>
+          </div>
+
+          <div className="mt-4 grid gap-2 sm:grid-cols-3">
+            <div className="rounded-[1.1rem] bg-slate-50 px-3 py-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                Expense
+              </p>
+              <p className="mt-2 text-sm font-semibold text-slate-950">
+                {formatCurrency(selectedSummary.expense, currency, locale)}
+              </p>
+            </div>
+            <div className="rounded-[1.1rem] bg-slate-50 px-3 py-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                Income
+              </p>
+              <p className="mt-2 text-sm font-semibold text-slate-950">
+                {formatCurrency(selectedSummary.income, currency, locale)}
+              </p>
+            </div>
+            <div className="rounded-[1.1rem] bg-slate-50 px-3 py-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                Activity
+              </p>
+              <p className="mt-2 text-sm font-semibold text-slate-950">
+                {selectedSummary.count} transaction
+                {selectedSummary.count === 1 ? "" : "s"}
+              </p>
             </div>
           </div>
 
-          <Link
-            href={`/app/transactions?year=${year}&month=${month}&type=ALL&visibility=ALL`}
-            className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
-          >
-            Open ledger
-          </Link>
-        </div>
-
-        <div className="mt-4 grid gap-2 sm:grid-cols-3">
-          <div className="rounded-[1.1rem] bg-slate-50 px-3 py-3">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-              Expense
-            </p>
-            <p className="mt-2 text-sm font-semibold text-slate-950">
-              {formatCurrency(selectedSummary.expense, currency, locale)}
-            </p>
-          </div>
-          <div className="rounded-[1.1rem] bg-slate-50 px-3 py-3">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-              Income
-            </p>
-            <p className="mt-2 text-sm font-semibold text-slate-950">
-              {formatCurrency(selectedSummary.income, currency, locale)}
-            </p>
-          </div>
-          <div className="rounded-[1.1rem] bg-slate-50 px-3 py-3">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-              Activity
-            </p>
-            <p className="mt-2 text-sm font-semibold text-slate-950">
-              {selectedSummary.count} transaction
-              {selectedSummary.count === 1 ? "" : "s"}
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-4 space-y-3">
-          {selectedSummary.transactions.length === 0 ? (
-            <p className="text-sm text-slate-500">No transactions on this date.</p>
-          ) : (
-            selectedSummary.transactions.map((transaction) => (
-              <article
-                key={transaction.id}
-                className="rounded-[1.2rem] border border-slate-900/8 bg-slate-50 px-4 py-3"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="truncate font-semibold text-slate-950">
-                      {transaction.categoryName ?? "Uncategorized"}
-                    </p>
-                    <p className="mt-1 truncate text-sm text-slate-500">
-                      {transaction.memo ?? transaction.paidByUserName ?? "No note"}
+          <div className="mt-4 space-y-3">
+            {selectedSummary.transactions.length === 0 ? (
+              <p className="text-sm text-slate-500">No transactions on this date.</p>
+            ) : (
+              selectedSummary.transactions.map((transaction) => (
+                <article
+                  key={transaction.id}
+                  className="rounded-[1.2rem] border border-slate-900/8 bg-slate-50 px-4 py-3"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold text-slate-950">
+                        {transaction.categoryName ?? "Uncategorized"}
+                      </p>
+                      <p className="mt-1 truncate text-sm text-slate-500">
+                        {transaction.memo ?? transaction.paidByUserName ?? "No note"}
+                      </p>
+                    </div>
+                    <p className="shrink-0 text-sm font-semibold text-slate-950">
+                      {formatCurrency(transaction.amount, currency, locale)}
                     </p>
                   </div>
-                  <p className="shrink-0 text-sm font-semibold text-slate-950">
-                    {formatCurrency(transaction.amount, currency, locale)}
-                  </p>
-                </div>
 
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700">
-                    {transaction.type}
-                  </span>
-                  <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700">
-                    {transaction.visibility}
-                  </span>
-                </div>
-              </article>
-            ))
-          )}
-        </div>
-      </div>
-    </section>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700">
+                      {transaction.type}
+                    </span>
+                    <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700">
+                      {transaction.visibility}
+                    </span>
+                  </div>
+                </article>
+              ))
+            )}
+          </div>
+        </m.div>
+      </AnimatePresence>
+      </section>
+    </LazyMotion>
   );
 }
