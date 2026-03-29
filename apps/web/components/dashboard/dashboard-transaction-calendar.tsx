@@ -188,6 +188,34 @@ function getDayTone(weekday: number) {
   };
 }
 
+function getDayNumberClassName({
+  holiday,
+  inCurrentMonth,
+  isSelected,
+  weekday,
+}: {
+  holiday: HolidayInfo | null;
+  inCurrentMonth: boolean;
+  isSelected: boolean;
+  weekday: number;
+}) {
+  if (isSelected) {
+    return "text-white";
+  }
+
+  const isHolidayOrSunday = Boolean(holiday) || weekday === 0;
+
+  if (isHolidayOrSunday) {
+    return inCurrentMonth ? "text-rose-600" : "text-rose-300";
+  }
+
+  if (weekday === 6) {
+    return inCurrentMonth ? "text-sky-600" : "text-sky-300";
+  }
+
+  return inCurrentMonth ? "text-slate-950" : "text-slate-300";
+}
+
 export function DashboardTransactionCalendar({
   currency,
   locale,
@@ -277,19 +305,6 @@ export function DashboardTransactionCalendar({
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2 text-[11px] font-semibold">
-          <span className="rounded-full bg-rose-50 px-2.5 py-1 text-rose-600">
-            Sundays
-          </span>
-          <span className="rounded-full bg-sky-50 px-2.5 py-1 text-sky-600">
-            Saturdays
-          </span>
-          {holidayContext.label ? (
-            <span className="rounded-full bg-amber-50 px-2.5 py-1 text-amber-700">
-              {holidayContext.label}
-            </span>
-          ) : null}
-        </div>
       </div>
 
       <div className="mt-5 grid grid-cols-7 gap-2 text-center text-[11px] font-semibold uppercase tracking-[0.18em]">
@@ -321,6 +336,12 @@ export function DashboardTransactionCalendar({
           const incomeLabel = formatMiniAmount(summary?.income ?? 0, locale);
           const expenseLabel = formatMiniAmount(summary?.expense ?? 0, locale);
           const tone = getDayTone(day.weekday);
+          const dayNumberClassName = getDayNumberClassName({
+            holiday,
+            inCurrentMonth: day.inCurrentMonth,
+            isSelected,
+            weekday: day.weekday,
+          });
 
           let className =
             "min-h-[106px] rounded-[1.35rem] border px-2.5 py-2.5 text-left transition sm:min-h-[116px]";
@@ -352,7 +373,9 @@ export function DashboardTransactionCalendar({
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-sm font-semibold">{day.dayNumber}</span>
+                  <span className={`text-sm font-semibold ${dayNumberClassName}`}>
+                    {day.dayNumber}
+                  </span>
                   {day.isToday ? (
                     <span
                       className={`h-1.5 w-1.5 rounded-full ${
@@ -378,15 +401,13 @@ export function DashboardTransactionCalendar({
               <div className="mt-2 min-h-[22px]">
                 {holiday ? (
                   <span
-                    className={`inline-flex max-w-full truncate rounded-full px-2 py-1 text-[10px] font-semibold ${
+                    className={`inline-flex h-2.5 w-2.5 rounded-full ${
                       isSelected
-                        ? "bg-amber-300/20 text-amber-100"
-                        : "bg-amber-100 text-amber-800"
+                        ? "bg-amber-300"
+                        : "bg-amber-400"
                     }`}
                     title={holiday.name}
-                  >
-                    {holiday.shortName}
-                  </span>
+                  />
                 ) : null}
               </div>
 
