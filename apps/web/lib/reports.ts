@@ -54,6 +54,28 @@ function getApiBaseUrl() {
   return process.env.BUDGETFLOW_API_URL ?? "http://localhost:3000/api/v1";
 }
 
+function clampMonth(value: number) {
+  return Math.min(Math.max(value, 1), 12);
+}
+
+export function getMonthlyReportPeriod(params?: {
+  year?: string;
+  month?: string;
+}) {
+  const now = new Date();
+  const year = Number(params?.year ?? now.getFullYear());
+  const month = clampMonth(Number(params?.month ?? now.getMonth() + 1));
+
+  return {
+    year: Number.isFinite(year) ? year : now.getFullYear(),
+    month: Number.isFinite(month) ? month : now.getMonth() + 1,
+  };
+}
+
+export function buildMonthlyReportPrintHref(year: number, month: number) {
+  return `/app/reports/print?year=${year}&month=${month}`;
+}
+
 export async function fetchMonthlyReport(input: {
   accessToken: string;
   workspaceId: string;
