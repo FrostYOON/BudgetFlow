@@ -453,6 +453,12 @@ export default async function SettingsPage() {
                 >
                   Save household settings
                 </button>
+                <Link
+                  href="/app/settings/categories"
+                  className="inline-flex w-full items-center justify-center rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+                >
+                  Manage categories
+                </Link>
               </form>
             ) : (
               <div className="mt-5 space-y-4">
