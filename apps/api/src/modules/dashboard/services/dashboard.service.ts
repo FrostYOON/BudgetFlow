@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import {
   Prisma,
-  TransactionType,
+  ShareType,
   TransactionVisibility,
+  TransactionType,
 } from '@budgetflow/database';
 import { getMonthRange } from '../../../common/utils/month-range.util';
 import { PrismaService } from '../../../core/database/prisma.service';
@@ -44,6 +45,8 @@ export class DashboardService {
       topCategoryRows,
       recentTransactions,
       insights,
+      members,
+      sharedTransactions,
     ] = await Promise.all([
       this.aggregateTransactionAmount(workspaceId, start, endExclusive, {
         type: TransactionType.INCOME,
@@ -112,6 +115,23 @@ export class DashboardService {
         take: 5,
       }),
       this.insightsService.listMonthlyInsights(workspaceId, year, month),
+      this.listActiveMembers(workspaceId),
+      this.prisma.transaction.findMany({
+        where: {
+          workspaceId,
+          isDeleted: false,
+          type: TransactionType.EXPENSE,
+          visibility: TransactionVisibility.SHARED,
+          transactionDate: {
+            gte: start,
+            lt: endExclusive,
+          },
+        },
+        include: {
+          paidBy: true,
+          participants: true,
+        },
+      }),
     ]);
 
     const topCategoryIds = topCategoryRows
@@ -153,6 +173,14 @@ export class DashboardService {
       new Prisma.Decimal(0),
     );
 
+    const settlement = this.buildSettlementSummary({
+      members: members.map((member) => ({
+        userId: member.userId,
+        name: member.nickname ?? member.user.name,
+      })),
+      transactions: sharedTransactions,
+    });
+
     return {
       period: {
         year,
@@ -184,6 +212,7 @@ export class DashboardService {
         paidByName: transaction.paidBy?.name ?? null,
       })),
       insights,
+      settlement,
     };
   }
 
@@ -213,5 +242,201 @@ export class DashboardService {
     });
 
     return aggregate._sum.amount ?? new Prisma.Decimal(0);
+  }
+
+  private async listActiveMembers(workspaceId: string) {
+    if (typeof this.prisma.workspaceMember?.findMany !== 'function') {
+      return [];
+    }
+
+    return this.prisma.workspaceMember.findMany({
+      where: {
+        workspaceId,
+        status: 'ACTIVE',
+      },
+      include: {
+        user: true,
+      },
+      orderBy: [{ joinedAt: 'asc' }, { createdAt: 'asc' }],
+    });
+  }
+
+  private buildSettlementSummary(input: {
+    members: {
+      userId: string;
+      name: string;
+    }[];
+    transactions: {
+      amount: Prisma.Decimal;
+      paidByUserId: string | null;
+      participants: {
+        userId: string;
+        shareType: ShareType;
+        shareValue: Prisma.Decimal | null;
+      }[];
+    }[];
+  }) {
+    const balances = new Map(
+      input.members.map((member) => [member.userId, new Prisma.Decimal(0)]),
+    );
+    const memberNameMap = new Map(
+      input.members.map((member) => [member.userId, member.name]),
+    );
+
+    for (const transaction of input.transactions) {
+      if (
+        !transaction.paidByUserId ||
+        !balances.has(transaction.paidByUserId)
+      ) {
+        continue;
+      }
+
+      balances.set(
+        transaction.paidByUserId,
+        balances.get(transaction.paidByUserId)!.add(transaction.amount),
+      );
+
+      const shares =
+        transaction.participants.length > 0
+          ? this.resolveStoredParticipantShares(
+              transaction.amount,
+              transaction.participants,
+            )
+          : this.resolveEqualShares(
+              transaction.amount,
+              input.members.map((member) => member.userId),
+            );
+
+      for (const share of shares) {
+        if (!balances.has(share.userId)) {
+          continue;
+        }
+
+        balances.set(
+          share.userId,
+          balances.get(share.userId)!.sub(share.amount),
+        );
+      }
+    }
+
+    const balanceRows = input.members.map((member) => ({
+      userId: member.userId,
+      name: member.name,
+      netAmount: balances.get(member.userId)?.toFixed(2) ?? '0.00',
+    }));
+
+    const creditors = balanceRows
+      .map((item) => ({
+        ...item,
+        amount: new Prisma.Decimal(item.netAmount),
+      }))
+      .filter((item) => item.amount.gt(0))
+      .sort((left, right) => right.amount.comparedTo(left.amount));
+    const debtors = balanceRows
+      .map((item) => ({
+        ...item,
+        amount: new Prisma.Decimal(item.netAmount).abs(),
+      }))
+      .filter((item) => new Prisma.Decimal(item.netAmount).lt(0))
+      .sort((left, right) => right.amount.comparedTo(left.amount));
+
+    const suggestedTransfers: {
+      fromUserId: string;
+      fromName: string;
+      toUserId: string;
+      toName: string;
+      amount: string;
+    }[] = [];
+
+    let creditorIndex = 0;
+    let debtorIndex = 0;
+
+    while (creditorIndex < creditors.length && debtorIndex < debtors.length) {
+      const creditor = creditors[creditorIndex];
+      const debtor = debtors[debtorIndex];
+      const transferAmount = Prisma.Decimal.min(creditor.amount, debtor.amount);
+
+      if (transferAmount.gt(0)) {
+        suggestedTransfers.push({
+          fromUserId: debtor.userId,
+          fromName: memberNameMap.get(debtor.userId) ?? debtor.name,
+          toUserId: creditor.userId,
+          toName: memberNameMap.get(creditor.userId) ?? creditor.name,
+          amount: transferAmount.toFixed(2),
+        });
+      }
+
+      creditor.amount = creditor.amount.sub(transferAmount);
+      debtor.amount = debtor.amount.sub(transferAmount);
+
+      if (!creditor.amount.gt(0)) {
+        creditorIndex += 1;
+      }
+
+      if (!debtor.amount.gt(0)) {
+        debtorIndex += 1;
+      }
+    }
+
+    return {
+      totalSharedExpense: input.transactions
+        .reduce(
+          (sum, transaction) => sum.add(transaction.amount),
+          new Prisma.Decimal(0),
+        )
+        .toFixed(2),
+      balances: balanceRows,
+      suggestedTransfers,
+    };
+  }
+
+  private resolveStoredParticipantShares(
+    amount: Prisma.Decimal,
+    participants: {
+      userId: string;
+      shareType: ShareType;
+      shareValue: Prisma.Decimal | null;
+    }[],
+  ) {
+    const shareType = participants[0]?.shareType ?? ShareType.EQUAL;
+
+    if (shareType === ShareType.EQUAL) {
+      return this.resolveEqualShares(
+        amount,
+        participants.map((participant) => participant.userId),
+      );
+    }
+
+    if (shareType === ShareType.PERCENTAGE) {
+      return participants.map((participant) => ({
+        userId: participant.userId,
+        amount: amount.mul(participant.shareValue ?? 0).div(100),
+      }));
+    }
+
+    return participants.map((participant) => ({
+      userId: participant.userId,
+      amount: participant.shareValue ?? new Prisma.Decimal(0),
+    }));
+  }
+
+  private resolveEqualShares(amount: Prisma.Decimal, userIds: string[]) {
+    if (userIds.length === 0) {
+      return [];
+    }
+
+    const totalCents = amount.mul(100);
+    const baseShare = totalCents.divToInt(userIds.length);
+    let remainder = totalCents.sub(baseShare.mul(userIds.length)).toNumber();
+
+    return userIds.map((userId) => {
+      const cents = baseShare.add(remainder > 0 ? 1 : 0);
+      remainder = Math.max(remainder - 1, 0);
+
+      return {
+        userId,
+        amount: cents.div(100),
+      };
+    });
   }
 }

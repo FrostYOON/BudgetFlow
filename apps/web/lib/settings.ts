@@ -33,6 +33,17 @@ export interface WorkspaceSettingsInput {
   timezone: string;
 }
 
+export interface AuthSessionSummary {
+  id: string;
+  userAgent: string | null;
+  ipAddress: string | null;
+  expiresAt: string;
+  lastUsedAt: string | null;
+  revokedAt: string | null;
+  createdAt: string;
+  isCurrent: boolean;
+}
+
 function getApiBaseUrl() {
   return process.env.BUDGETFLOW_API_URL ?? "http://localhost:3000/api/v1";
 }
@@ -102,6 +113,92 @@ export async function updateCurrentUser(input: {
   if (!response.ok) {
     throw new Error(
       await readErrorMessage(response, "Failed to update account settings."),
+    );
+  }
+
+  return response.json();
+}
+
+export async function changePassword(input: {
+  accessToken: string;
+  currentPassword: string;
+  nextPassword: string;
+}) {
+  const response = await fetch(`${getApiBaseUrl()}/auth/change-password`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${input.accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      currentPassword: input.currentPassword,
+      nextPassword: input.nextPassword,
+    }),
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(response, "Failed to change password."),
+    );
+  }
+
+  return response.json();
+}
+
+export async function fetchAuthSessions(input: { accessToken: string }) {
+  const response = await fetch(`${getApiBaseUrl()}/auth/sessions`, {
+    headers: {
+      Authorization: `Bearer ${input.accessToken}`,
+    },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(response, "Failed to load sessions."),
+    );
+  }
+
+  return (await response.json()) as AuthSessionSummary[];
+}
+
+export async function revokeAuthSession(input: {
+  accessToken: string;
+  sessionId: string;
+}) {
+  const response = await fetch(
+    `${getApiBaseUrl()}/auth/sessions/${input.sessionId}/revoke`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${input.accessToken}`,
+      },
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(response, "Failed to revoke session."),
+    );
+  }
+
+  return response.json();
+}
+
+export async function revokeOtherAuthSessions(input: { accessToken: string }) {
+  const response = await fetch(`${getApiBaseUrl()}/auth/sessions/revoke-others`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${input.accessToken}`,
+    },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(response, "Failed to revoke other sessions."),
     );
   }
 

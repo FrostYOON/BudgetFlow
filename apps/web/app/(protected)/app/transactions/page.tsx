@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { TypeDrivenCategoryFields } from "@/components/categories/type-driven-category-fields";
 import {
   Reveal,
   StaggerItem,
   StaggerReveal,
 } from "@/components/motion/reveal";
+import { TransactionSplitFields } from "@/components/transactions/transaction-split-fields";
 import { AppBadge } from "@/components/ui/app-badge";
 import { AppButton, AppButtonLink } from "@/components/ui/app-button";
 import { AppMetricSurface, AppSurface } from "@/components/ui/app-surface";
@@ -270,24 +270,6 @@ function QuickAddCard({
       </div>
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
-        <TypeDrivenCategoryFields
-          categories={categories}
-          defaultType={defaultType}
-          selectClassName="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
-        />
-
-        <label className="block">
-          <span className="text-sm font-medium text-slate-700">Visibility</span>
-          <select
-            name="visibility"
-            defaultValue="SHARED"
-            className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
-          >
-            <option value="SHARED">Shared</option>
-            <option value="PERSONAL">Personal</option>
-          </select>
-        </label>
-
         <label className="block">
           <span className="text-sm font-medium text-slate-700">Amount</span>
           <input
@@ -309,6 +291,15 @@ function QuickAddCard({
             className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
           />
         </label>
+      </div>
+
+      <div className="mt-4">
+        <TransactionSplitFields
+          categories={categories}
+          defaultType={defaultType}
+          defaultVisibility="SHARED"
+          members={members}
+        />
       </div>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -381,18 +372,6 @@ function EditTransactionCard({
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
         <label className="block">
-          <span className="text-sm font-medium text-slate-700">Visibility</span>
-          <select
-            name="visibility"
-            defaultValue={transaction.visibility}
-            className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400"
-          >
-            <option value="SHARED">Shared</option>
-            <option value="PERSONAL">Personal</option>
-          </select>
-        </label>
-
-        <label className="block">
           <span className="text-sm font-medium text-slate-700">Amount</span>
           <input
             name="amount"
@@ -413,16 +392,25 @@ function EditTransactionCard({
             className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400"
           />
         </label>
+      </div>
 
-        <label className="block">
-          <span className="text-sm font-medium text-slate-700">Category</span>
-          <CategorySelect
-            categories={categories}
-            name="categoryId"
-            defaultValue={transaction.categoryId}
-            transactionType={transaction.type}
-          />
-        </label>
+      <div className="mt-4">
+        <TransactionSplitFields
+          categories={categories}
+          defaultMode={
+            transaction.participants.some(
+              (participant) => participant.shareType === "FIXED",
+            )
+              ? "FIXED"
+              : "EQUAL"
+          }
+          defaultCategoryId={transaction.categoryId}
+          defaultParticipants={transaction.participants}
+          defaultType={transaction.type}
+          defaultVisibility={transaction.visibility}
+          members={members}
+          showTypeControl={false}
+        />
       </div>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -549,6 +537,35 @@ function TransactionDetailCard({
         </p>
       </div>
 
+      {transaction.participants.length > 0 ? (
+        <div className="mt-4 rounded-[1.1rem] bg-slate-50 px-4 py-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+            Split
+          </p>
+          <div className="mt-3 space-y-2">
+            {transaction.participants.map((participant) => (
+              <div
+                key={participant.userId}
+                className="flex items-center justify-between gap-3 rounded-[0.9rem] bg-white px-3 py-3"
+              >
+                <p className="text-sm font-medium text-slate-950">
+                  {participant.userName}
+                </p>
+                <p className="text-sm text-slate-500">
+                  {participant.shareType === "EQUAL"
+                    ? "Equal"
+                    : formatCurrency(
+                        participant.shareValue ?? "0",
+                        currency,
+                        locale,
+                      )}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       <div className="mt-5 flex gap-3">
         <AppButtonLink
           href={buildEditHref(returnTo, transaction.id)}
@@ -668,6 +685,7 @@ export default async function TransactionsPage({
         item.paidByUserName,
         item.type,
         item.visibility,
+        ...item.participants.map((participant) => participant.userName),
       ]
         .filter(Boolean)
         .join(" ")

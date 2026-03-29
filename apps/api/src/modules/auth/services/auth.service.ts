@@ -4,6 +4,10 @@ import type { AuthenticatedUser } from '../../../common/interfaces/authenticated
 import { AppLoggerService } from '../../../core/logger/app-logger.service';
 import { UsersService } from '../../users/users.service';
 import { AuthResponseDto } from '../dto/auth-response.dto';
+import { AuthSessionResponseDto } from '../dto/auth-session-response.dto';
+import { ChangePasswordRequestDto } from '../dto/change-password-request.dto';
+import { ChangePasswordResponseDto } from '../dto/change-password-response.dto';
+import { RevokeAuthSessionResponseDto } from '../dto/revoke-auth-session-response.dto';
 import { AuthenticatedUserNotFoundException } from '../exceptions/authenticated-user-not-found.exception';
 import { InvalidCredentialsException } from '../exceptions/invalid-credentials.exception';
 import { InvalidRefreshTokenException } from '../exceptions/invalid-refresh-token.exception';
@@ -139,6 +143,91 @@ export class AuthService {
     return {
       signedOut: true,
     };
+  }
+
+  async changePassword(
+    user: AuthenticatedUser,
+    input: ChangePasswordRequestDto,
+  ): Promise<ChangePasswordResponseDto> {
+    const existingUser = await this.usersService.findById(user.userId);
+
+    if (!existingUser?.passwordHash) {
+      throw new InvalidCredentialsException();
+    }
+
+    const matches = await this.passwordService.verifyPassword(
+      input.currentPassword,
+      existingUser.passwordHash,
+    );
+
+    if (!matches) {
+      throw new InvalidCredentialsException();
+    }
+
+    const passwordHash = await this.passwordService.hashPassword(
+      input.nextPassword,
+    );
+
+    await this.usersService.updatePassword(user.userId, passwordHash);
+    await this.authSessionsService.revokeOtherSessions(
+      user.userId,
+      user.sessionId,
+    );
+
+    this.logger.log('User changed password', AuthService.name, {
+      userId: user.userId,
+      sessionId: user.sessionId,
+    });
+
+    return { changed: true };
+  }
+
+  async listSessions(
+    user: AuthenticatedUser,
+  ): Promise<AuthSessionResponseDto[]> {
+    const sessions = await this.authSessionsService.listSessions(user.userId);
+
+    return sessions.map((session) => ({
+      id: session.id,
+      userAgent: session.userAgent,
+      ipAddress: session.ipAddress,
+      expiresAt: session.expiresAt,
+      lastUsedAt: session.lastUsedAt,
+      revokedAt: session.revokedAt,
+      createdAt: session.createdAt,
+      isCurrent: session.id === user.sessionId,
+    }));
+  }
+
+  async revokeSession(
+    user: AuthenticatedUser,
+    sessionId: string,
+  ): Promise<RevokeAuthSessionResponseDto> {
+    await this.authSessionsService.revokeSession(sessionId, user.userId);
+
+    this.logger.log('User revoked session', AuthService.name, {
+      userId: user.userId,
+      sessionId,
+      currentSessionId: user.sessionId,
+    });
+
+    return { revoked: true };
+  }
+
+  async revokeOtherSessions(
+    user: AuthenticatedUser,
+  ): Promise<RevokeAuthSessionResponseDto> {
+    await this.authSessionsService.revokeOtherSessions(
+      user.userId,
+      user.sessionId,
+    );
+
+    this.logger.log('User revoked other sessions', AuthService.name, {
+      userId: user.userId,
+      currentSessionId: user.sessionId,
+    });
+
+    return { revoked: true };
   }
 
   private async createAuthResponse(

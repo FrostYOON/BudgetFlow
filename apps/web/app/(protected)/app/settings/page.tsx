@@ -7,6 +7,7 @@ import { AppSurface } from "@/components/ui/app-surface";
 import { getAppSession } from "@/lib/auth/session";
 import {
   buildWorkspaceInviteJoinPath,
+  fetchAuthSessions,
   fetchWorkspaceInvites,
   fetchWorkspaceMembers,
   getWorkspaceInviteDisplayMeta,
@@ -69,6 +70,9 @@ export default async function SettingsPage() {
         })
       : [];
   const pendingInvites = invites.filter((invite) => invite.status === "INVITED");
+  const sessions = await fetchAuthSessions({
+    accessToken: session.accessToken,
+  });
 
   return (
     <div className="space-y-8">
@@ -197,6 +201,115 @@ export default async function SettingsPage() {
         </Reveal>
 
         <Reveal delay={0.1}>
+          <AppSurface padding="md">
+          <div className="border-b border-slate-900/8 pb-4">
+            <h2 className="text-lg font-semibold text-slate-950">Security</h2>
+          </div>
+
+          <form
+            action="/app/settings/security/password"
+            method="post"
+            className="mt-5 space-y-4"
+          >
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-slate-700">
+                Current password
+              </span>
+              <input
+                name="currentPassword"
+                type="password"
+                required
+                minLength={8}
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-950 outline-none transition focus:border-emerald-500"
+              />
+            </label>
+
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-slate-700">
+                New password
+              </span>
+              <input
+                name="nextPassword"
+                type="password"
+                required
+                minLength={8}
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-950 outline-none transition focus:border-emerald-500"
+              />
+            </label>
+
+            <AppButton type="submit" tone="secondary" className="w-full">
+              Change password
+            </AppButton>
+          </form>
+
+          <div className="mt-6 space-y-3 border-t border-slate-900/8 pt-5">
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
+                Sessions
+              </h3>
+              <form action="/app/settings/security/revoke-others" method="post">
+                <AppButton type="submit" size="sm" tone="secondary">
+                  Sign out others
+                </AppButton>
+              </form>
+            </div>
+
+            {sessions.map((authSession) => (
+              <div
+                key={authSession.id}
+                className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-semibold text-slate-950">
+                        {authSession.userAgent ?? "Unknown device"}
+                      </p>
+                      {authSession.isCurrent ? (
+                        <AppBadge tone="success">Current</AppBadge>
+                      ) : null}
+                      {authSession.revokedAt ? (
+                        <AppBadge tone="subtle">Revoked</AppBadge>
+                      ) : null}
+                    </div>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {authSession.ipAddress ?? "IP unavailable"} · Last used{" "}
+                      {new Intl.DateTimeFormat("en-CA", {
+                        month: "short",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit",
+                      }).format(
+                        new Date(
+                          authSession.lastUsedAt ?? authSession.createdAt,
+                        ),
+                      )}
+                    </p>
+                  </div>
+
+                  {!authSession.isCurrent && !authSession.revokedAt ? (
+                    <form
+                      action="/app/settings/security/revoke-session"
+                      method="post"
+                    >
+                      <input
+                        type="hidden"
+                        name="sessionId"
+                        value={authSession.id}
+                      />
+                      <AppButton type="submit" size="sm" tone="danger">
+                        Revoke
+                      </AppButton>
+                    </form>
+                  ) : null}
+                </div>
+              </div>
+            ))}
+          </div>
+          </AppSurface>
+        </Reveal>
+
+        <Reveal delay={0.12}>
           <AppSurface padding="md">
           <div className="border-b border-slate-900/8 pb-4">
             <h2 className="text-lg font-semibold text-slate-950">Household</h2>

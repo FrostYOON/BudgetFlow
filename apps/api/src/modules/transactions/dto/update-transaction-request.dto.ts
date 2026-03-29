@@ -1,6 +1,7 @@
 import { TransactionVisibility } from '@budgetflow/database';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  IsArray,
   IsDateString,
   IsEnum,
   IsOptional,
@@ -8,8 +9,11 @@ import {
   IsUUID,
   Length,
   Matches,
+  ValidateNested,
   ValidateIf,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+import { TransactionParticipantInputDto } from './transaction-participant-input.dto';
 
 export class UpdateTransactionRequestDto {
   @ApiPropertyOptional({
@@ -56,4 +60,14 @@ export class UpdateTransactionRequestDto {
   @IsOptional()
   @IsUUID()
   paidByUserId?: string;
+
+  @ApiPropertyOptional({
+    type: [TransactionParticipantInputDto],
+    description: 'Optional split participants for shared expense entries.',
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => TransactionParticipantInputDto)
+  participants?: TransactionParticipantInputDto[];
 }

@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Get,
+  Param,
+  ParseUUIDPipe,
   Post,
   Req,
   Res,
@@ -19,7 +21,11 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../../common/interfaces/authenticated-request.interface';
 import { UserResponseDto } from '../users/dto/user-response.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
+import { AuthSessionResponseDto } from './dto/auth-session-response.dto';
+import { ChangePasswordRequestDto } from './dto/change-password-request.dto';
+import { ChangePasswordResponseDto } from './dto/change-password-response.dto';
 import { RefreshTokenRequestDto } from './dto/refresh-token-request.dto';
+import { RevokeAuthSessionResponseDto } from './dto/revoke-auth-session-response.dto';
 import { SignInRequestDto } from './dto/sign-in-request.dto';
 import { SignOutResponseDto } from './dto/sign-out-response.dto';
 import { SignUpRequestDto } from './dto/sign-up-request.dto';
@@ -132,5 +138,52 @@ export class AuthController {
   ): Promise<SignOutResponseDto> {
     this.authCookieService.clearRefreshTokenCookie(response);
     return this.authService.signOut(user);
+  }
+
+  @Post('change-password')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Change the current user password' })
+  @ApiBody({ type: ChangePasswordRequestDto })
+  @ApiOkResponse({ type: ChangePasswordResponseDto })
+  changePassword(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() input: ChangePasswordRequestDto,
+  ): Promise<ChangePasswordResponseDto> {
+    return this.authService.changePassword(user, input);
+  }
+
+  @Get('sessions')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'List auth sessions for the current user' })
+  @ApiOkResponse({ type: [AuthSessionResponseDto] })
+  listSessions(
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<AuthSessionResponseDto[]> {
+    return this.authService.listSessions(user);
+  }
+
+  @Post('sessions/revoke-others')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Revoke every session except the current one' })
+  @ApiOkResponse({ type: RevokeAuthSessionResponseDto })
+  revokeOtherSessions(
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<RevokeAuthSessionResponseDto> {
+    return this.authService.revokeOtherSessions(user);
+  }
+
+  @Post('sessions/:sessionId/revoke')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Revoke a specific auth session' })
+  @ApiOkResponse({ type: RevokeAuthSessionResponseDto })
+  revokeSession(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('sessionId', new ParseUUIDPipe()) sessionId: string,
+  ): Promise<RevokeAuthSessionResponseDto> {
+    return this.authService.revokeSession(user, sessionId);
   }
 }

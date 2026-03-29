@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import {
   Prisma,
+  ShareType,
   Transaction,
   WorkspaceMemberStatus,
 } from '@budgetflow/database';
@@ -16,12 +17,32 @@ import { TransactionListResponseDto } from '../dto/transaction-list-response.dto
 import { TransactionResponseDto } from '../dto/transaction-response.dto';
 import { UpdateTransactionRequestDto } from '../dto/update-transaction-request.dto';
 
+type TransactionWithParticipants = Prisma.TransactionGetPayload<{
+  include: {
+    category: true;
+    paidBy: true;
+    participants: {
+      include: {
+        user: true;
+      };
+    };
+  };
+}>;
+
 type TransactionWithRelations = Prisma.TransactionGetPayload<{
   include: {
     category: true;
     paidBy: true;
   };
-}>;
+}> & {
+  participants?: TransactionWithParticipants['participants'];
+};
+
+type NormalizedSplitParticipant = {
+  userId: string;
+  shareType: ShareType;
+  shareValue: Prisma.Decimal | null;
+};
 
 @Injectable()
 export class TransactionsService {
@@ -38,28 +59,74 @@ export class TransactionsService {
     await this.workspacesService.assertMemberAccess(workspaceId, userId);
 
     const paidByUserId = input.paidByUserId ?? userId;
+    const amount = new Prisma.Decimal(input.amount);
 
     await this.assertValidPaidBy(workspaceId, paidByUserId);
     await this.assertValidCategory(workspaceId, input.categoryId, input.type);
 
-    const transaction = await this.prisma.transaction.create({
-      data: {
-        workspaceId,
-        type: input.type,
-        visibility: input.visibility,
-        amount: new Prisma.Decimal(input.amount),
-        currency: input.currency,
-        transactionDate: new Date(input.transactionDate),
-        categoryId: input.categoryId ?? null,
-        memo: input.memo ?? null,
-        createdByUserId: userId,
-        paidByUserId,
-      },
-      include: {
-        category: true,
-        paidBy: true,
-      },
+    const splitParticipants = await this.buildSplitParticipants({
+      workspaceId,
+      visibility: input.visibility,
+      type: input.type,
+      amount,
+      participants: input.participants,
     });
+
+    const transaction =
+      typeof this.prisma.$transaction === 'function'
+        ? await this.prisma.$transaction(async (tx) => {
+            const createdTransaction = await tx.transaction.create({
+              data: {
+                workspaceId,
+                type: input.type,
+                visibility: input.visibility,
+                amount,
+                currency: input.currency,
+                transactionDate: new Date(input.transactionDate),
+                categoryId: input.categoryId ?? null,
+                memo: input.memo ?? null,
+                createdByUserId: userId,
+                paidByUserId,
+              },
+            });
+
+            await this.replaceParticipants(
+              tx,
+              createdTransaction.id,
+              splitParticipants,
+            );
+
+            return tx.transaction.findUniqueOrThrow({
+              where: { id: createdTransaction.id },
+              include: {
+                category: true,
+                paidBy: true,
+                participants: {
+                  include: {
+                    user: true,
+                  },
+                },
+              },
+            });
+          })
+        : await this.prisma.transaction.create({
+            data: {
+              workspaceId,
+              type: input.type,
+              visibility: input.visibility,
+              amount,
+              currency: input.currency,
+              transactionDate: new Date(input.transactionDate),
+              categoryId: input.categoryId ?? null,
+              memo: input.memo ?? null,
+              createdByUserId: userId,
+              paidByUserId,
+            },
+            include: {
+              category: true,
+              paidBy: true,
+            },
+          });
 
     return this.toResponse(transaction);
   }
@@ -92,6 +159,11 @@ export class TransactionsService {
       include: {
         category: true,
         paidBy: true,
+        participants: {
+          include: {
+            user: true,
+          },
+        },
       },
       orderBy: [{ transactionDate: 'desc' }, { createdAt: 'desc' }],
       cursor: query.cursor ? { id: query.cursor } : undefined,
@@ -139,6 +211,11 @@ export class TransactionsService {
       input.categoryId !== undefined
         ? input.categoryId
         : existingTransaction.categoryId;
+    const nextVisibility = input.visibility ?? existingTransaction.visibility;
+    const amount =
+      input.amount !== undefined
+        ? new Prisma.Decimal(input.amount)
+        : existingTransaction.amount;
 
     await this.assertValidPaidBy(workspaceId, paidByUserId);
     await this.assertValidCategory(
@@ -147,28 +224,78 @@ export class TransactionsService {
       existingTransaction.type,
     );
 
-    const transaction = await this.prisma.transaction.update({
-      where: { id: transactionId },
-      data: {
-        visibility: input.visibility,
-        amount:
-          input.amount !== undefined
-            ? new Prisma.Decimal(input.amount)
-            : undefined,
-        currency: input.currency,
-        transactionDate: input.transactionDate
-          ? new Date(input.transactionDate)
-          : undefined,
-        categoryId:
-          input.categoryId !== undefined ? input.categoryId : undefined,
-        memo: input.memo !== undefined ? input.memo : undefined,
-        paidByUserId,
-      },
-      include: {
-        category: true,
-        paidBy: true,
-      },
+    const splitParticipants = await this.buildSplitParticipants({
+      workspaceId,
+      visibility: nextVisibility,
+      type: existingTransaction.type,
+      amount,
+      participants: input.participants,
+      existingParticipants: (existingTransaction.participants ?? []).map(
+        (participant) => ({
+          userId: participant.userId,
+          shareType: participant.shareType,
+          shareValue: participant.shareValue,
+        }),
+      ),
     });
+
+    const transaction =
+      typeof this.prisma.$transaction === 'function'
+        ? await this.prisma.$transaction(async (tx) => {
+            await tx.transaction.update({
+              where: { id: transactionId },
+              data: {
+                visibility: input.visibility,
+                amount: input.amount !== undefined ? amount : undefined,
+                currency: input.currency,
+                transactionDate: input.transactionDate
+                  ? new Date(input.transactionDate)
+                  : undefined,
+                categoryId:
+                  input.categoryId !== undefined ? input.categoryId : undefined,
+                memo: input.memo !== undefined ? input.memo : undefined,
+                paidByUserId,
+              },
+            });
+
+            await this.replaceParticipants(
+              tx,
+              transactionId,
+              splitParticipants,
+            );
+
+            return tx.transaction.findUniqueOrThrow({
+              where: { id: transactionId },
+              include: {
+                category: true,
+                paidBy: true,
+                participants: {
+                  include: {
+                    user: true,
+                  },
+                },
+              },
+            });
+          })
+        : await this.prisma.transaction.update({
+            where: { id: transactionId },
+            data: {
+              visibility: input.visibility,
+              amount: input.amount !== undefined ? amount : undefined,
+              currency: input.currency,
+              transactionDate: input.transactionDate
+                ? new Date(input.transactionDate)
+                : undefined,
+              categoryId:
+                input.categoryId !== undefined ? input.categoryId : undefined,
+              memo: input.memo !== undefined ? input.memo : undefined,
+              paidByUserId,
+            },
+            include: {
+              category: true,
+              paidBy: true,
+            },
+          });
 
     return this.toResponse(transaction);
   }
@@ -235,6 +362,11 @@ export class TransactionsService {
       include: {
         category: true,
         paidBy: true,
+        participants: {
+          include: {
+            user: true,
+          },
+        },
       },
     });
 
@@ -257,6 +389,11 @@ export class TransactionsService {
       include: {
         category: true,
         paidBy: true,
+        participants: {
+          include: {
+            user: true,
+          },
+        },
       },
     });
 
@@ -317,6 +454,168 @@ export class TransactionsService {
     }
   }
 
+  private async buildSplitParticipants(input: {
+    workspaceId: string;
+    visibility: Transaction['visibility'];
+    type: Transaction['type'];
+    amount: Prisma.Decimal;
+    participants?:
+      | {
+          userId: string;
+          shareType: ShareType;
+          shareValue?: string;
+        }[]
+      | undefined;
+    existingParticipants?: NormalizedSplitParticipant[];
+  }): Promise<NormalizedSplitParticipant[]> {
+    if (input.visibility !== 'SHARED' || input.type !== 'EXPENSE') {
+      return [];
+    }
+
+    if (input.participants && input.participants.length > 0) {
+      return this.normalizeSplitParticipants(
+        input.workspaceId,
+        input.amount,
+        input.participants.map((participant) => ({
+          userId: participant.userId,
+          shareType: participant.shareType,
+          shareValue: participant.shareValue
+            ? new Prisma.Decimal(participant.shareValue)
+            : null,
+        })),
+      );
+    }
+
+    if (input.existingParticipants && input.existingParticipants.length > 0) {
+      return input.existingParticipants;
+    }
+
+    if (typeof this.prisma.workspaceMember?.findMany !== 'function') {
+      return [];
+    }
+
+    const activeMembers = await this.prisma.workspaceMember.findMany({
+      where: {
+        workspaceId: input.workspaceId,
+        status: WorkspaceMemberStatus.ACTIVE,
+      },
+      select: {
+        userId: true,
+      },
+      orderBy: [{ joinedAt: 'asc' }, { createdAt: 'asc' }],
+    });
+
+    return activeMembers.map((member) => ({
+      userId: member.userId,
+      shareType: ShareType.EQUAL,
+      shareValue: null,
+    }));
+  }
+
+  private async normalizeSplitParticipants(
+    workspaceId: string,
+    amount: Prisma.Decimal,
+    participants: NormalizedSplitParticipant[],
+  ): Promise<NormalizedSplitParticipant[]> {
+    const uniqueUserIds = new Set(
+      participants.map((participant) => participant.userId),
+    );
+
+    if (uniqueUserIds.size !== participants.length) {
+      throw new BadRequestException('Split participants must be unique.');
+    }
+
+    const activeMembers = await this.prisma.workspaceMember.findMany({
+      where: {
+        workspaceId,
+        status: WorkspaceMemberStatus.ACTIVE,
+        userId: {
+          in: [...uniqueUserIds],
+        },
+      },
+      select: {
+        userId: true,
+      },
+    });
+
+    if (activeMembers.length !== participants.length) {
+      throw new BadRequestException(
+        'Split participants must be active workspace members.',
+      );
+    }
+
+    const shareTypes = new Set(
+      participants.map((participant) => participant.shareType),
+    );
+
+    if (shareTypes.size !== 1) {
+      throw new BadRequestException(
+        'Split participants must use a single share type.',
+      );
+    }
+
+    const shareType = participants[0]?.shareType;
+
+    if (shareType === ShareType.EQUAL) {
+      return participants.map((participant) => ({
+        userId: participant.userId,
+        shareType: ShareType.EQUAL,
+        shareValue: null,
+      }));
+    }
+
+    if (participants.some((participant) => participant.shareValue === null)) {
+      throw new BadRequestException(
+        'Split participants require share values for fixed or percentage splits.',
+      );
+    }
+
+    const total = participants.reduce(
+      (sum, participant) => sum.add(participant.shareValue ?? 0),
+      new Prisma.Decimal(0),
+    );
+
+    if (shareType === ShareType.FIXED && !total.equals(amount)) {
+      throw new BadRequestException(
+        'Fixed split total must match the transaction amount.',
+      );
+    }
+
+    if (
+      shareType === ShareType.PERCENTAGE &&
+      !total.equals(new Prisma.Decimal(100))
+    ) {
+      throw new BadRequestException('Percentage split total must equal 100.');
+    }
+
+    return participants;
+  }
+
+  private async replaceParticipants(
+    tx: Prisma.TransactionClient,
+    transactionId: string,
+    participants: NormalizedSplitParticipant[],
+  ): Promise<void> {
+    await tx.transactionParticipant.deleteMany({
+      where: {
+        transactionId,
+      },
+    });
+
+    if (participants.length === 0) {
+      return;
+    }
+
+    await tx.transactionParticipant.createMany({
+      data: participants.map((participant) => ({
+        transactionId,
+        userId: participant.userId,
+        shareType: participant.shareType,
+        shareValue: participant.shareValue,
+      })),
+    });
+  }
+
   private toResponse(
     transaction: TransactionWithRelations,
   ): TransactionResponseDto {
@@ -334,6 +633,12 @@ export class TransactionsService {
       createdByUserId: transaction.createdByUserId,
       paidByUserId: transaction.paidByUserId,
       paidByUserName: transaction.paidBy?.name ?? null,
+      participants: (transaction.participants ?? []).map((participant) => ({
+        userId: participant.userId,
+        userName: participant.user.name,
+        shareType: participant.shareType,
+        shareValue: participant.shareValue?.toFixed(2) ?? null,
+      })),
       isDeleted: transaction.isDeleted,
       createdAt: transaction.createdAt.toISOString(),
     };

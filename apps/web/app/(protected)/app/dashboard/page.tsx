@@ -200,6 +200,82 @@ export default async function DashboardPage({
         </StaggerItem>
       </StaggerReveal>
 
+      <Reveal delay={0.14}>
+        <AppSurface padding="lg">
+          <div className="flex items-center justify-between gap-3 border-b border-slate-900/8 pb-4">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-950">
+                Shared settlement
+              </h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Based on shared expense splits this month.
+              </p>
+            </div>
+            <AppBadge tone="success">
+              {formatCurrency(
+                dashboard.settlement.totalSharedExpense,
+                currency,
+                locale,
+              )}
+            </AppBadge>
+          </div>
+
+          <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                Balances
+              </p>
+              {dashboard.settlement.balances.map((balance) => {
+                const isPositive = Number(balance.netAmount) >= 0;
+                return (
+                  <div
+                    key={balance.userId}
+                    className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-4"
+                  >
+                    <p className="text-sm font-semibold text-slate-950">
+                      {balance.name}
+                    </p>
+                    <p
+                      className={`text-sm font-semibold ${
+                        isPositive ? "text-emerald-700" : "text-rose-600"
+                      }`}
+                    >
+                      {isPositive ? "+" : ""}
+                      {formatCurrency(balance.netAmount, currency, locale)}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                Suggested transfers
+              </p>
+              {dashboard.settlement.suggestedTransfers.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm text-slate-500">
+                  Everyone is settled for this month.
+                </div>
+              ) : (
+                dashboard.settlement.suggestedTransfers.map((transfer) => (
+                  <div
+                    key={`${transfer.fromUserId}-${transfer.toUserId}`}
+                    className="rounded-2xl border border-slate-900/8 px-4 py-4"
+                  >
+                    <p className="text-sm font-semibold text-slate-950">
+                      {transfer.fromName} → {transfer.toName}
+                    </p>
+                    <p className="mt-1 text-sm text-slate-500">
+                      {formatCurrency(transfer.amount, currency, locale)}
+                    </p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </AppSurface>
+      </Reveal>
+
       <section className="grid gap-8 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
         <div className="space-y-8">
           <Reveal delay={0.04}>

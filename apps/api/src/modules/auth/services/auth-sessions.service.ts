@@ -78,4 +78,39 @@ export class AuthSessionsService {
       },
     });
   }
+
+  listSessions(userId: string): Promise<AuthSession[]> {
+    return this.prisma.authSession.findMany({
+      where: {
+        userId,
+      },
+      orderBy: [
+        { revokedAt: 'asc' },
+        { lastUsedAt: 'desc' },
+        { createdAt: 'desc' },
+      ],
+    });
+  }
+
+  async revokeOtherSessions(
+    userId: string,
+    currentSessionId?: string,
+  ): Promise<void> {
+    await this.prisma.authSession.updateMany({
+      where: {
+        userId,
+        revokedAt: null,
+        ...(currentSessionId
+          ? {
+              id: {
+                not: currentSessionId,
+              },
+            }
+          : {}),
+      },
+      data: {
+        revokedAt: new Date(),
+      },
+    });
+  }
 }
