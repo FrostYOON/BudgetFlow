@@ -2,6 +2,7 @@ import { UnauthorizedException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppLoggerService } from '../../../core/logger/app-logger.service';
 import { UsersService } from '../../users/users.service';
+import { WorkspacesService } from '../../workspaces/services/workspaces.service';
 import { AuthService } from './auth.service';
 import { AuthSessionsService } from './auth-sessions.service';
 import { PasswordService } from './password.service';
@@ -30,6 +31,9 @@ describe('AuthService', () => {
   let tokenService: {
     createAuthTokens: jest.Mock;
     buildRefreshTokenExpiresAt: jest.Mock;
+  };
+  let workspacesService: {
+    createPersonalWorkspace: jest.Mock;
   };
 
   beforeEach(async () => {
@@ -61,12 +65,20 @@ describe('AuthService', () => {
         .mockReturnValue(new Date('2026-04-24T00:00:00.000Z')),
     };
 
+    workspacesService = {
+      createPersonalWorkspace: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
         {
           provide: UsersService,
           useValue: usersService,
+        },
+        {
+          provide: WorkspacesService,
+          useValue: workspacesService,
         },
         {
           provide: AuthSessionsService,
@@ -129,6 +141,12 @@ describe('AuthService', () => {
     expect(result.tokens.refreshToken).toBe('refresh-token');
     expect(result.user.email).toBe('minji@example.com');
     expect(authSessionsService.createSession).toHaveBeenCalled();
+    expect(workspacesService.createPersonalWorkspace).toHaveBeenCalledWith({
+      ownerUserId: 'user-1',
+      ownerName: 'Minji',
+      locale: 'ko-KR',
+      timezone: 'Asia/Seoul',
+    });
   });
 
   it('signIn should throw when password is invalid', async () => {

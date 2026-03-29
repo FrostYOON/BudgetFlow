@@ -3,7 +3,7 @@ import { Reveal } from "@/components/motion/reveal";
 import { AppButton, AppButtonLink } from "@/components/ui/app-button";
 import { AppSurface } from "@/components/ui/app-surface";
 import { getAppSession } from "@/lib/auth/session";
-import { WORKSPACE_TYPE_OPTIONS } from "@/lib/workspace-options";
+import { SHARED_WORKSPACE_TYPE_OPTIONS } from "@/lib/workspace-options";
 
 const CURRENCY_OPTIONS = ["CAD", "KRW", "USD", "EUR", "JPY"] as const;
 
@@ -14,23 +14,16 @@ export default async function OnboardingPage() {
     redirect("/sign-in");
   }
 
-  if (session.currentWorkspace) {
-    redirect("/app/dashboard");
-  }
-
   return (
     <div className="space-y-6">
       <Reveal delay={0.02}>
         <AppSurface padding="lg">
         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
-          Household setup
+          Shared space
         </p>
         <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
-          Create your first shared budget space
+          Add a shared workspace
         </h1>
-        <p className="mt-2 text-sm text-slate-500">
-          One household, one budget base, then transactions and plans can start.
-        </p>
         </AppSurface>
       </Reveal>
 
@@ -43,7 +36,7 @@ export default async function OnboardingPage() {
         <AppSurface as="div" padding="md">
         <div>
           <label className="block text-sm font-medium text-slate-700">
-            Household name
+            Workspace name
           </label>
           <input
             name="name"
@@ -55,10 +48,10 @@ export default async function OnboardingPage() {
 
         <fieldset className="space-y-3">
           <legend className="text-sm font-medium text-slate-700">
-            Household type
+            Shared space type
           </legend>
           <div className="grid gap-3">
-            {WORKSPACE_TYPE_OPTIONS.map((option, index) => (
+            {SHARED_WORKSPACE_TYPE_OPTIONS.map((option, index) => (
               <label
                 key={option.value}
                 className="flex cursor-pointer items-start gap-3 rounded-[1.25rem] border border-slate-200 bg-slate-50 px-4 py-4 transition hover:border-emerald-300 hover:bg-white"
@@ -119,7 +112,7 @@ export default async function OnboardingPage() {
             Account settings
           </AppButtonLink>
           <AppButton type="submit" tone="success">
-            Create household
+            Create shared space
           </AppButton>
         </div>
         </AppSurface>

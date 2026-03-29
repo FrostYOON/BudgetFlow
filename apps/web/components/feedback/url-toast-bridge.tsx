@@ -39,7 +39,7 @@ const TOAST_MESSAGES: Record<string, { type: "success" | "error"; text: string }
   },
   member_saved: {
     type: "success",
-    text: "Household profile saved.",
+    text: "Workspace profile saved.",
   },
   settings_save_failed: {
     type: "error",
@@ -47,7 +47,7 @@ const TOAST_MESSAGES: Record<string, { type: "success" | "error"; text: string }
   },
   member_save_failed: {
     type: "error",
-    text: "Failed to save household profile.",
+    text: "Failed to save workspace profile.",
   },
   password_changed: {
     type: "success",
@@ -95,7 +95,7 @@ const TOAST_MESSAGES: Record<string, { type: "success" | "error"; text: string }
   },
   invite_accepted: {
     type: "success",
-    text: "Household joined.",
+    text: "Shared space joined.",
   },
   invite_accept_failed: {
     type: "error",
@@ -155,11 +155,11 @@ const TOAST_MESSAGES: Record<string, { type: "success" | "error"; text: string }
   },
   workspace_created: {
     type: "success",
-    text: "Household created.",
+    text: "Workspace created.",
   },
   workspace_create_failed: {
     type: "error",
-    text: "Failed to create household.",
+    text: "Failed to create workspace.",
   },
   transaction_created: {
     type: "success",
@@ -231,11 +231,11 @@ const TOAST_MESSAGES: Record<string, { type: "success" | "error"; text: string }
   },
   workspace_settings_saved: {
     type: "success",
-    text: "Household settings saved.",
+    text: "Workspace settings saved.",
   },
   workspace_settings_failed: {
     type: "error",
-    text: "Failed to save household settings.",
+    text: "Failed to save workspace settings.",
   },
   workspace_missing: {
     type: "error",

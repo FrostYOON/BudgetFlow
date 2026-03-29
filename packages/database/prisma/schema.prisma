@@ -9,6 +9,7 @@ datasource db {
 }
 
 enum WorkspaceType {
+  PERSONAL
   COUPLE
   FAMILY
   ROOMMATE

@@ -1,6 +1,6 @@
 # BudgetFlow API
 
-NestJS backend for the BudgetFlow shared household budgeting product.
+NestJS backend for the BudgetFlow personal-first budgeting product with shared workspace support.
 
 ## Project Setup
 

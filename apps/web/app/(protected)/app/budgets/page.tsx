@@ -176,7 +176,7 @@ export default async function BudgetsPage({
               Monthly budget
             </h2>
             <p className="mt-1 text-sm text-slate-500">
-              Set the household limit first.
+              Set the workspace limit first.
             </p>
           </div>
           <AppButton type="submit" tone="success" size="sm">

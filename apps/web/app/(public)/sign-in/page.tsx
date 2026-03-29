@@ -23,14 +23,14 @@ export default async function SignInPage({
               Sign in to BudgetFlow.
             </h1>
             <p className="mt-5 max-w-xl text-base leading-7 text-slate-300">
-              Shared budgeting for couples and families.
+              Personal budgeting first. Shared spaces when you need them.
             </p>
           </div>
 
           <div className="grid gap-4 border-t border-white/10 pt-8 text-sm text-slate-300 sm:grid-cols-3">
             <div>
               <p className="font-semibold text-white">Track together</p>
-              <p className="mt-1">Household spending in one workspace.</p>
+              <p className="mt-1">Personal spending with optional shared spaces.</p>
             </div>
             <div>
               <p className="font-semibold text-white">Budget clearly</p>

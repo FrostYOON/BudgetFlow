@@ -109,6 +109,8 @@ export async function signUpWithApi(input: {
   name: string;
   email: string;
   password: string;
+  locale?: string;
+  timezone?: string;
   refreshCookieName: string;
 }) {
   const response = await fetch(`${getApiBaseUrl()}/auth/sign-up`, {
@@ -121,6 +123,8 @@ export async function signUpWithApi(input: {
       name: input.name,
       email: input.email,
       password: input.password,
+      locale: input.locale,
+      timezone: input.timezone,
     }),
   });
 

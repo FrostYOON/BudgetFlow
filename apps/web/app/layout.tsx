@@ -6,7 +6,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "BudgetFlow",
-  description: "Shared household budgeting for couples and families.",
+  description: "Personal-first budgeting with optional shared spaces.",
 };
 
 export default function RootLayout({

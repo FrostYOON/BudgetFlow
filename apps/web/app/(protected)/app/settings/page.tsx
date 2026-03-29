@@ -13,7 +13,7 @@ import {
   getWorkspaceInviteDisplayMeta,
   type WorkspaceInviteSummary,
 } from "@/lib/settings";
-import { WORKSPACE_TYPE_OPTIONS } from "@/lib/workspace-options";
+import { ALL_WORKSPACE_TYPE_OPTIONS } from "@/lib/workspace-options";
 
 function getLocaleOptions() {
   return [
@@ -38,8 +38,10 @@ function getCurrencyOptions() {
   ];
 }
 
-function getWorkspaceTypeOptions() {
-  return WORKSPACE_TYPE_OPTIONS.map((option) => ({
+function getWorkspaceTypeOptions(currentType?: string) {
+  return ALL_WORKSPACE_TYPE_OPTIONS.filter(
+    (option) => currentType === "PERSONAL" || option.value !== "PERSONAL",
+  ).map((option) => ({
     value: option.value,
     label: option.label,
   }));
@@ -62,8 +64,9 @@ export default async function SettingsPage() {
   const currentMember =
     members.find((member) => member.userId === session.user.id) ?? null;
   const isOwner = session.currentWorkspace?.memberRole === "OWNER";
+  const isPersonalWorkspace = session.currentWorkspace?.type === "PERSONAL";
   const invites =
-    session.currentWorkspace && isOwner
+    session.currentWorkspace && isOwner && !isPersonalWorkspace
       ? await fetchWorkspaceInvites({
           accessToken: session.accessToken,
           workspaceId: session.currentWorkspace.id,
@@ -312,7 +315,7 @@ export default async function SettingsPage() {
         <Reveal delay={0.12}>
           <AppSurface padding="md">
           <div className="border-b border-slate-900/8 pb-4">
-            <h2 className="text-lg font-semibold text-slate-950">Household</h2>
+            <h2 className="text-lg font-semibold text-slate-950">Workspace profile</h2>
           </div>
 
           {session.currentWorkspace ? (
@@ -374,12 +377,12 @@ export default async function SettingsPage() {
               </div>
 
               <AppButton type="submit" tone="secondary" className="w-full">
-                Save household profile
+                Save workspace profile
               </AppButton>
             </form>
           ) : (
             <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-sm text-slate-500">
-              No household.
+              No workspace.
             </div>
           )}
           </AppSurface>
@@ -389,12 +392,21 @@ export default async function SettingsPage() {
           <AppSurface className="xl:col-span-2" padding="md">
           <div className="border-b border-slate-900/8 pb-4">
             <h2 className="text-lg font-semibold text-slate-950">
-              Household invites
+              Shared space
             </h2>
           </div>
 
           {session.currentWorkspace ? (
-            isOwner ? (
+            isPersonalWorkspace ? (
+              <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="text-sm text-slate-500">
+                  Personal workspace. Create a shared space to invite someone.
+                </div>
+                <AppButtonLink href="/app/onboarding" tone="success">
+                  Create shared space
+                </AppButtonLink>
+              </div>
+            ) : isOwner ? (
               <div className="mt-5 space-y-5">
                 <form
                   action="/app/settings/invites/create"
@@ -463,7 +475,7 @@ export default async function SettingsPage() {
             )
           ) : (
             <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-sm text-slate-500">
-              No household.
+              No workspace.
             </div>
           )}
         </AppSurface>
@@ -472,7 +484,7 @@ export default async function SettingsPage() {
           <div className="border-b border-slate-900/8 pb-4">
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-lg font-semibold text-slate-950">
-                Household settings
+                Workspace settings
               </h2>
               {session.currentWorkspace ? (
                 <AppBadge tone="subtle" className="uppercase tracking-[0.18em]">
@@ -519,7 +531,7 @@ export default async function SettingsPage() {
                       defaultValue={session.currentWorkspace.type}
                       className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-950 outline-none transition focus:border-emerald-500"
                     >
-                      {getWorkspaceTypeOptions().map((option) => (
+                      {getWorkspaceTypeOptions(session.currentWorkspace.type).map((option) => (
                         <option key={option.value} value={option.value}>
                           {option.label}
                         </option>
@@ -563,7 +575,7 @@ export default async function SettingsPage() {
                 </label>
 
                 <AppButton type="submit" tone="success" className="w-full">
-                  Save household settings
+                  Save workspace settings
                 </AppButton>
                 <AppButtonLink
                   href="/app/settings/categories"
@@ -628,7 +640,7 @@ export default async function SettingsPage() {
             )
           ) : (
             <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-sm text-slate-500">
-              No household.
+              No workspace.
             </div>
           )}
           </AppSurface>

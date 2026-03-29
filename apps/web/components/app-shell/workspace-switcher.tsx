@@ -22,16 +22,16 @@ export function WorkspaceSwitcher({
           Workspace
         </p>
         <h2 className="mt-3 text-base font-semibold text-slate-950">
-          No household workspace yet
+          No workspace yet
         </h2>
         <p className="mt-2 text-sm leading-6 text-slate-600">
-          Create one or accept an invite to start tracking together.
+          Start with your own budget or accept an invite to join a shared one.
         </p>
         <Link
           href="/app/onboarding"
           className="mt-4 inline-flex rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
         >
-          Create household
+          Create shared space
         </Link>
       </section>
     );
@@ -81,6 +81,12 @@ export function WorkspaceSwitcher({
           );
         })}
       </div>
+      <Link
+        href="/app/onboarding"
+        className="mt-4 inline-flex rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+      >
+        Add shared space
+      </Link>
     </section>
   );
 }

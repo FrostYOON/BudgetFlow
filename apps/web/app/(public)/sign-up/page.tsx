@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SignUpContextFields } from "@/components/auth/sign-up-context-fields";
 
 export default async function SignUpPage({
   searchParams,
@@ -19,7 +20,7 @@ export default async function SignUpPage({
             Create your BudgetFlow account.
           </h1>
           <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600">
-            Start a shared budgeting workspace in a few steps.
+            Start with a personal budget. Add a shared space later if you need one.
           </p>
 
           <form
@@ -28,6 +29,7 @@ export default async function SignUpPage({
             className="mt-10 space-y-4"
           >
             <input type="hidden" name="redirectTo" value={next} />
+            <SignUpContextFields />
             <label className="block">
               <span className="mb-2 block text-sm font-medium text-slate-700">
                 Name
