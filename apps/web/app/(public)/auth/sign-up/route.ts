@@ -34,6 +34,7 @@ export async function POST(request: NextRequest) {
   const name = String(formData.get("name") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
+  const redirectTo = String(formData.get("redirectTo") ?? "/app/dashboard");
 
   if (!name || !email || !password) {
     return NextResponse.redirect(
@@ -50,10 +51,13 @@ export async function POST(request: NextRequest) {
     });
 
     const workspaces = await fetchWorkspaces(auth.accessToken);
-    const redirectUrl = new URL(
-      workspaces[0] ? "/app/dashboard" : "/app/onboarding",
-      request.url,
-    );
+    const destination =
+      redirectTo !== "/app/dashboard"
+        ? redirectTo
+        : workspaces[0]
+          ? "/app/dashboard"
+          : "/app/onboarding";
+    const redirectUrl = new URL(destination, request.url);
     redirectUrl.searchParams.set("toast", "account_created");
     const response = NextResponse.redirect(redirectUrl);
 

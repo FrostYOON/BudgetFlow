@@ -99,7 +99,7 @@ export default async function SignInPage({
           <p className="mt-6 text-sm text-slate-400">
             Need a new account?{" "}
             <Link
-              href="/sign-up"
+              href={`/sign-up?next=${encodeURIComponent(next)}`}
               className="text-white underline underline-offset-4"
             >
               Create one here

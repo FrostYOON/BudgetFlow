@@ -49,6 +49,22 @@ const TOAST_MESSAGES: Record<string, { type: "success" | "error"; text: string }
     type: "error",
     text: "Failed to save household profile.",
   },
+  invite_created: {
+    type: "success",
+    text: "Invite created.",
+  },
+  invite_create_failed: {
+    type: "error",
+    text: "Failed to create invite.",
+  },
+  invite_accepted: {
+    type: "success",
+    text: "Household joined.",
+  },
+  invite_accept_failed: {
+    type: "error",
+    text: "Failed to accept invite.",
+  },
   budget_saved: {
     type: "success",
     text: "Budget saved.",

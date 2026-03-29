@@ -3,9 +3,10 @@ import Link from "next/link";
 export default async function SignUpPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; next?: string }>;
 }) {
-  await searchParams;
+  const params = await searchParams;
+  const next = params.next ?? "/app/dashboard";
 
   return (
     <main className="min-h-screen bg-[#f4f6f2] text-slate-950">
@@ -26,6 +27,7 @@ export default async function SignUpPage({
             method="post"
             className="mt-10 space-y-4"
           >
+            <input type="hidden" name="redirectTo" value={next} />
             <label className="block">
               <span className="mb-2 block text-sm font-medium text-slate-700">
                 Name
@@ -78,10 +80,10 @@ export default async function SignUpPage({
                 Create account
               </button>
               <Link
-                href="/"
+                href={`/sign-in?next=${encodeURIComponent(next)}`}
                 className="inline-flex items-center justify-center rounded-full border border-slate-300 px-6 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
               >
-                Back to overview
+                Back to sign in
               </Link>
             </div>
           </form>

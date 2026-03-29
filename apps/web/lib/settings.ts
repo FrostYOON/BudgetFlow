@@ -8,6 +8,16 @@ export interface WorkspaceMemberSummary {
   status: string;
 }
 
+export interface WorkspaceInviteSummary {
+  id: string;
+  email: string;
+  role: string;
+  status: string;
+  workspaceId: string;
+  token: string;
+  expiresAt: string;
+}
+
 export interface WorkspaceSettingsInput {
   accessToken: string;
   workspaceId: string;
@@ -117,4 +127,79 @@ export async function updateWorkspaceSettings(input: WorkspaceSettingsInput) {
   }
 
   return response.json();
+}
+
+export async function fetchWorkspaceInvites(input: {
+  accessToken: string;
+  workspaceId: string;
+}) {
+  const response = await fetch(
+    `${getApiBaseUrl()}/workspaces/${input.workspaceId}/invites`,
+    {
+      headers: {
+        Authorization: `Bearer ${input.accessToken}`,
+      },
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to load household invites.");
+  }
+
+  return (await response.json()) as WorkspaceInviteSummary[];
+}
+
+export async function createWorkspaceInvite(input: {
+  accessToken: string;
+  workspaceId: string;
+  email: string;
+  role: "MEMBER" | "OWNER";
+}) {
+  const response = await fetch(
+    `${getApiBaseUrl()}/workspaces/${input.workspaceId}/invites`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${input.accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: input.email,
+        role: input.role,
+      }),
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to create household invite.");
+  }
+
+  return (await response.json()) as WorkspaceInviteSummary;
+}
+
+export async function acceptWorkspaceInvite(input: {
+  accessToken: string;
+  token: string;
+}) {
+  const response = await fetch(
+    `${getApiBaseUrl()}/workspace-invites/${input.token}/accept`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${input.accessToken}`,
+      },
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to accept household invite.");
+  }
+
+  return (await response.json()) as {
+    workspaceId: string;
+    memberStatus: string;
+  };
 }
