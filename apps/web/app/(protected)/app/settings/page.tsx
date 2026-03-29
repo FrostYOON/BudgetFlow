@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Reveal } from "@/components/motion/reveal";
 import { getAppSession } from "@/lib/auth/session";
 import {
   fetchWorkspaceInvites,
@@ -73,7 +74,8 @@ export default async function SettingsPage() {
 
   return (
     <div className="space-y-8">
-      <section className="border-b border-slate-900/8 pb-6">
+      <Reveal delay={0.02}>
+        <section className="border-b border-slate-900/8 pb-6">
         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
           Settings
         </p>
@@ -102,10 +104,12 @@ export default async function SettingsPage() {
             <p className="mt-1 text-sm text-slate-500">{session.user.email}</p>
           </div>
         </div>
-      </section>
+        </section>
+      </Reveal>
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
+        <Reveal delay={0.06}>
+          <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
           <div className="border-b border-slate-900/8 pb-4">
             <h2 className="text-lg font-semibold text-slate-950">Account</h2>
           </div>
@@ -189,14 +193,16 @@ export default async function SettingsPage() {
 
             <button
               type="submit"
-              className="inline-flex w-full items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+              className="inline-flex w-full items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 active:scale-[0.98]"
             >
               Save account
             </button>
           </form>
-        </section>
+          </section>
+        </Reveal>
 
-        <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
+        <Reveal delay={0.1}>
+          <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
           <div className="border-b border-slate-900/8 pb-4">
             <h2 className="text-lg font-semibold text-slate-950">Household</h2>
           </div>
@@ -261,7 +267,7 @@ export default async function SettingsPage() {
 
               <button
                 type="submit"
-                className="inline-flex w-full items-center justify-center rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+                className="inline-flex w-full items-center justify-center rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950 active:scale-[0.98]"
               >
                 Save household profile
               </button>
@@ -271,9 +277,11 @@ export default async function SettingsPage() {
               No household.
             </div>
           )}
-        </section>
+          </section>
+        </Reveal>
 
-        <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6 xl:col-span-2">
+        <Reveal delay={0.14}>
+          <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6 xl:col-span-2">
           <div className="border-b border-slate-900/8 pb-4">
             <h2 className="text-lg font-semibold text-slate-950">
               Household invites
@@ -322,7 +330,7 @@ export default async function SettingsPage() {
                   <div className="flex items-end">
                     <button
                       type="submit"
-                      className="inline-flex w-full items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                      className="inline-flex w-full items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 active:scale-[0.98]"
                     >
                       Send invite
                     </button>
@@ -453,13 +461,13 @@ export default async function SettingsPage() {
 
                 <button
                   type="submit"
-                  className="inline-flex w-full items-center justify-center rounded-full bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500"
+                  className="inline-flex w-full items-center justify-center rounded-full bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500 active:scale-[0.98]"
                 >
                   Save household settings
                 </button>
                 <Link
                   href="/app/settings/categories"
-                  className="inline-flex w-full items-center justify-center rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+                  className="inline-flex w-full items-center justify-center rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950 active:scale-[0.98]"
                 >
                   Manage categories
                 </Link>
@@ -522,7 +530,8 @@ export default async function SettingsPage() {
               No household.
             </div>
           )}
-        </section>
+          </section>
+        </Reveal>
       </div>
     </div>
   );
@@ -538,7 +547,7 @@ function InviteCard({
   const joinPath = `/join/${invite.token}`;
 
   return (
-    <article className="rounded-[1.5rem] border border-slate-900/8 bg-slate-50 px-4 py-4">
+    <article className="rounded-[1.5rem] border border-slate-900/8 bg-slate-50 px-4 py-4 transition hover:-translate-y-0.5 hover:bg-white">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-sm font-semibold text-slate-950">{invite.email}</p>
@@ -561,7 +570,7 @@ function InviteCard({
           <input type="hidden" name="inviteId" value={invite.id} />
           <button
             type="submit"
-            className="inline-flex items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+            className="inline-flex items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950 active:scale-[0.98]"
           >
             Resend
           </button>
@@ -571,14 +580,14 @@ function InviteCard({
           <input type="hidden" name="inviteId" value={invite.id} />
           <button
             type="submit"
-            className="inline-flex items-center justify-center rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:border-rose-400 hover:text-rose-800"
+            className="inline-flex items-center justify-center rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:border-rose-400 hover:text-rose-800 active:scale-[0.98]"
           >
             Revoke
           </button>
         </form>
         <Link
           href={joinPath}
-          className="inline-flex items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+          className="inline-flex items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950 active:scale-[0.98]"
         >
           Open invite link
         </Link>

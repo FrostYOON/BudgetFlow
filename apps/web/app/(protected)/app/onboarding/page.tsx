@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Reveal } from "@/components/motion/reveal";
 import { getAppSession } from "@/lib/auth/session";
 import { WORKSPACE_TYPE_OPTIONS } from "@/lib/workspace-options";
 
@@ -18,7 +19,8 @@ export default async function OnboardingPage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-6 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
+      <Reveal delay={0.02}>
+        <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-6 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
           Household setup
         </p>
@@ -28,13 +30,15 @@ export default async function OnboardingPage() {
         <p className="mt-2 text-sm text-slate-500">
           One household, one budget base, then transactions and plans can start.
         </p>
-      </section>
+        </section>
+      </Reveal>
 
-      <form
-        action="/app/onboarding/create-workspace"
-        method="post"
-        className="space-y-6 rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6"
-      >
+      <Reveal delay={0.08}>
+        <form
+          action="/app/onboarding/create-workspace"
+          method="post"
+          className="space-y-6 rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6"
+        >
         <div>
           <label className="block text-sm font-medium text-slate-700">
             Household name
@@ -107,18 +111,19 @@ export default async function OnboardingPage() {
         <div className="flex items-center justify-between gap-3">
           <Link
             href="/app/settings"
-            className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+            className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950 active:scale-[0.98]"
           >
             Account settings
           </Link>
           <button
             type="submit"
-            className="rounded-full bg-emerald-400 px-5 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300"
+            className="rounded-full bg-emerald-400 px-5 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300 active:scale-[0.98]"
           >
             Create household
           </button>
         </div>
-      </form>
+        </form>
+      </Reveal>
     </div>
   );
 }

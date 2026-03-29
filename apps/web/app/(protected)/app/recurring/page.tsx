@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { TypeDrivenCategoryFields } from "@/components/categories/type-driven-category-fields";
+import {
+  Reveal,
+  StaggerItem,
+  StaggerReveal,
+} from "@/components/motion/reveal";
 import { getAppSession } from "@/lib/auth/session";
 import { fetchWorkspaceMembers, type WorkspaceMemberSummary } from "@/lib/settings";
 import {
@@ -260,7 +265,7 @@ function ManualExecutionCard({ workspaceId }: { workspaceId: string }) {
 
       <button
         type="submit"
-        className="mt-5 inline-flex w-full items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+        className="mt-5 inline-flex w-full items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 active:scale-[0.98]"
       >
         Run now
       </button>
@@ -442,7 +447,7 @@ function QuickRuleForm({
       <div className="mt-5 flex justify-end">
         <button
           type="submit"
-          className="rounded-full bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
+          className="rounded-full bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 active:scale-[0.98]"
         >
           Save rule
         </button>
@@ -481,7 +486,7 @@ function EditRuleForm({
         </div>
         <Link
           href="/app/recurring"
-          className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+          className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950 active:scale-[0.98]"
         >
           Cancel
         </Link>
@@ -588,13 +593,13 @@ function EditRuleForm({
         <button
           type="submit"
           formAction="/app/recurring/deactivate"
-          className="rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-100"
+          className="rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-100 active:scale-[0.98]"
         >
           Pause rule
         </button>
         <button
           type="submit"
-          className="rounded-full bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
+          className="rounded-full bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 active:scale-[0.98]"
         >
           Update rule
         </button>
@@ -655,7 +660,8 @@ export default async function RecurringPage({
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
+      <Reveal delay={0.02}>
+        <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
@@ -673,26 +679,32 @@ export default async function RecurringPage({
             {ops.scheduler.enabled ? "Scheduler on" : "Scheduler off"}
           </div>
         </div>
-      </section>
+        </section>
+      </Reveal>
 
-      <QuickRuleForm
-        categories={categories}
-        currency={session.currentWorkspace.baseCurrency}
-        members={members}
-        workspaceId={session.currentWorkspace.id}
-      />
-
-      {editableItem ? (
-        <EditRuleForm
+      <Reveal delay={0.06}>
+        <QuickRuleForm
           categories={categories}
           currency={session.currentWorkspace.baseCurrency}
-          item={editableItem}
           members={members}
           workspaceId={session.currentWorkspace.id}
         />
+      </Reveal>
+
+      {editableItem ? (
+        <Reveal delay={0.1}>
+          <EditRuleForm
+            categories={categories}
+            currency={session.currentWorkspace.baseCurrency}
+            item={editableItem}
+            members={members}
+            workspaceId={session.currentWorkspace.id}
+          />
+        </Reveal>
       ) : null}
 
-      <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
+      <Reveal delay={0.14}>
+        <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
         <div className="flex items-center justify-between gap-4 border-b border-slate-900/8 pb-4">
           <div>
             <h2 className="text-lg font-semibold text-slate-950">Rules</h2>
@@ -746,7 +758,7 @@ export default async function RecurringPage({
                 <div className="mt-4 flex justify-end">
                   <Link
                     href={`/app/recurring?edit=${item.id}`}
-                    className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+                    className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950 active:scale-[0.98]"
                   >
                     Edit
                   </Link>
@@ -755,46 +767,60 @@ export default async function RecurringPage({
             ))
           )}
         </div>
-      </section>
+        </section>
+      </Reveal>
 
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <article className="rounded-[1.5rem] border border-slate-900/8 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
+      <StaggerReveal className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <StaggerItem>
+          <article className="rounded-[1.5rem] border border-slate-900/8 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
           <p className="text-sm text-slate-500">Next target</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
             {formatDateLabel(ops.scheduler.nextTargetDate, locale)}
           </p>
-        </article>
-        <article className="rounded-[1.5rem] border border-slate-900/8 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
+          </article>
+        </StaggerItem>
+        <StaggerItem>
+          <article className="rounded-[1.5rem] border border-slate-900/8 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
           <p className="text-sm text-slate-500">Active rules</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
             {ops.recurringTransactions.activeCount}
           </p>
-        </article>
-        <article className="rounded-[1.5rem] border border-slate-900/8 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
+          </article>
+        </StaggerItem>
+        <StaggerItem>
+          <article className="rounded-[1.5rem] border border-slate-900/8 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
           <p className="text-sm text-slate-500">7-day success</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
             {formatPercent(successRate)}
           </p>
-        </article>
-        <article className="rounded-[1.5rem] border border-slate-900/8 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
+          </article>
+        </StaggerItem>
+        <StaggerItem>
+          <article className="rounded-[1.5rem] border border-slate-900/8 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
           <p className="text-sm text-slate-500">Failures</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
             {ops.last7Days.failedRuns}
           </p>
-        </article>
+          </article>
+        </StaggerItem>
+      </StaggerReveal>
+
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <Reveal delay={0.18}>
+          <ExecutionHistory
+            locale={locale}
+            runs={executionRuns}
+            timeZone={ops.scheduler.workspaceTimezone}
+          />
+        </Reveal>
+        <Reveal delay={0.22}>
+          <ManualExecutionCard workspaceId={session.currentWorkspace.id} />
+        </Reveal>
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <ExecutionHistory
-          locale={locale}
-          runs={executionRuns}
-          timeZone={ops.scheduler.workspaceTimezone}
-        />
-        <ManualExecutionCard workspaceId={session.currentWorkspace.id} />
-      </section>
-
-      <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
+        <Reveal delay={0.24}>
+          <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
           <div className="flex items-center justify-between gap-4 border-b border-slate-900/8 pb-4">
             <h2 className="text-lg font-semibold text-slate-950">Run snapshots</h2>
             <div className="text-sm text-slate-500">{ops.scheduler.workspaceTimezone}</div>
@@ -820,9 +846,11 @@ export default async function RecurringPage({
               title="Last failure"
             />
           </div>
-        </section>
+          </section>
+        </Reveal>
 
-        <aside className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
+        <Reveal delay={0.28}>
+          <aside className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
           <div className="border-b border-slate-900/8 pb-4">
             <h2 className="text-lg font-semibold text-slate-950">Recent failures</h2>
           </div>
@@ -876,7 +904,8 @@ export default async function RecurringPage({
               ))
             )}
           </div>
-        </aside>
+          </aside>
+        </Reveal>
       </section>
     </div>
   );
