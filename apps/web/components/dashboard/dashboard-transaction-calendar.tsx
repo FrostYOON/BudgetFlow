@@ -1,7 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
+import { useState } from "react";
+import {
+  detectHolidayRegion,
+  getHolidayInfo,
+  type HolidayRegion,
+} from "@/lib/holiday-calendar";
 
 type DashboardCalendarTransaction = {
   id: string;
@@ -23,8 +28,16 @@ type CalendarDaySummary = {
   transactions: DashboardCalendarTransaction[];
 };
 
+type CalendarDay = {
+  dateKey: string;
+  dayNumber: number;
+  inCurrentMonth: boolean;
+  weekday: number;
+  isToday: boolean;
+};
+
 function formatCurrency(
-  amount: string,
+  amount: string | number,
   currency: string,
   locale = "en-CA",
 ) {
@@ -46,6 +59,14 @@ function formatDateLabel(input: string, locale = "en-CA") {
   }).format(new Date(`${input}T00:00:00.000Z`));
 }
 
+function formatMonthLabel(year: number, month: number, locale = "en-CA") {
+  return new Intl.DateTimeFormat(locale, {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(year, month - 1, 1)));
+}
+
 function toDateKey(year: number, month: number, day: number) {
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
@@ -62,14 +83,12 @@ function getDefaultSelectedDate(
     today.getDate(),
   );
 
-  if (
-    today.getFullYear() === year &&
-    today.getMonth() + 1 === month
-  ) {
+  if (today.getFullYear() === year && today.getMonth() + 1 === month) {
     return todayKey;
   }
 
   const firstTransactionDay = [...daySummaries.keys()].sort()[0];
+
   return firstTransactionDay ?? toDateKey(year, month, 1);
 }
 
@@ -104,16 +123,24 @@ function buildCalendarDays(year: number, month: number) {
   const lastOfMonth = new Date(Date.UTC(year, month, 0));
   const firstWeekday = firstOfMonth.getUTCDay();
   const daysInMonth = lastOfMonth.getUTCDate();
-  const cells = [];
+  const todayKey = toDateKey(
+    new Date().getFullYear(),
+    new Date().getMonth() + 1,
+    new Date().getDate(),
+  );
+  const cells: CalendarDay[] = [];
 
   for (let index = 0; index < 42; index += 1) {
     const dayOffset = index - firstWeekday;
     const cellDate = new Date(Date.UTC(year, month - 1, 1 + dayOffset));
+    const dateKey = cellDate.toISOString().slice(0, 10);
 
     cells.push({
-      dateKey: cellDate.toISOString().slice(0, 10),
+      dateKey,
       dayNumber: cellDate.getUTCDate(),
       inCurrentMonth: dayOffset >= 0 && dayOffset < daysInMonth,
+      weekday: cellDate.getUTCDay(),
+      isToday: dateKey === todayKey,
     });
   }
 
@@ -128,6 +155,30 @@ function formatMiniAmount(value: number, locale: string) {
   return new Intl.NumberFormat(locale, {
     maximumFractionDigits: 0,
   }).format(value);
+}
+
+function getDayTone(weekday: number) {
+  if (weekday === 0) {
+    return {
+      headerClassName: "text-rose-500",
+      cellClassName: "border-rose-100 bg-rose-50/70",
+      mutedCellClassName: "border-rose-50 bg-rose-50/40",
+    };
+  }
+
+  if (weekday === 6) {
+    return {
+      headerClassName: "text-sky-500",
+      cellClassName: "border-sky-100 bg-sky-50/70",
+      mutedCellClassName: "border-sky-50 bg-sky-50/40",
+    };
+  }
+
+  return {
+    headerClassName: "text-slate-400",
+    cellClassName: "border-slate-200 bg-white",
+    mutedCellClassName: "border-slate-100 bg-slate-50/60",
+  };
 }
 
 export function DashboardTransactionCalendar({
@@ -147,6 +198,10 @@ export function DashboardTransactionCalendar({
   const [selectedDate, setSelectedDate] = useState(
     getDefaultSelectedDate(year, month, daySummaries),
   );
+  const [holidayRegion] = useState<HolidayRegion>(() => {
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return detectHolidayRegion(timeZone);
+  });
 
   const selectedSummary =
     daySummaries.get(selectedDate) ??
@@ -161,58 +216,121 @@ export function DashboardTransactionCalendar({
   const calendarDays = buildCalendarDays(year, month);
   const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const formattedSelectedDate = formatDateLabel(selectedDate, locale);
+  const monthLabel = formatMonthLabel(year, month, locale);
+  const selectedHoliday = getHolidayInfo(selectedDate, holidayRegion);
+  const selectedNet = selectedSummary.income - selectedSummary.expense;
 
   return (
-    <section className="space-y-5 rounded-[1.75rem] border border-slate-900/8 bg-white px-4 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-semibold text-slate-950">Monthly flow</h2>
-          <p className="mt-1 text-sm text-slate-500">
-            Tap a date to inspect that day.
-          </p>
+    <section className="overflow-hidden rounded-[2rem] border border-slate-900/8 bg-[linear-gradient(180deg,#fffdf8_0%,#ffffff_34%,#f8fafc_100%)] px-4 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
+      <div className="flex flex-col gap-4 border-b border-slate-900/8 pb-5">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+              Calendar
+            </p>
+            <h2 className="mt-2 text-xl font-semibold tracking-tight text-slate-950">
+              {monthLabel}
+            </h2>
+          </div>
+          <div className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+            {transactions.length} entries
+          </div>
         </div>
-        <div className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-          {transactions.length} entries
+
+        <div className="flex flex-wrap gap-2 text-[11px] font-semibold">
+          <span className="rounded-full bg-rose-50 px-2.5 py-1 text-rose-600">
+            Sundays
+          </span>
+          <span className="rounded-full bg-sky-50 px-2.5 py-1 text-sky-600">
+            Saturdays
+          </span>
+          {holidayRegion === "ON" ? (
+            <span className="rounded-full bg-amber-50 px-2.5 py-1 text-amber-700">
+              Ontario holidays
+            </span>
+          ) : null}
         </div>
       </div>
 
-      <div className="grid grid-cols-7 gap-2 text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-        {weekdayLabels.map((label) => (
-          <div key={label}>{label}</div>
+      <div className="mt-5 grid grid-cols-7 gap-2 text-center text-[11px] font-semibold uppercase tracking-[0.18em]">
+        {weekdayLabels.map((label, index) => (
+          <div key={label} className={getDayTone(index).headerClassName}>
+            {label}
+          </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-7 gap-2">
+      <div className="mt-3 grid grid-cols-7 gap-2">
         {calendarDays.map((day) => {
           const summary = daySummaries.get(day.dateKey);
           const isSelected = selectedDate === day.dateKey;
+          const holiday = getHolidayInfo(day.dateKey, holidayRegion);
           const incomeLabel = formatMiniAmount(summary?.income ?? 0, locale);
           const expenseLabel = formatMiniAmount(summary?.expense ?? 0, locale);
+          const tone = getDayTone(day.weekday);
+
+          let className =
+            "min-h-[106px] rounded-[1.35rem] border px-2.5 py-2.5 text-left transition sm:min-h-[116px]";
+
+          if (isSelected) {
+            className += " border-slate-950 bg-slate-950 text-white shadow-[0_16px_24px_rgba(15,23,42,0.18)]";
+          } else if (day.inCurrentMonth) {
+            className += ` ${tone.cellClassName} text-slate-950 hover:-translate-y-0.5 hover:border-slate-300`;
+          } else {
+            className += ` ${tone.mutedCellClassName} text-slate-300`;
+          }
+
+          if (holiday && !isSelected) {
+            className += " ring-1 ring-inset ring-amber-200";
+          }
+
+          if (day.isToday && !isSelected) {
+            className += " shadow-[inset_0_0_0_1px_rgba(15,23,42,0.12)]";
+          }
 
           return (
             <button
               key={day.dateKey}
               type="button"
               onClick={() => setSelectedDate(day.dateKey)}
-              className={`min-h-[88px] rounded-[1.25rem] border px-2 py-2 text-left transition ${
-                isSelected
-                  ? "border-slate-950 bg-slate-950 text-white"
-                  : day.inCurrentMonth
-                    ? "border-slate-200 bg-slate-50 text-slate-950 hover:border-slate-300"
-                    : "border-slate-100 bg-slate-50/50 text-slate-300"
-              }`}
+              className={className}
             >
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold">{day.dayNumber}</span>
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm font-semibold">{day.dayNumber}</span>
+                  {day.isToday ? (
+                    <span
+                      className={`h-1.5 w-1.5 rounded-full ${
+                        isSelected ? "bg-emerald-300" : "bg-emerald-500"
+                      }`}
+                    />
+                  ) : null}
+                </div>
+
                 {summary?.count ? (
                   <span
                     className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
                       isSelected
                         ? "bg-white/15 text-white"
-                        : "bg-slate-200 text-slate-700"
+                        : "bg-slate-950/6 text-slate-700"
                     }`}
                   >
                     {summary.count}
+                  </span>
+                ) : null}
+              </div>
+
+              <div className="mt-2 min-h-[22px]">
+                {holiday ? (
+                  <span
+                    className={`inline-flex max-w-full truncate rounded-full px-2 py-1 text-[10px] font-semibold ${
+                      isSelected
+                        ? "bg-amber-300/20 text-amber-100"
+                        : "bg-amber-100 text-amber-800"
+                    }`}
+                    title={holiday.name}
+                  >
+                    {holiday.shortName}
                   </span>
                 ) : null}
               </div>
@@ -242,29 +360,82 @@ export function DashboardTransactionCalendar({
                     </div>
                   ) : null}
                 </div>
-              ) : null}
+              ) : (
+                <div className="mt-3">
+                  <div
+                    className={`h-6 rounded-full ${
+                      isSelected ? "bg-white/8" : "bg-slate-900/[0.035]"
+                    }`}
+                  />
+                </div>
+              )}
             </button>
           );
         })}
       </div>
 
-      <div className="rounded-[1.5rem] border border-slate-900/8 bg-slate-50 px-4 py-4">
-        <div className="flex items-center justify-between gap-3">
+      <div className="mt-5 rounded-[1.6rem] border border-slate-900/8 bg-white/90 px-4 py-4 shadow-[0_12px_32px_rgba(15,23,42,0.06)]">
+        <div className="flex items-start justify-between gap-3">
           <div>
             <h3 className="text-base font-semibold text-slate-950">
               {formattedSelectedDate}
             </h3>
-            <p className="mt-1 text-sm text-slate-500">
-              {selectedSummary.count} transaction
-              {selectedSummary.count === 1 ? "" : "s"}
-            </p>
+            <div className="mt-2 flex flex-wrap gap-2 text-[11px] font-semibold">
+              <span className="rounded-full bg-slate-100 px-2.5 py-1 text-slate-700">
+                {selectedSummary.count} items
+              </span>
+              {selectedHoliday ? (
+                <span className="rounded-full bg-amber-100 px-2.5 py-1 text-amber-800">
+                  {selectedHoliday.name}
+                </span>
+              ) : null}
+              <span
+                className={`rounded-full px-2.5 py-1 ${
+                  selectedNet >= 0
+                    ? "bg-emerald-100 text-emerald-700"
+                    : "bg-rose-100 text-rose-700"
+                }`}
+              >
+                Net {selectedNet >= 0 ? "+" : "-"}
+                {formatMiniAmount(Math.abs(selectedNet), locale) ?? "0"}
+              </span>
+            </div>
           </div>
+
           <Link
             href={`/app/transactions?year=${year}&month=${month}&type=ALL&visibility=ALL`}
             className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
           >
             Open ledger
           </Link>
+        </div>
+
+        <div className="mt-4 grid gap-2 sm:grid-cols-3">
+          <div className="rounded-[1.1rem] bg-slate-50 px-3 py-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+              Expense
+            </p>
+            <p className="mt-2 text-sm font-semibold text-slate-950">
+              {formatCurrency(selectedSummary.expense, currency, locale)}
+            </p>
+          </div>
+          <div className="rounded-[1.1rem] bg-slate-50 px-3 py-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+              Income
+            </p>
+            <p className="mt-2 text-sm font-semibold text-slate-950">
+              {formatCurrency(selectedSummary.income, currency, locale)}
+            </p>
+          </div>
+          <div className="rounded-[1.1rem] bg-slate-50 px-3 py-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+              Activity
+            </p>
+            <p className="mt-2 text-sm font-semibold text-slate-950">
+              {selectedSummary.count} transaction
+              {selectedSummary.count === 1 ? "" : "s"}
+            </p>
+          </div>
         </div>
 
         <div className="mt-4 space-y-3">
@@ -274,7 +445,7 @@ export function DashboardTransactionCalendar({
             selectedSummary.transactions.map((transaction) => (
               <article
                 key={transaction.id}
-                className="rounded-[1.2rem] bg-white px-4 py-3 shadow-[0_10px_24px_rgba(15,23,42,0.05)]"
+                className="rounded-[1.2rem] border border-slate-900/8 bg-slate-50 px-4 py-3"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -291,10 +462,10 @@ export function DashboardTransactionCalendar({
                 </div>
 
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-700">
+                  <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700">
                     {transaction.type}
                   </span>
-                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-700">
+                  <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700">
                     {transaction.visibility}
                   </span>
                 </div>
