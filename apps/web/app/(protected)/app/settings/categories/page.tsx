@@ -1,10 +1,12 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   Reveal,
   StaggerItem,
   StaggerReveal,
 } from "@/components/motion/reveal";
+import { AppBadge } from "@/components/ui/app-badge";
+import { AppButton, AppButtonLink } from "@/components/ui/app-button";
+import { AppSurface } from "@/components/ui/app-surface";
 import { getAppSession } from "@/lib/auth/session";
 import {
   fetchWorkspaceCategoriesForSettings,
@@ -104,12 +106,9 @@ function CategoryForm({
         </label>
       </div>
 
-      <button
-        type="submit"
-        className="inline-flex w-full items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 active:scale-[0.98]"
-      >
+      <AppButton type="submit" className="w-full">
         {submitLabel}
-      </button>
+      </AppButton>
     </form>
   );
 }
@@ -130,9 +129,12 @@ function CategoryRow({
               {category.name}
             </p>
             {category.isDefault ? (
-              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-700">
+              <AppBadge
+                tone="success"
+                className="px-2 py-0.5 text-[10px] uppercase tracking-[0.18em]"
+              >
                 Starter
-              </span>
+              </AppBadge>
             ) : null}
           </div>
           <p className="mt-1 text-xs text-slate-500">
@@ -149,33 +151,28 @@ function CategoryRow({
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
-        <Link
+        <AppButtonLink
           href={`/app/settings/categories?edit=${category.id}`}
-          className="inline-flex items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950 active:scale-[0.98]"
+          tone="secondary"
+          size="sm"
         >
           Edit
-        </Link>
+        </AppButtonLink>
         {!category.isArchived ? (
           <form action="/app/settings/categories/archive" method="post">
             <input type="hidden" name="workspaceId" value={workspaceId} />
             <input type="hidden" name="categoryId" value={category.id} />
-            <button
-              type="submit"
-              className="inline-flex items-center justify-center rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:border-rose-400 hover:text-rose-800 active:scale-[0.98]"
-            >
+            <AppButton type="submit" tone="danger" size="sm">
               Archive
-            </button>
+            </AppButton>
           </form>
         ) : (
           <form action="/app/settings/categories/unarchive" method="post">
             <input type="hidden" name="workspaceId" value={workspaceId} />
             <input type="hidden" name="categoryId" value={category.id} />
-            <button
-              type="submit"
-              className="inline-flex items-center justify-center rounded-full border border-emerald-200 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:border-emerald-400 hover:text-emerald-800 active:scale-[0.98]"
-            >
+            <AppButton type="submit" tone="success" size="sm">
               Restore
-            </button>
+            </AppButton>
           </form>
         )}
       </div>
@@ -212,7 +209,7 @@ export default async function CategorySettingsPage({
   return (
     <div className="space-y-6">
       <Reveal delay={0.02}>
-        <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
+        <AppSurface padding="md">
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
@@ -222,19 +219,20 @@ export default async function CategorySettingsPage({
               {session.currentWorkspace.name}
             </h1>
           </div>
-          <Link
+          <AppButtonLink
             href="/app/settings"
-            className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950 active:scale-[0.98]"
+            tone="secondary"
+            size="sm"
           >
             Back
-          </Link>
+          </AppButtonLink>
         </div>
-        </section>
+        </AppSurface>
       </Reveal>
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
         <Reveal delay={0.06}>
-          <div className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
+          <AppSurface as="div" padding="md">
           <div className="border-b border-slate-900/8 pb-4">
             <h2 className="text-lg font-semibold text-slate-950">
               {editCategory ? "Edit category" : "New category"}
@@ -254,27 +252,28 @@ export default async function CategorySettingsPage({
             />
 
             {editCategory ? (
-              <Link
+              <AppButtonLink
                 href="/app/settings/categories"
-                className="mt-3 inline-flex w-full items-center justify-center rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950 active:scale-[0.98]"
+                tone="secondary"
+                className="mt-3 w-full"
               >
                 Cancel edit
-              </Link>
+              </AppButtonLink>
             ) : null}
           </div>
-          </div>
+          </AppSurface>
         </Reveal>
 
         <div className="space-y-6">
           <Reveal delay={0.1}>
-            <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
+            <AppSurface padding="md">
             <div className="flex items-center justify-between gap-4 border-b border-slate-900/8 pb-4">
               <h2 className="text-lg font-semibold text-slate-950">
                 Expense categories
               </h2>
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+              <AppBadge tone="subtle">
                 {expense.active.length}
-              </span>
+              </AppBadge>
             </div>
 
               <StaggerReveal className="mt-5 space-y-3">
@@ -287,18 +286,18 @@ export default async function CategorySettingsPage({
                   </StaggerItem>
                 ))}
               </StaggerReveal>
-            </section>
+            </AppSurface>
           </Reveal>
 
           <Reveal delay={0.14}>
-            <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
+            <AppSurface padding="md">
             <div className="flex items-center justify-between gap-4 border-b border-slate-900/8 pb-4">
               <h2 className="text-lg font-semibold text-slate-950">
                 Income categories
               </h2>
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+              <AppBadge tone="subtle">
                 {income.active.length}
-              </span>
+              </AppBadge>
             </div>
 
               <StaggerReveal className="mt-5 space-y-3">
@@ -311,19 +310,19 @@ export default async function CategorySettingsPage({
                   </StaggerItem>
                 ))}
               </StaggerReveal>
-            </section>
+            </AppSurface>
           </Reveal>
 
           {expense.archived.length + income.archived.length > 0 ? (
             <Reveal delay={0.18}>
-              <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
+              <AppSurface padding="md">
               <div className="flex items-center justify-between gap-4 border-b border-slate-900/8 pb-4">
                 <h2 className="text-lg font-semibold text-slate-950">
                   Archived
                 </h2>
-                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                <AppBadge tone="subtle">
                   {expense.archived.length + income.archived.length}
-                </span>
+                </AppBadge>
               </div>
 
                 <StaggerReveal className="mt-5 space-y-3">
@@ -336,7 +335,7 @@ export default async function CategorySettingsPage({
                     </StaggerItem>
                   ))}
                 </StaggerReveal>
-              </section>
+              </AppSurface>
             </Reveal>
           ) : null}
         </div>

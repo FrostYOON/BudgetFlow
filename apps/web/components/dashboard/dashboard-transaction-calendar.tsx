@@ -7,7 +7,8 @@ import {
   m,
   useReducedMotion,
 } from "framer-motion";
-import Link from "next/link";
+import { AppButtonLink } from "@/components/ui/app-button";
+import { AppBadge } from "@/components/ui/app-badge";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import {
@@ -552,16 +553,16 @@ export function DashboardTransactionCalendar({
                 {formattedSelectedDate}
               </h3>
               <div className="mt-2 flex flex-wrap gap-2 text-[11px] font-semibold">
-                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-slate-700">
+                <AppBadge tone="subtle" className="px-2.5 py-1 text-[11px]">
                   {selectedSummary.count} items
-                </span>
+                </AppBadge>
                 {selectedHoliday ? (
-                  <span className="rounded-full bg-amber-100 px-2.5 py-1 text-amber-800">
+                  <AppBadge tone="warning" className="px-2.5 py-1 text-[11px]">
                     {selectedHoliday.name}
-                  </span>
+                  </AppBadge>
                 ) : null}
                 {holidayContext.timeZone ? (
-                  <span className="rounded-full bg-sky-100 px-2.5 py-1 text-sky-800">
+                  <span className="rounded-full bg-sky-100 px-2.5 py-1 text-[11px] font-semibold text-sky-800">
                     {holidayContext.timeZone}
                   </span>
                 ) : null}
@@ -578,12 +579,14 @@ export function DashboardTransactionCalendar({
               </div>
             </div>
 
-            <Link
+            <AppButtonLink
               href={`/app/transactions?year=${year}&month=${month}&type=ALL&visibility=ALL`}
-              className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+              tone="secondary"
+              size="sm"
+              className="text-xs"
             >
               Open ledger
-            </Link>
+            </AppButtonLink>
           </div>
 
           <div className="mt-4 grid gap-2 sm:grid-cols-3">
