@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { DashboardTransactionCalendar } from "@/components/dashboard/dashboard-transaction-calendar";
 import { getAppSession } from "@/lib/auth/session";
 import {
   fetchWorkspaceDashboard,
@@ -8,6 +9,7 @@ import {
   getNextMonth,
   getPreviousMonth,
 } from "@/lib/dashboard";
+import { fetchWorkspaceTransactions, getMonthRange } from "@/lib/transactions";
 
 function clampMonth(value: number) {
   return Math.min(Math.max(value, 1), 12);
@@ -40,12 +42,24 @@ export default async function DashboardPage({
   }
 
   const requestedPeriod = getPeriod(await searchParams);
-  const dashboard = await fetchWorkspaceDashboard({
-    accessToken: session.accessToken,
-    workspaceId: session.currentWorkspace.id,
-    year: requestedPeriod.year,
-    month: requestedPeriod.month,
-  });
+  const monthRange = getMonthRange(
+    requestedPeriod.year,
+    requestedPeriod.month,
+  );
+  const [dashboard, monthlyTransactions] = await Promise.all([
+    fetchWorkspaceDashboard({
+      accessToken: session.accessToken,
+      workspaceId: session.currentWorkspace.id,
+      year: requestedPeriod.year,
+      month: requestedPeriod.month,
+    }),
+    fetchWorkspaceTransactions({
+      accessToken: session.accessToken,
+      workspaceId: session.currentWorkspace.id,
+      from: monthRange.from,
+      to: monthRange.to,
+    }),
+  ]);
 
   const prev = getPreviousMonth(dashboard.period.year, dashboard.period.month);
   const next = getNextMonth(dashboard.period.year, dashboard.period.month);
@@ -170,6 +184,14 @@ export default async function DashboardPage({
 
       <section className="grid gap-8 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
         <div className="space-y-8">
+          <DashboardTransactionCalendar
+            currency={currency}
+            locale={locale}
+            month={dashboard.period.month}
+            transactions={monthlyTransactions.items}
+            year={dashboard.period.year}
+          />
+
           <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-6 py-6 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
             <div className="flex items-center justify-between gap-4 border-b border-slate-900/8 pb-4">
               <div>
