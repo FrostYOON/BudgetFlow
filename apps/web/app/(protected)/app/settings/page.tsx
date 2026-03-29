@@ -17,6 +17,23 @@ function getTimezoneOptions() {
   ];
 }
 
+function getCurrencyOptions() {
+  return [
+    { value: "KRW", label: "KRW" },
+    { value: "CAD", label: "CAD" },
+    { value: "USD", label: "USD" },
+  ];
+}
+
+function getWorkspaceTypeOptions() {
+  return [
+    { value: "COUPLE", label: "Couple" },
+    { value: "FAMILY", label: "Family" },
+    { value: "ROOMMATES", label: "Roommates" },
+    { value: "TEAM", label: "Team" },
+  ];
+}
+
 export default async function SettingsPage() {
   const session = await getAppSession();
 
@@ -33,6 +50,7 @@ export default async function SettingsPage() {
 
   const currentMember =
     members.find((member) => member.userId === session.user.id) ?? null;
+  const isOwner = session.currentWorkspace?.memberRole === "OWNER";
 
   return (
     <div className="space-y-8">
@@ -71,9 +89,6 @@ export default async function SettingsPage() {
         <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
           <div className="border-b border-slate-900/8 pb-4">
             <h2 className="text-lg font-semibold text-slate-950">Account</h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Name, locale, timezone, and optional profile image URL.
-            </p>
           </div>
 
           <form
@@ -164,12 +179,7 @@ export default async function SettingsPage() {
 
         <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
           <div className="border-b border-slate-900/8 pb-4">
-            <h2 className="text-lg font-semibold text-slate-950">
-              Household profile
-            </h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Workspace-specific nickname and current role.
-            </p>
+            <h2 className="text-lg font-semibold text-slate-950">Household</h2>
           </div>
 
           {session.currentWorkspace ? (
@@ -202,7 +212,7 @@ export default async function SettingsPage() {
                   name="nickname"
                   type="text"
                   defaultValue={currentMember?.nickname ?? ""}
-                  placeholder="How this household sees you"
+                  placeholder="Nickname"
                   className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-emerald-500"
                 />
               </label>
@@ -240,6 +250,167 @@ export default async function SettingsPage() {
           ) : (
             <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-sm text-slate-500">
               Create or join a workspace to set a household nickname.
+            </div>
+          )}
+        </section>
+
+        <section className="rounded-[1.75rem] border border-slate-900/8 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6 xl:col-span-2">
+          <div className="border-b border-slate-900/8 pb-4">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-lg font-semibold text-slate-950">
+                Household settings
+              </h2>
+              {session.currentWorkspace ? (
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-600">
+                  {session.currentWorkspace.memberRole}
+                </span>
+              ) : null}
+            </div>
+          </div>
+
+          {session.currentWorkspace ? (
+            isOwner ? (
+              <form
+                action="/app/settings/workspace"
+                method="post"
+                className="mt-5 space-y-4"
+              >
+                <input
+                  type="hidden"
+                  name="workspaceId"
+                  value={session.currentWorkspace.id}
+                />
+
+                <label className="block">
+                  <span className="mb-2 block text-sm font-medium text-slate-700">
+                    Name
+                  </span>
+                  <input
+                    name="name"
+                    type="text"
+                    required
+                    minLength={2}
+                    defaultValue={session.currentWorkspace.name}
+                    className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-950 outline-none transition focus:border-emerald-500"
+                  />
+                </label>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-slate-700">
+                      Type
+                    </span>
+                    <select
+                      name="type"
+                      defaultValue={session.currentWorkspace.type}
+                      className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-950 outline-none transition focus:border-emerald-500"
+                    >
+                      {getWorkspaceTypeOptions().map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-slate-700">
+                      Currency
+                    </span>
+                    <select
+                      name="baseCurrency"
+                      defaultValue={session.currentWorkspace.baseCurrency}
+                      className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-950 outline-none transition focus:border-emerald-500"
+                    >
+                      {getCurrencyOptions().map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+
+                <label className="block">
+                  <span className="mb-2 block text-sm font-medium text-slate-700">
+                    Timezone
+                  </span>
+                  <select
+                    name="timezone"
+                    defaultValue={session.currentWorkspace.timezone}
+                    className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-950 outline-none transition focus:border-emerald-500"
+                  >
+                    {getTimezoneOptions().map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <button
+                  type="submit"
+                  className="inline-flex w-full items-center justify-center rounded-full bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500"
+                >
+                  Save household settings
+                </button>
+              </form>
+            ) : (
+              <div className="mt-5 space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-slate-700">
+                      Name
+                    </span>
+                    <input
+                      value={session.currentWorkspace.name}
+                      disabled
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-500 outline-none"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-slate-700">
+                      Type
+                    </span>
+                    <input
+                      value={session.currentWorkspace.type}
+                      disabled
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-500 outline-none"
+                    />
+                  </label>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-slate-700">
+                      Currency
+                    </span>
+                    <input
+                      value={session.currentWorkspace.baseCurrency}
+                      disabled
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-500 outline-none"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-slate-700">
+                      Timezone
+                    </span>
+                    <input
+                      value={session.currentWorkspace.timezone}
+                      disabled
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-500 outline-none"
+                    />
+                  </label>
+                </div>
+
+                <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm text-slate-500">
+                  Only owners can edit household settings.
+                </div>
+              </div>
+            )
+          ) : (
+            <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-sm text-slate-500">
+              Create or join a workspace to manage household settings.
             </div>
           )}
         </section>

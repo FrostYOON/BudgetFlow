@@ -8,6 +8,15 @@ export interface WorkspaceMemberSummary {
   status: string;
 }
 
+export interface WorkspaceSettingsInput {
+  accessToken: string;
+  workspaceId: string;
+  name: string;
+  type: string;
+  baseCurrency: string;
+  timezone: string;
+}
+
 function getApiBaseUrl() {
   return process.env.BUDGETFLOW_API_URL ?? "http://localhost:3000/api/v1";
 }
@@ -79,6 +88,32 @@ export async function updateCurrentWorkspaceMember(input: {
 
   if (!response.ok) {
     throw new Error("Failed to update household profile.");
+  }
+
+  return response.json();
+}
+
+export async function updateWorkspaceSettings(input: WorkspaceSettingsInput) {
+  const response = await fetch(
+    `${getApiBaseUrl()}/workspaces/${input.workspaceId}`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${input.accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: input.name,
+        type: input.type,
+        baseCurrency: input.baseCurrency,
+        timezone: input.timezone,
+      }),
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to update household settings.");
   }
 
   return response.json();

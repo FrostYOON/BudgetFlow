@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Patch,
   Param,
   ParseUUIDPipe,
   Post,
@@ -18,6 +19,7 @@ import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../../../common/interfaces/authenticated-request.interface';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CreateWorkspaceRequestDto } from '../dto/create-workspace-request.dto';
+import { UpdateWorkspaceRequestDto } from '../dto/update-workspace-request.dto';
 import { WorkspaceListItemResponseDto } from '../dto/workspace-list-item-response.dto';
 import { WorkspaceResponseDto } from '../dto/workspace-response.dto';
 import { WorkspacesService } from '../services/workspaces.service';
@@ -57,5 +59,17 @@ export class WorkspacesController {
     @Param('workspaceId', new ParseUUIDPipe()) workspaceId: string,
   ): Promise<WorkspaceResponseDto> {
     return this.workspacesService.getDetail(workspaceId, user.userId);
+  }
+
+  @Patch(':workspaceId')
+  @ApiOperation({ summary: 'Update workspace settings' })
+  @ApiBody({ type: UpdateWorkspaceRequestDto })
+  @ApiOkResponse({ type: WorkspaceResponseDto })
+  update(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('workspaceId', new ParseUUIDPipe()) workspaceId: string,
+    @Body() input: UpdateWorkspaceRequestDto,
+  ): Promise<WorkspaceResponseDto> {
+    return this.workspacesService.update(workspaceId, user.userId, input);
   }
 }

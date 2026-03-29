@@ -117,6 +117,14 @@ const TOAST_MESSAGES: Record<string, { type: "success" | "error"; text: string }
     type: "error",
     text: "Failed to pause recurring rule.",
   },
+  workspace_settings_saved: {
+    type: "success",
+    text: "Household settings saved.",
+  },
+  workspace_settings_failed: {
+    type: "error",
+    text: "Failed to save household settings.",
+  },
   workspace_missing: {
     type: "error",
     text: "Workspace is missing.",
