@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("sign up and create first household", async ({ page }) => {
+test("sign up, use personal workspace, then add shared workspace", async ({ page }) => {
   const unique = Date.now();
   const email = `budgetflow-e2e-${unique}@example.com`;
   const password = `BudgetFlow!${unique}`;
@@ -14,13 +14,20 @@ test("sign up and create first household", async ({ page }) => {
   await page.getByLabel("Password").fill(password);
   await page.getByRole("button", { name: "Create account" }).click();
 
+  await expect(page).toHaveURL(/\/app\/dashboard/);
   await expect(
-    page.getByRole("heading", { name: "Create your first shared budget space" }),
+    page.getByRole("main").getByRole("heading", {
+      name: "Playwright User's Budget",
+      level: 1,
+    }),
   ).toBeVisible();
 
-  const createHouseholdForm = page.locator(
-    'form[action="/app/onboarding/create-workspace"]',
-  );
+  await page.goto("/app/onboarding");
+  await expect(
+    page.getByRole("heading", { name: "Add a shared workspace" }),
+  ).toBeVisible();
+
+  const createHouseholdForm = page.locator('form[action="/app/onboarding/create-workspace"]');
   await createHouseholdForm.locator('input[name="name"]').fill(householdName);
   await createHouseholdForm.evaluate((form: HTMLFormElement) =>
     form.requestSubmit(),

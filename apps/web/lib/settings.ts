@@ -227,7 +227,7 @@ export async function updateCurrentWorkspaceMember(input: {
 
   if (!response.ok) {
     throw new Error(
-      await readErrorMessage(response, "Failed to update household profile."),
+      await readErrorMessage(response, "Failed to update workspace profile."),
     );
   }
 
@@ -255,7 +255,7 @@ export async function updateWorkspaceSettings(input: WorkspaceSettingsInput) {
 
   if (!response.ok) {
     throw new Error(
-      await readErrorMessage(response, "Failed to update household settings."),
+      await readErrorMessage(response, "Failed to update workspace settings."),
     );
   }
 
@@ -278,7 +278,7 @@ export async function fetchWorkspaceInvites(input: {
 
   if (!response.ok) {
     throw new Error(
-      await readErrorMessage(response, "Failed to load household invites."),
+      await readErrorMessage(response, "Failed to load shared space invites."),
     );
   }
 
@@ -356,7 +356,7 @@ export async function createWorkspaceInvite(input: {
 
   if (!response.ok) {
     throw new Error(
-      await readErrorMessage(response, "Failed to create household invite."),
+      await readErrorMessage(response, "Failed to create shared space invite."),
     );
   }
 
@@ -380,7 +380,7 @@ export async function acceptWorkspaceInvite(input: {
 
   if (!response.ok) {
     throw new Error(
-      await readErrorMessage(response, "Failed to accept household invite."),
+      await readErrorMessage(response, "Failed to accept shared space invite."),
     );
   }
 
@@ -408,7 +408,7 @@ export async function revokeWorkspaceInvite(input: {
 
   if (!response.ok) {
     throw new Error(
-      await readErrorMessage(response, "Failed to revoke household invite."),
+      await readErrorMessage(response, "Failed to revoke shared space invite."),
     );
   }
 
@@ -433,7 +433,7 @@ export async function resendWorkspaceInvite(input: {
 
   if (!response.ok) {
     throw new Error(
-      await readErrorMessage(response, "Failed to resend household invite."),
+      await readErrorMessage(response, "Failed to resend shared space invite."),
     );
   }
 

@@ -33,7 +33,7 @@ export const APP_NAVIGATION: AppNavigationItem[] = [
   {
     href: "/app/settings",
     label: "Settings",
-    description: "Account and household profile",
+    description: "Account and workspace profile",
     shortLabel: "You",
   },
 ];

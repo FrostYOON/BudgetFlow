@@ -1,7 +1,7 @@
 import "server-only";
 import type { WorkspaceSummary } from "@/lib/auth/types";
 
-export type WorkspaceType = "COUPLE" | "FAMILY" | "ROOMMATE";
+export type WorkspaceType = "PERSONAL" | "COUPLE" | "FAMILY" | "ROOMMATE";
 
 function getApiBaseUrl() {
   return process.env.BUDGETFLOW_API_URL ?? "http://localhost:3000/api/v1";

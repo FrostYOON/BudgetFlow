@@ -30,6 +30,8 @@ function setRefreshCookie(response: NextResponse, refreshToken: string) {
 }
 
 export async function POST(request: NextRequest) {
+  const existingWorkspaceId =
+    request.cookies.get(CURRENT_WORKSPACE_COOKIE_NAME)?.value ?? null;
   const formData = await request.formData();
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
@@ -49,6 +51,10 @@ export async function POST(request: NextRequest) {
     });
 
     const workspaces = await fetchWorkspaces(auth.accessToken);
+    const selectedWorkspace =
+      workspaces.find((workspace) => workspace.id === existingWorkspaceId) ??
+      workspaces[0] ??
+      null;
     const destination =
       redirectTo !== "/app/dashboard"
         ? redirectTo
@@ -65,8 +71,8 @@ export async function POST(request: NextRequest) {
       setRefreshCookie(response, auth.refreshToken);
     }
 
-    if (workspaces[0]) {
-      response.cookies.set(CURRENT_WORKSPACE_COOKIE_NAME, workspaces[0].id, {
+    if (selectedWorkspace) {
+      response.cookies.set(CURRENT_WORKSPACE_COOKIE_NAME, selectedWorkspace.id, {
         httpOnly: true,
         sameSite: "lax",
         secure: process.env.NODE_ENV === "production",

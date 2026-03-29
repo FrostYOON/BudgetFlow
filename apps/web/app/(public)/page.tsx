@@ -2,6 +2,11 @@ import Link from "next/link";
 
 const SAMPLE_HOUSEHOLDS = [
   {
+    name: "Personal budget",
+    summary: "Salary, subscriptions, groceries, and monthly goals in one place.",
+    meta: "1 member · CAD 1,850 monthly budget",
+  },
+  {
     name: "Couple household",
     summary: "Monthly rent, groceries, and shared subscriptions in one budget.",
     meta: "2 members · CAD 3,200 monthly budget",
@@ -28,7 +33,7 @@ export default function HomePage() {
               BudgetFlow
             </p>
             <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
-              Shared budgeting for the people who actually share the bill.
+              Budgeting for yourself first, shared spaces when needed.
             </h1>
           </div>
           <nav className="flex items-center gap-3 text-sm">
@@ -50,17 +55,14 @@ export default function HomePage() {
         <div className="grid flex-1 gap-12 py-12 lg:grid-cols-[minmax(0,1.2fr)_minmax(360px,0.8fr)] lg:items-center">
           <div className="max-w-3xl">
             <p className="text-sm font-medium text-emerald-700">
-              Couples, families, roommates
+              Solo budgets, couples, families, roommates
             </p>
             <h2 className="mt-4 text-5xl font-semibold tracking-tight text-balance text-slate-950 sm:text-6xl">
-              One household workspace for budgets, spending, and recurring
-              costs.
+              Start with your own budget, then add shared money when life gets collaborative.
             </h2>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600">
-              BudgetFlow keeps shared money visible without turning the product
-              into an accounting tool. The first MVP focuses on a protected app
-              shell, monthly budget views, transaction flows, and recurring
-              automation.
+              BudgetFlow keeps daily money tracking simple. Use it alone by default,
+              then add a couple, family, or roommate space when you need shared visibility.
             </p>
 
             <div className="mt-10 flex flex-col gap-4 sm:flex-row">
@@ -85,8 +87,7 @@ export default function HomePage() {
                 Typical workspace shapes
               </p>
               <p className="mt-2 text-sm leading-6 text-slate-600">
-                BudgetFlow is designed around real shared-money contexts instead
-                of a single-user ledger.
+                Start with a personal budget or move into a shared setup without changing tools.
               </p>
             </div>
 

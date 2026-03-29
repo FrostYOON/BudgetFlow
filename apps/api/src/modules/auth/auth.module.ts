@@ -3,6 +3,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { AppConfigService } from '../../core/config/app-config.service';
 import { UsersModule } from '../users/users.module';
+import { WorkspacesModule } from '../workspaces/workspaces.module';
 import { AuthController } from './auth.controller';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RefreshTokenGuard } from './guards/refresh-token.guard';
@@ -17,6 +18,7 @@ import { TokenService } from './services/token.service';
 @Module({
   imports: [
     UsersModule,
+    WorkspacesModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       inject: [AppConfigService],

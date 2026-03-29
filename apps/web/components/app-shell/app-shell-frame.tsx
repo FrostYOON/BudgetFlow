@@ -21,7 +21,7 @@ export function AppShellFrame({ children, session }: AppShellFrameProps) {
                 BudgetFlow
               </p>
               <h1 className="mt-2 text-xl font-semibold tracking-tight text-slate-950">
-                Shared household budget
+                Personal-first budgeting
               </h1>
             </div>
             <form action="/auth/sign-out" method="post">
@@ -60,12 +60,12 @@ export function AppShellFrame({ children, session }: AppShellFrameProps) {
                   BudgetFlow
                 </p>
                 <p className="mt-2 text-lg font-semibold tracking-tight text-slate-950">
-                  {session.currentWorkspace?.name ?? "No household yet"}
+                  {session.currentWorkspace?.name ?? "No workspace yet"}
                 </p>
                 <p className="mt-1 text-xs text-slate-500">
                   {session.currentWorkspace
                     ? `${session.currentWorkspace.baseCurrency} · ${session.currentWorkspace.memberRole}`
-                    : "Create or join a household"}
+                    : "Create a shared space when you need one"}
                 </p>
               </div>
 

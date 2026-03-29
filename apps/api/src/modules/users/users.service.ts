@@ -28,6 +28,8 @@ export class UsersService {
     email: string;
     passwordHash: string;
     name: string;
+    locale?: string;
+    timezone?: string;
   }): Promise<User> {
     const existingUser = await this.findByEmail(input.email);
 
@@ -40,6 +42,8 @@ export class UsersService {
         email: input.email,
         passwordHash: input.passwordHash,
         name: input.name,
+        ...(input.locale ? { locale: input.locale } : {}),
+        ...(input.timezone ? { timezone: input.timezone } : {}),
       },
     });
   }

@@ -38,6 +38,7 @@ describe('API onboarding flow (e2e)', () => {
     await app.init();
 
     prisma = app.get(PrismaService);
+    await ensurePersonalWorkspaceType(prisma);
   });
 
   beforeEach(async () => {
@@ -68,7 +69,7 @@ describe('API onboarding flow (e2e)', () => {
     expect(body.timestamp).toEqual(expect.any(String));
   });
 
-  it('supports sign-up, workspace onboarding, token refresh, and sign-out', async () => {
+  it('supports sign-up, personal workspace provisioning, shared workspace onboarding, token refresh, and sign-out', async () => {
     const email = `minji-${Date.now()}@example.com`;
     const password = 'Password123!';
 
@@ -98,6 +99,24 @@ describe('API onboarding flow (e2e)', () => {
     expect(refreshCookie).toBeDefined();
 
     const accessToken = signUpBody.tokens.accessToken;
+
+    const initialWorkspacesResponse = await request(app.getHttpServer())
+      .get(`/${apiPrefix}/workspaces`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(200);
+    const initialWorkspaces =
+      initialWorkspacesResponse.body as WorkspaceListItemBody[];
+
+    expect(initialWorkspaces).toHaveLength(1);
+    expect(initialWorkspaces[0]).toMatchObject({
+      name: "Minji's Budget",
+      type: WorkspaceType.PERSONAL,
+      baseCurrency: 'KRW',
+      timezone: 'Asia/Seoul',
+      memberRole: 'OWNER',
+    });
+
+    const personalWorkspaceId = initialWorkspaces[0].id;
 
     const meResponse = await request(app.getHttpServer())
       .get(`/${apiPrefix}/auth/me`)
@@ -131,6 +150,25 @@ describe('API onboarding flow (e2e)', () => {
       timezone: 'America/Toronto',
     });
 
+    const personalExpenseCategoriesResponse = await request(app.getHttpServer())
+      .get(`/${apiPrefix}/workspaces/${personalWorkspaceId}/categories`)
+      .query({ type: CategoryType.EXPENSE })
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(200);
+    const personalExpenseCategories =
+      personalExpenseCategoriesResponse.body as CategoryBody[];
+
+    expect(personalExpenseCategories).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'Market',
+          type: CategoryType.EXPENSE,
+          isDefault: true,
+          isArchived: false,
+        }),
+      ]),
+    );
+
     const createWorkspaceResponse = await request(app.getHttpServer())
       .post(`/${apiPrefix}/workspaces`)
       .set('Authorization', `Bearer ${accessToken}`)
@@ -158,15 +196,24 @@ describe('API onboarding flow (e2e)', () => {
     const listedWorkspaces =
       listWorkspacesResponse.body as WorkspaceListItemBody[];
 
-    expect(listedWorkspaces).toHaveLength(1);
-    expect(listedWorkspaces[0]).toMatchObject({
-      id: workspaceBody.id,
-      name: 'Minji & Jisu Home',
-      type: WorkspaceType.COUPLE,
-      baseCurrency: 'KRW',
-      timezone: 'Asia/Seoul',
-      memberRole: 'OWNER',
-    });
+    expect(listedWorkspaces).toHaveLength(2);
+    expect(listedWorkspaces).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: personalWorkspaceId,
+          name: "Minji's Budget",
+          type: WorkspaceType.PERSONAL,
+        }),
+        expect.objectContaining({
+          id: workspaceBody.id,
+          name: 'Minji & Jisu Home',
+          type: WorkspaceType.COUPLE,
+          baseCurrency: 'KRW',
+          timezone: 'Asia/Seoul',
+          memberRole: 'OWNER',
+        }),
+      ]),
+    );
 
     const updateMemberResponse = await request(app.getHttpServer())
       .patch(`/${apiPrefix}/workspaces/${workspaceBody.id}/members/me`)
@@ -303,6 +350,12 @@ async function resetDatabase(prisma: PrismaService): Promise<void> {
   await prisma.authSession.deleteMany();
   await prisma.workspace.deleteMany();
   await prisma.user.deleteMany();
+}
+
+async function ensurePersonalWorkspaceType(prisma: PrismaService) {
+  await prisma.$executeRawUnsafe(
+    'ALTER TYPE "WorkspaceType" ADD VALUE IF NOT EXISTS \'PERSONAL\'',
+  );
 }
 
 function getCookie(

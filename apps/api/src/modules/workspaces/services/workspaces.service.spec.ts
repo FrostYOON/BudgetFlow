@@ -109,6 +109,46 @@ describe('WorkspacesService', () => {
     );
   });
 
+  it('createPersonalWorkspace should create a personal workspace with inferred defaults', async () => {
+    const transactionClient = {
+      workspace: {
+        create: jest.fn().mockResolvedValue({
+          id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+          name: "Minji's Budget",
+          type: WorkspaceType.PERSONAL,
+          baseCurrency: 'CAD',
+          timezone: 'America/Toronto',
+          ownerUserId: '22222222-2222-2222-2222-222222222222',
+        }),
+      },
+      workspaceMember: {
+        create: jest.fn().mockResolvedValue(undefined),
+      },
+      category: {
+        createMany: jest.fn().mockResolvedValue({ count: 15 }),
+      },
+    };
+
+    prisma.$transaction.mockImplementation(
+      (callback: (tx: typeof transactionClient) => Promise<unknown>) =>
+        callback(transactionClient),
+    );
+
+    const result = await service.createPersonalWorkspace({
+      ownerUserId: '22222222-2222-2222-2222-222222222222',
+      ownerName: 'Minji',
+      locale: 'en-CA',
+      timezone: 'America/Toronto',
+    });
+
+    expect(result).toMatchObject({
+      name: "Minji's Budget",
+      type: WorkspaceType.PERSONAL,
+      baseCurrency: 'CAD',
+      timezone: 'America/Toronto',
+    });
+  });
+
   it('listForUser should return active memberships as workspace list items', async () => {
     prisma.workspaceMember.findMany.mockResolvedValue([
       {

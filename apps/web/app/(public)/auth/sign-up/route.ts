@@ -34,6 +34,8 @@ export async function POST(request: NextRequest) {
   const name = String(formData.get("name") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
+  const locale = String(formData.get("locale") ?? "").trim() || undefined;
+  const timezone = String(formData.get("timezone") ?? "").trim() || undefined;
   const redirectTo = String(formData.get("redirectTo") ?? "/app/dashboard");
 
   if (!name || !email || !password) {
@@ -47,6 +49,8 @@ export async function POST(request: NextRequest) {
       name,
       email,
       password,
+      locale,
+      timezone,
       refreshCookieName: "budgetflow_refresh_token",
     });
 

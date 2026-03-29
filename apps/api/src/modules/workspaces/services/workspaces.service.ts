@@ -8,6 +8,7 @@ import {
   Workspace,
   WorkspaceMemberRole,
   WorkspaceMemberStatus,
+  WorkspaceType,
 } from '@budgetflow/database';
 import { PrismaService } from '../../../core/database/prisma.service';
 import { buildStarterCategories } from '../constants/starter-categories';
@@ -34,32 +35,27 @@ export class WorkspacesService {
     ownerUserId: string,
     input: CreateWorkspaceRequestDto,
   ): Promise<WorkspaceResponseDto> {
-    const workspace = await this.prisma.$transaction(async (tx) => {
-      const createdWorkspace = await tx.workspace.create({
-        data: {
-          name: input.name,
-          type: input.type,
-          baseCurrency: input.baseCurrency ?? 'KRW',
-          timezone: input.timezone ?? 'Asia/Seoul',
-          ownerUserId,
-        },
-      });
+    const workspace = await this.createWorkspaceRecord(ownerUserId, {
+      name: input.name,
+      type: input.type,
+      baseCurrency: input.baseCurrency ?? 'KRW',
+      timezone: input.timezone ?? 'Asia/Seoul',
+    });
 
-      await tx.workspaceMember.create({
-        data: {
-          workspaceId: createdWorkspace.id,
-          userId: ownerUserId,
-          role: WorkspaceMemberRole.OWNER,
-          status: WorkspaceMemberStatus.ACTIVE,
-          joinedAt: new Date(),
-        },
-      });
+    return this.toWorkspaceResponse(workspace);
+  }
 
-      await tx.category.createMany({
-        data: buildStarterCategories(createdWorkspace.id),
-      });
-
-      return createdWorkspace;
+  async createPersonalWorkspace(input: {
+    ownerUserId: string;
+    ownerName: string;
+    locale?: string;
+    timezone?: string;
+  }): Promise<WorkspaceResponseDto> {
+    const workspace = await this.createWorkspaceRecord(input.ownerUserId, {
+      name: this.buildPersonalWorkspaceName(input.ownerName),
+      type: WorkspaceType.PERSONAL,
+      baseCurrency: this.inferBaseCurrency(input.locale, input.timezone),
+      timezone: input.timezone ?? 'Asia/Seoul',
     });
 
     return this.toWorkspaceResponse(workspace);
@@ -197,6 +193,71 @@ export class WorkspacesService {
     if (!isMember) {
       throw new ForbiddenException('You do not have access to this workspace.');
     }
+  }
+
+  private async createWorkspaceRecord(
+    ownerUserId: string,
+    input: {
+      name: string;
+      type: WorkspaceType;
+      baseCurrency: string;
+      timezone: string;
+    },
+  ): Promise<Workspace> {
+    return this.prisma.$transaction(async (tx) => {
+      const createdWorkspace = await tx.workspace.create({
+        data: {
+          name: input.name,
+          type: input.type,
+          baseCurrency: input.baseCurrency,
+          timezone: input.timezone,
+          ownerUserId,
+        },
+      });
+
+      await tx.workspaceMember.create({
+        data: {
+          workspaceId: createdWorkspace.id,
+          userId: ownerUserId,
+          role: WorkspaceMemberRole.OWNER,
+          status: WorkspaceMemberStatus.ACTIVE,
+          joinedAt: new Date(),
+        },
+      });
+
+      await tx.category.createMany({
+        data: buildStarterCategories(createdWorkspace.id),
+      });
+
+      return createdWorkspace;
+    });
+  }
+
+  private buildPersonalWorkspaceName(ownerName: string): string {
+    const trimmedName = ownerName.trim();
+    return trimmedName ? `${trimmedName}'s Budget` : 'My Budget';
+  }
+
+  private inferBaseCurrency(locale?: string, timezone?: string): string {
+    const normalizedLocale = (locale ?? '').toLowerCase();
+    const normalizedTimezone = timezone ?? '';
+
+    if (
+      normalizedLocale.startsWith('ko') ||
+      normalizedTimezone.startsWith('Asia/Seoul')
+    ) {
+      return 'KRW';
+    }
+
+    if (
+      normalizedLocale.startsWith('en-ca') ||
+      normalizedTimezone.startsWith('America/Toronto') ||
+      normalizedTimezone.startsWith('America/Vancouver')
+    ) {
+      return 'CAD';
+    }
+
+    return 'USD';
   }
 
   private toWorkspaceResponse(

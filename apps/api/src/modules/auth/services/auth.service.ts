@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import type { AuthenticatedUser } from '../../../common/interfaces/authenticated-request.interface';
 import { AppLoggerService } from '../../../core/logger/app-logger.service';
 import { UsersService } from '../../users/users.service';
+import { WorkspacesService } from '../../workspaces/services/workspaces.service';
 import { AuthResponseDto } from '../dto/auth-response.dto';
 import { AuthSessionResponseDto } from '../dto/auth-session-response.dto';
 import { ChangePasswordRequestDto } from '../dto/change-password-request.dto';
@@ -23,6 +24,7 @@ import { TokenService } from './token.service';
 export class AuthService {
   constructor(
     private readonly usersService: UsersService,
+    private readonly workspacesService: WorkspacesService,
     private readonly authSessionsService: AuthSessionsService,
     private readonly passwordService: PasswordService,
     private readonly tokenService: TokenService,
@@ -41,6 +43,15 @@ export class AuthService {
       email: input.email,
       passwordHash,
       name: input.name,
+      locale: input.locale,
+      timezone: input.timezone,
+    });
+
+    await this.workspacesService.createPersonalWorkspace({
+      ownerUserId: user.id,
+      ownerName: user.name,
+      locale: user.locale,
+      timezone: user.timezone,
     });
 
     this.logger.log('User created', AuthService.name, {
