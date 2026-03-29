@@ -84,3 +84,4 @@ BudgetFlow tracks active engineering work with GitHub Issues and GitHub Projects
 - project board setup: [docs/GITHUB_PROJECTS_SETUP.md](/Users/yoon-yongseol/WorkSpace/BudgetFlow/docs/GITHUB_PROJECTS_SETUP.md)
 - initial backlog seed: [docs/INITIAL_BACKLOG.md](/Users/yoon-yongseol/WorkSpace/BudgetFlow/docs/INITIAL_BACKLOG.md)
 - issue and PR templates: [.github](/Users/yoon-yongseol/WorkSpace/BudgetFlow/.github)
+- deployment checklist: [docs/DEPLOYMENT_RELEASE_CHECKLIST.md](/Users/yoon-yongseol/WorkSpace/BudgetFlow/docs/DEPLOYMENT_RELEASE_CHECKLIST.md)
