@@ -14,7 +14,7 @@ describe('WorkspacesService', () => {
   let prisma: {
     $transaction: jest.Mock;
     workspaceMember: { findMany: jest.Mock; findUnique: jest.Mock };
-    workspace: { findUnique: jest.Mock };
+    workspace: { findUnique: jest.Mock; update: jest.Mock };
   };
 
   beforeEach(async () => {
@@ -26,6 +26,7 @@ describe('WorkspacesService', () => {
       },
       workspace: {
         findUnique: jest.fn(),
+        update: jest.fn(),
       },
     };
 
@@ -184,5 +185,50 @@ describe('WorkspacesService', () => {
         '22222222-2222-2222-2222-222222222222',
       ),
     ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  it('update should allow owner to change workspace settings', async () => {
+    prisma.workspaceMember.findUnique.mockResolvedValue({
+      role: WorkspaceMemberRole.OWNER,
+      status: WorkspaceMemberStatus.ACTIVE,
+    });
+    prisma.workspace.findUnique.mockResolvedValue({
+      id: '11111111-1111-1111-1111-111111111111',
+      name: 'Home',
+      type: WorkspaceType.COUPLE,
+      baseCurrency: 'KRW',
+      timezone: 'Asia/Seoul',
+      ownerUserId: '22222222-2222-2222-2222-222222222222',
+    });
+    prisma.workspace.update.mockResolvedValue({
+      id: '11111111-1111-1111-1111-111111111111',
+      name: 'Budget Nest',
+      type: WorkspaceType.FAMILY,
+      baseCurrency: 'CAD',
+      timezone: 'America/Toronto',
+      ownerUserId: '22222222-2222-2222-2222-222222222222',
+    });
+
+    const result = await service.update(
+      '11111111-1111-1111-1111-111111111111',
+      '22222222-2222-2222-2222-222222222222',
+      {
+        name: 'Budget Nest',
+        type: WorkspaceType.FAMILY,
+        baseCurrency: 'CAD',
+        timezone: 'America/Toronto',
+      },
+    );
+
+    expect(prisma.workspace.update).toHaveBeenCalledWith({
+      where: { id: '11111111-1111-1111-1111-111111111111' },
+      data: {
+        name: 'Budget Nest',
+        type: WorkspaceType.FAMILY,
+        baseCurrency: 'CAD',
+        timezone: 'America/Toronto',
+      },
+    });
+    expect(result.name).toBe('Budget Nest');
   });
 });

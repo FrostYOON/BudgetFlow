@@ -12,6 +12,7 @@ import {
 import { PrismaService } from '../../../core/database/prisma.service';
 import { buildStarterCategories } from '../constants/starter-categories';
 import { CreateWorkspaceRequestDto } from '../dto/create-workspace-request.dto';
+import { UpdateWorkspaceRequestDto } from '../dto/update-workspace-request.dto';
 import { WorkspaceListItemResponseDto } from '../dto/workspace-list-item-response.dto';
 import { WorkspaceResponseDto } from '../dto/workspace-response.dto';
 
@@ -101,6 +102,34 @@ export class WorkspacesService {
     this.ensureMemberAccess(workspace, userId);
 
     return this.toWorkspaceResponse(workspace, true);
+  }
+
+  async update(
+    workspaceId: string,
+    userId: string,
+    input: UpdateWorkspaceRequestDto,
+  ): Promise<WorkspaceResponseDto> {
+    await this.assertOwner(workspaceId, userId);
+
+    const existing = await this.prisma.workspace.findUnique({
+      where: { id: workspaceId },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Workspace was not found.');
+    }
+
+    const workspace = await this.prisma.workspace.update({
+      where: { id: workspaceId },
+      data: {
+        name: input.name ?? existing.name,
+        type: input.type ?? existing.type,
+        baseCurrency: input.baseCurrency ?? existing.baseCurrency,
+        timezone: input.timezone ?? existing.timezone,
+      },
+    });
+
+    return this.toWorkspaceResponse(workspace);
   }
 
   async assertOwner(workspaceId: string, userId: string): Promise<void> {
