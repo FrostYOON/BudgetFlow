@@ -1,12 +1,15 @@
 import { redirect } from "next/navigation";
 import { Reveal } from "@/components/motion/reveal";
+import { InviteShareActions } from "@/components/settings/invite-share-actions";
 import { AppBadge } from "@/components/ui/app-badge";
 import { AppButton, AppButtonLink } from "@/components/ui/app-button";
 import { AppSurface } from "@/components/ui/app-surface";
 import { getAppSession } from "@/lib/auth/session";
 import {
+  buildWorkspaceInviteJoinPath,
   fetchWorkspaceInvites,
   fetchWorkspaceMembers,
+  getWorkspaceInviteDisplayMeta,
   type WorkspaceInviteSummary,
 } from "@/lib/settings";
 import { WORKSPACE_TYPE_OPTIONS } from "@/lib/workspace-options";
@@ -39,13 +42,6 @@ function getWorkspaceTypeOptions() {
     value: option.value,
     label: option.label,
   }));
-}
-
-function formatInviteDate(input: string) {
-  return new Intl.DateTimeFormat("en-CA", {
-    month: "short",
-    day: "numeric",
-  }).format(new Date(input));
 }
 
 export default async function SettingsPage() {
@@ -337,6 +333,7 @@ export default async function SettingsPage() {
                         key={invite.id}
                         invite={invite}
                         workspaceId={invite.workspaceId}
+                        workspaceName={session.currentWorkspace?.name ?? "BudgetFlow"}
                       />
                     ))}
                   </div>
@@ -531,28 +528,46 @@ export default async function SettingsPage() {
 function InviteCard({
   invite,
   workspaceId,
+  workspaceName,
 }: {
   invite: WorkspaceInviteSummary;
   workspaceId: string;
+  workspaceName: string;
 }) {
-  const joinPath = `/join/${invite.token}`;
+  const joinPath = buildWorkspaceInviteJoinPath(invite.token);
+  const inviteMeta = getWorkspaceInviteDisplayMeta(invite);
 
   return (
     <article className="rounded-[1.5rem] border border-slate-900/8 bg-slate-50 px-4 py-4 transition hover:-translate-y-0.5 hover:bg-white">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-sm font-semibold text-slate-950">{invite.email}</p>
-          <p className="mt-1 text-xs text-slate-500">
-            {invite.role} · expires {formatInviteDate(invite.expiresAt)}
-          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+            <AppBadge tone={inviteMeta.tone}>{inviteMeta.label}</AppBadge>
+            <p className="text-slate-500">
+              {invite.role} · {inviteMeta.detail}
+            </p>
+          </div>
         </div>
-        <AppBadge tone="warning">
-          {invite.status}
-        </AppBadge>
       </div>
 
-      <div className="mt-4 rounded-2xl border border-slate-200 bg-white px-3 py-3 text-xs text-slate-600">
-        {joinPath}
+      <div className="mt-4 rounded-2xl border border-slate-200 bg-white px-3 py-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-slate-400">
+              Invite link
+            </p>
+            <p className="mt-1 break-all text-sm text-slate-700">{joinPath}</p>
+          </div>
+          <InviteShareActions
+            invitePath={joinPath}
+            workspaceName={workspaceName}
+          />
+        </div>
+        <p className="mt-3 text-xs text-slate-500">
+          Copy or share this link. Resend rotates the token and renews the
+          expiry.
+        </p>
       </div>
 
       <div className="mt-3 flex flex-wrap justify-end gap-2">

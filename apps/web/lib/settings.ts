@@ -18,6 +18,12 @@ export interface WorkspaceInviteSummary {
   expiresAt: string;
 }
 
+export interface WorkspaceInviteDisplayMeta {
+  label: string;
+  tone: "subtle" | "success" | "warning" | "danger";
+  detail: string;
+}
+
 export interface WorkspaceSettingsInput {
   accessToken: string;
   workspaceId: string;
@@ -30,6 +36,16 @@ export interface WorkspaceSettingsInput {
 function getApiBaseUrl() {
   return process.env.BUDGETFLOW_API_URL ?? "http://localhost:3000/api/v1";
 }
+
+const INVITE_DATE_FORMATTER = new Intl.DateTimeFormat("en-CA", {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+});
+
+const INVITE_RELATIVE_FORMATTER = new Intl.RelativeTimeFormat("en", {
+  numeric: "auto",
+});
 
 async function readErrorMessage(response: Response, fallback: string) {
   try {
@@ -170,6 +186,53 @@ export async function fetchWorkspaceInvites(input: {
   }
 
   return (await response.json()) as WorkspaceInviteSummary[];
+}
+
+export function buildWorkspaceInviteJoinPath(token: string) {
+  return `/join/${token}`;
+}
+
+export function formatWorkspaceInviteDate(input: string) {
+  return INVITE_DATE_FORMATTER.format(new Date(input));
+}
+
+export function getWorkspaceInviteDisplayMeta(
+  invite: WorkspaceInviteSummary,
+): WorkspaceInviteDisplayMeta {
+  const expiresAt = new Date(invite.expiresAt);
+  const isExpired =
+    invite.status === "INVITED" && expiresAt.getTime() <= Date.now();
+  const relativeDays = Math.round(
+    (expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
+  );
+  const relativeText =
+    Math.abs(relativeDays) < 1
+      ? "today"
+      : INVITE_RELATIVE_FORMATTER.format(relativeDays, "day");
+
+  if (invite.status === "INVITED") {
+    return {
+      label: isExpired ? "Expired" : "Pending",
+      tone: isExpired ? "danger" : "warning",
+      detail: isExpired
+        ? `Expired ${formatWorkspaceInviteDate(invite.expiresAt)}`
+        : `Expires ${relativeText}`,
+    };
+  }
+
+  if (invite.status === "ACTIVE") {
+    return {
+      label: "Accepted",
+      tone: "success",
+      detail: "Invite accepted.",
+    };
+  }
+
+  return {
+    label: "Revoked",
+    tone: "subtle",
+    detail: "Invite revoked.",
+  };
 }
 
 export async function createWorkspaceInvite(input: {
