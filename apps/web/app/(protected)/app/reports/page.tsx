@@ -1,5 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import {
+  Reveal,
+  StaggerItem,
+  StaggerReveal,
+} from "@/components/motion/reveal";
 import { getAppSession } from "@/lib/auth/session";
 import {
   fetchMonthlyReport,
@@ -90,27 +95,40 @@ export default async function ReportsPage({
         </div>
       </section>
 
-      <section className="grid gap-3 sm:grid-cols-2">
-        <SummaryCard
-          label="Income"
-          value={formatCurrency(report.summary.totalIncome, currency, locale)}
-        />
-        <SummaryCard
-          label="Expense"
-          value={formatCurrency(report.summary.totalExpense, currency, locale)}
-        />
-        <SummaryCard
-          label="Net"
-          value={formatCurrency(report.summary.netAmount, currency, locale)}
-        />
-        <SummaryCard
-          label="Remaining"
-          value={formatCurrency(report.summary.remainingBudget, currency, locale)}
-        />
-      </section>
+      <StaggerReveal className="grid gap-3 sm:grid-cols-2">
+        <StaggerItem>
+          <SummaryCard
+            label="Income"
+            value={formatCurrency(report.summary.totalIncome, currency, locale)}
+          />
+        </StaggerItem>
+        <StaggerItem>
+          <SummaryCard
+            label="Expense"
+            value={formatCurrency(report.summary.totalExpense, currency, locale)}
+          />
+        </StaggerItem>
+        <StaggerItem>
+          <SummaryCard
+            label="Net"
+            value={formatCurrency(report.summary.netAmount, currency, locale)}
+          />
+        </StaggerItem>
+        <StaggerItem>
+          <SummaryCard
+            label="Remaining"
+            value={formatCurrency(
+              report.summary.remainingBudget,
+              currency,
+              locale,
+            )}
+          />
+        </StaggerItem>
+      </StaggerReveal>
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <CardSection title="Category breakdown">
+        <Reveal delay={0.04}>
+          <CardSection title="Category breakdown">
           <div className="space-y-3">
             {report.categoryBreakdown.map((item) => (
               <div
@@ -131,9 +149,11 @@ export default async function ReportsPage({
               </div>
             ))}
           </div>
-        </CardSection>
+          </CardSection>
+        </Reveal>
 
-        <CardSection title="Paid by">
+        <Reveal delay={0.08}>
+          <CardSection title="Paid by">
           <div className="space-y-3">
             {report.payerBreakdown.map((item) => (
               <div
@@ -154,9 +174,11 @@ export default async function ReportsPage({
               </div>
             ))}
           </div>
-        </CardSection>
+          </CardSection>
+        </Reveal>
 
-        <CardSection title="Budget progress">
+        <Reveal delay={0.12}>
+          <CardSection title="Budget progress">
           <div className="space-y-3">
             {report.budgetProgress.map((item) => (
               <div
@@ -189,9 +211,11 @@ export default async function ReportsPage({
               </div>
             ))}
           </div>
-        </CardSection>
+          </CardSection>
+        </Reveal>
 
-        <CardSection title="Recurring upcoming">
+        <Reveal delay={0.16}>
+          <CardSection title="Recurring upcoming">
           <div className="space-y-3">
             {report.recurringUpcoming.length === 0 ? (
               <p className="text-sm text-slate-500">No recurring items.</p>
@@ -216,10 +240,12 @@ export default async function ReportsPage({
               ))
             )}
           </div>
-        </CardSection>
+          </CardSection>
+        </Reveal>
       </section>
 
-      <CardSection title="Insights">
+      <Reveal delay={0.2}>
+        <CardSection title="Insights">
         <div className="space-y-3">
           {report.insights.length === 0 ? (
             <p className="text-sm text-slate-500">No insights.</p>
@@ -239,7 +265,8 @@ export default async function ReportsPage({
             ))
           )}
         </div>
-      </CardSection>
+        </CardSection>
+      </Reveal>
     </div>
   );
 }
