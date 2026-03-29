@@ -85,6 +85,13 @@ export default async function ReportsPage({
 
         <div className="mt-5 flex items-center gap-3 text-sm">
           <AppButtonLink
+            href={`/app/reports/export?year=${report.year}&month=${report.month}`}
+            size="sm"
+            tone="success"
+          >
+            Export CSV
+          </AppButtonLink>
+          <AppButtonLink
             href={`/app/reports?year=${prev.year}&month=${prev.month}`}
             size="sm"
             tone="secondary"
