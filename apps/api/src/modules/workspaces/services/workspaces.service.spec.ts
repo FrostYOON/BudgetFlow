@@ -101,7 +101,7 @@ describe('WorkspacesService', () => {
         }),
         expect.objectContaining({
           workspaceId: '11111111-1111-1111-1111-111111111111',
-          name: 'Groceries',
+          name: 'Market',
           type: CategoryType.EXPENSE,
           isDefault: true,
         }),

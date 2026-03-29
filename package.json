@@ -29,7 +29,8 @@
     "prisma:migrate:status": "pnpm --filter @budgetflow/database prisma:migrate:status",
     "prisma:migrate:dev": "pnpm --filter @budgetflow/database exec prisma migrate dev --schema ./prisma/schema.prisma",
     "prisma:migrate:deploy": "pnpm --filter @budgetflow/database exec prisma migrate deploy --schema ./prisma/schema.prisma",
-    "prisma:studio": "pnpm --filter @budgetflow/database prisma:studio"
+    "prisma:studio": "pnpm --filter @budgetflow/database prisma:studio",
+    "data:normalize:starter-categories": "node --env-file=packages/database/.env ./scripts/normalize-starter-category-labels.mjs"
   },
   "devDependencies": {
     "turbo": "^2.0.12"

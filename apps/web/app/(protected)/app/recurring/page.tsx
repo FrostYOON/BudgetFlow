@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { TypeDrivenCategoryFields } from "@/components/categories/type-driven-category-fields";
 import { getAppSession } from "@/lib/auth/session";
 import { fetchWorkspaceMembers, type WorkspaceMemberSummary } from "@/lib/settings";
 import {
@@ -55,43 +56,6 @@ function formatInputAmount(value: string) {
 
 function normalizeEditValue(value?: string) {
   return value && value.length > 0 ? value : null;
-}
-
-function CategorySelect({
-  categories,
-  defaultValue,
-  name,
-}: {
-  categories: TransactionCategory[];
-  defaultValue?: string | null;
-  name: string;
-}) {
-  const expenseCategories = categories.filter((item) => item.type === "EXPENSE");
-  const incomeCategories = categories.filter((item) => item.type === "INCOME");
-
-  return (
-    <select
-      name={name}
-      defaultValue={defaultValue ?? ""}
-      className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
-    >
-      <option value="">No category</option>
-      <optgroup label="Expense">
-        {expenseCategories.map((category) => (
-          <option key={category.id} value={category.id}>
-            {category.name}
-          </option>
-        ))}
-      </optgroup>
-      <optgroup label="Income">
-        {incomeCategories.map((category) => (
-          <option key={category.id} value={category.id}>
-            {category.name}
-          </option>
-        ))}
-      </optgroup>
-    </select>
-  );
 }
 
 function MemberSelect({
@@ -404,17 +368,11 @@ function QuickRuleForm({
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
         <input type="hidden" name="currency" value={currency} />
 
-        <label className="block">
-          <span className="text-sm font-medium text-slate-700">Type</span>
-          <select
-            name="type"
-            defaultValue="EXPENSE"
-            className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
-          >
-            <option value="EXPENSE">Expense</option>
-            <option value="INCOME">Income</option>
-          </select>
-        </label>
+        <TypeDrivenCategoryFields
+          categories={categories}
+          defaultType="EXPENSE"
+          selectClassName="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
+        />
 
         <label className="block">
           <span className="text-sm font-medium text-slate-700">Visibility</span>
@@ -452,11 +410,6 @@ function QuickRuleForm({
       </div>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        <label className="block">
-          <span className="text-sm font-medium text-slate-700">Category</span>
-          <CategorySelect categories={categories} name="categoryId" />
-        </label>
-
         <label className="block">
           <span className="text-sm font-medium text-slate-700">Paid by</span>
           <MemberSelect members={members} name="paidByUserId" />
@@ -535,17 +488,12 @@ function EditRuleForm({
       </div>
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
-        <label className="block">
-          <span className="text-sm font-medium text-slate-700">Type</span>
-          <select
-            name="type"
-            defaultValue={item.type}
-            className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400"
-          >
-            <option value="EXPENSE">Expense</option>
-            <option value="INCOME">Income</option>
-          </select>
-        </label>
+        <TypeDrivenCategoryFields
+          categories={categories}
+          defaultCategoryId={item.categoryId}
+          defaultType={item.type}
+          selectClassName="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400"
+        />
 
         <label className="block">
           <span className="text-sm font-medium text-slate-700">Visibility</span>
@@ -583,15 +531,6 @@ function EditRuleForm({
       </div>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        <label className="block">
-          <span className="text-sm font-medium text-slate-700">Category</span>
-          <CategorySelect
-            categories={categories}
-            defaultValue={item.categoryId}
-            name="categoryId"
-          />
-        </label>
-
         <label className="block">
           <span className="text-sm font-medium text-slate-700">Paid by</span>
           <MemberSelect

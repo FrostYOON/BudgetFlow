@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { TypeDrivenCategoryFields } from "@/components/categories/type-driven-category-fields";
 import { getAppSession } from "@/lib/auth/session";
 import { fetchWorkspaceMembers, type WorkspaceMemberSummary } from "@/lib/settings";
 import {
@@ -208,17 +209,11 @@ function QuickAddCard({
       </div>
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
-        <label className="block">
-          <span className="text-sm font-medium text-slate-700">Type</span>
-          <select
-            name="type"
-            defaultValue={defaultType}
-            className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
-          >
-            <option value="EXPENSE">Expense</option>
-            <option value="INCOME">Income</option>
-          </select>
-        </label>
+        <TypeDrivenCategoryFields
+          categories={categories}
+          defaultType={defaultType}
+          selectClassName="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
+        />
 
         <label className="block">
           <span className="text-sm font-medium text-slate-700">Visibility</span>
@@ -256,11 +251,6 @@ function QuickAddCard({
       </div>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        <label className="block">
-          <span className="text-sm font-medium text-slate-700">Category</span>
-          <CategorySelect categories={categories} name="categoryId" />
-        </label>
-
         <label className="block">
           <span className="text-sm font-medium text-slate-700">Paid by</span>
           <MemberSelect members={members} name="paidByUserId" />

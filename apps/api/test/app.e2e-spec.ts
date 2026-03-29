@@ -210,7 +210,7 @@ describe('API onboarding flow (e2e)', () => {
     expect(expenseCategories).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          name: 'Groceries',
+          name: 'Market',
           type: CategoryType.EXPENSE,
           isDefault: true,
           isArchived: false,
