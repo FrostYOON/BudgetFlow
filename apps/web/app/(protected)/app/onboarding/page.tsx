@@ -1,24 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getAppSession } from "@/lib/auth/session";
-
-const WORKSPACE_TYPES = [
-  {
-    value: "COUPLE",
-    label: "Couple",
-    description: "Shared home, date nights, everyday bills",
-  },
-  {
-    value: "FAMILY",
-    label: "Family",
-    description: "Household spending, school, groceries, utilities",
-  },
-  {
-    value: "ROOMMATE",
-    label: "Roommate",
-    description: "Rent, shared supplies, split living costs",
-  },
-] as const;
+import { WORKSPACE_TYPE_OPTIONS } from "@/lib/workspace-options";
 
 const CURRENCY_OPTIONS = ["CAD", "KRW", "USD", "EUR", "JPY"] as const;
 
@@ -69,7 +52,7 @@ export default async function OnboardingPage() {
             Household type
           </legend>
           <div className="grid gap-3">
-            {WORKSPACE_TYPES.map((option, index) => (
+            {WORKSPACE_TYPE_OPTIONS.map((option, index) => (
               <label
                 key={option.value}
                 className="flex cursor-pointer items-start gap-3 rounded-[1.25rem] border border-slate-200 bg-slate-50 px-4 py-4 transition hover:border-emerald-300 hover:bg-white"
