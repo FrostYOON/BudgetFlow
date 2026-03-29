@@ -1,4 +1,4 @@
-export type HolidayRegion = "NONE" | "ON";
+export type HolidayRegion = "NONE" | "ON" | "KR";
 
 export type HolidayInfo = {
   name: string;
@@ -9,6 +9,7 @@ export type HolidayContext = {
   region: HolidayRegion;
   label: string | null;
   timeZone: string | null;
+  language: string;
 };
 
 const ONTARIO_TIME_ZONES = new Set([
@@ -18,82 +19,26 @@ const ONTARIO_TIME_ZONES = new Set([
   "America/Rainy_River",
 ]);
 
-function parseDateKey(dateKey: string) {
-  const [year, month, day] = dateKey.split("-").map(Number);
-
-  return {
-    year,
-    month,
-    day,
-  };
+function normalizeLocale(locale?: string | null) {
+  return locale?.toLowerCase() ?? "";
 }
 
-function toDateKey(date: Date) {
-  return date.toISOString().slice(0, 10);
-}
+function toShortHolidayName(name: string) {
+  if (name.length <= 10) {
+    return name;
+  }
 
-function getNthWeekdayOfMonth(
-  year: number,
-  monthIndex: number,
-  weekday: number,
-  occurrence: number,
-) {
-  const firstDay = new Date(Date.UTC(year, monthIndex, 1));
-  const firstWeekdayOffset = (weekday - firstDay.getUTCDay() + 7) % 7;
-  const day = 1 + firstWeekdayOffset + (occurrence - 1) * 7;
+  const compact = name
+    .replace(/\s+Day$/i, "")
+    .replace(/\s+Holiday$/i, "")
+    .trim();
 
-  return new Date(Date.UTC(year, monthIndex, day));
-}
+  if (compact.length <= 10) {
+    return compact;
+  }
 
-function getLastWeekdayOnOrBefore(
-  year: number,
-  monthIndex: number,
-  dayOfMonth: number,
-  weekday: number,
-) {
-  const date = new Date(Date.UTC(year, monthIndex, dayOfMonth));
-  const offset = (date.getUTCDay() - weekday + 7) % 7;
-  date.setUTCDate(date.getUTCDate() - offset);
-
-  return date;
-}
-
-function getEasterSunday(year: number) {
-  const a = year % 19;
-  const b = Math.floor(year / 100);
-  const c = year % 100;
-  const d = Math.floor(b / 4);
-  const e = b % 4;
-  const f = Math.floor((b + 8) / 25);
-  const g = Math.floor((b - f + 1) / 3);
-  const h = (19 * a + b - d - g + 15) % 30;
-  const i = Math.floor(c / 4);
-  const k = c % 4;
-  const l = (32 + 2 * e + 2 * i - h - k) % 7;
-  const m = Math.floor((a + 11 * h + 22 * l) / 451);
-  const month = Math.floor((h + l - 7 * m + 114) / 31);
-  const day = ((h + l - 7 * m + 114) % 31) + 1;
-
-  return new Date(Date.UTC(year, month - 1, day));
-}
-
-function buildOntarioHolidayMap(year: number) {
-  const easterSunday = getEasterSunday(year);
-  const goodFriday = new Date(easterSunday);
-  goodFriday.setUTCDate(easterSunday.getUTCDate() - 2);
-
-  return new Map<string, HolidayInfo>([
-    [toDateKey(new Date(Date.UTC(year, 0, 1))), { name: "New Year's Day", shortName: "New Year" }],
-    [toDateKey(getNthWeekdayOfMonth(year, 1, 1, 3)), { name: "Family Day", shortName: "Family" }],
-    [toDateKey(goodFriday), { name: "Good Friday", shortName: "Good Fri" }],
-    [toDateKey(getLastWeekdayOnOrBefore(year, 4, 24, 1)), { name: "Victoria Day", shortName: "Victoria" }],
-    [toDateKey(new Date(Date.UTC(year, 6, 1))), { name: "Canada Day", shortName: "Canada" }],
-    [toDateKey(getNthWeekdayOfMonth(year, 7, 1, 1)), { name: "Civic Holiday", shortName: "Civic" }],
-    [toDateKey(getNthWeekdayOfMonth(year, 8, 1, 1)), { name: "Labour Day", shortName: "Labour" }],
-    [toDateKey(getNthWeekdayOfMonth(year, 9, 1, 2)), { name: "Thanksgiving", shortName: "Thanks" }],
-    [toDateKey(new Date(Date.UTC(year, 11, 25))), { name: "Christmas Day", shortName: "Xmas" }],
-    [toDateKey(new Date(Date.UTC(year, 11, 26))), { name: "Boxing Day", shortName: "Boxing" }],
-  ]);
+  const [firstWord] = compact.split(" ");
+  return firstWord.slice(0, 10);
 }
 
 export function detectHolidayContext({
@@ -103,17 +48,42 @@ export function detectHolidayContext({
   locale?: string | null;
   timeZone?: string | null;
 }) {
-  const normalizedLocale = locale?.toLowerCase() ?? "";
+  const normalizedLocale = normalizeLocale(locale);
+  const language = normalizedLocale.startsWith("ko") ? "ko" : "en";
 
-  if (
-    (timeZone && ONTARIO_TIME_ZONES.has(timeZone)) ||
-    normalizedLocale === "en-ca" ||
-    normalizedLocale.endsWith("-ca")
-  ) {
+  if (timeZone === "Asia/Seoul") {
+    return {
+      region: "KR" satisfies HolidayRegion,
+      label: "Korea holidays",
+      timeZone: timeZone ?? null,
+      language,
+    } satisfies HolidayContext;
+  }
+
+  if (timeZone && ONTARIO_TIME_ZONES.has(timeZone)) {
     return {
       region: "ON" satisfies HolidayRegion,
       label: "Ontario holidays",
       timeZone: timeZone ?? null,
+      language,
+    } satisfies HolidayContext;
+  }
+
+  if (normalizedLocale === "ko-kr" || normalizedLocale.endsWith("-kr")) {
+    return {
+      region: "KR" satisfies HolidayRegion,
+      label: "Korea holidays",
+      timeZone: timeZone ?? null,
+      language,
+    } satisfies HolidayContext;
+  }
+
+  if (normalizedLocale === "en-ca" || normalizedLocale.endsWith("-ca")) {
+    return {
+      region: "ON" satisfies HolidayRegion,
+      label: "Ontario holidays",
+      timeZone: timeZone ?? null,
+      language,
     } satisfies HolidayContext;
   }
 
@@ -121,22 +91,49 @@ export function detectHolidayContext({
     region: "NONE" satisfies HolidayRegion,
     label: null,
     timeZone: timeZone ?? null,
+    language,
   } satisfies HolidayContext;
 }
 
-export function getHolidayInfo(
-  dateKey: string,
-  region: HolidayRegion,
-) {
-  if (region === "NONE") {
-    return null;
+export async function loadHolidayMap({
+  context,
+  years,
+}: {
+  context: HolidayContext;
+  years: number[];
+}) {
+  const holidayMap = new Map<string, HolidayInfo>();
+
+  if (context.region === "NONE" || years.length === 0) {
+    return holidayMap;
   }
 
-  const { year } = parseDateKey(dateKey);
+  const { default: Holidays } = await import("date-holidays");
+  const holidays =
+    context.region === "KR"
+      ? new Holidays("KR", {
+          languages: [context.language],
+          timezone: context.timeZone ?? undefined,
+          types: ["public", "bank"],
+        })
+      : new Holidays("CA", "ON", {
+          languages: [context.language],
+          timezone: context.timeZone ?? undefined,
+          types: ["public", "bank"],
+        });
 
-  if (region === "ON") {
-    return buildOntarioHolidayMap(year).get(dateKey) ?? null;
+  for (const year of years) {
+    for (const holiday of holidays.getHolidays(year, context.language)) {
+      const dateKey = holiday.start.toISOString().slice(0, 10);
+
+      if (!holidayMap.has(dateKey)) {
+        holidayMap.set(dateKey, {
+          name: holiday.name,
+          shortName: toShortHolidayName(holiday.name),
+        });
+      }
+    }
   }
 
-  return null;
+  return holidayMap;
 }

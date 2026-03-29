@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   detectHolidayContext,
-  getHolidayInfo,
   type HolidayContext,
+  type HolidayInfo,
+  loadHolidayMap,
 } from "@/lib/holiday-calendar";
 
 type DashboardCalendarTransaction = {
@@ -208,6 +209,33 @@ export function DashboardTransactionCalendar({
       timeZone,
     });
   });
+  const [holidayMap, setHolidayMap] = useState<Map<string, HolidayInfo>>(
+    () => new Map(),
+  );
+
+  const calendarDays = useMemo(() => buildCalendarDays(year, month), [year, month]);
+  const calendarYears = useMemo(
+    () =>
+      [...new Set(calendarDays.map((day) => Number(day.dateKey.slice(0, 4))))].sort(),
+    [calendarDays],
+  );
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    loadHolidayMap({
+      context: holidayContext,
+      years: calendarYears,
+    }).then((map) => {
+      if (!isCancelled) {
+        setHolidayMap(map);
+      }
+    });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [calendarYears, holidayContext]);
 
   const selectedSummary =
     daySummaries.get(selectedDate) ??
@@ -219,11 +247,10 @@ export function DashboardTransactionCalendar({
       transactions: [],
     } satisfies CalendarDaySummary);
 
-  const calendarDays = buildCalendarDays(year, month);
   const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const formattedSelectedDate = formatDateLabel(selectedDate, locale);
   const monthLabel = formatMonthLabel(year, month, locale);
-  const selectedHoliday = getHolidayInfo(selectedDate, holidayContext.region);
+  const selectedHoliday = holidayMap.get(selectedDate) ?? null;
   const selectedNet = selectedSummary.income - selectedSummary.expense;
 
   return (
@@ -270,7 +297,7 @@ export function DashboardTransactionCalendar({
         {calendarDays.map((day) => {
           const summary = daySummaries.get(day.dateKey);
           const isSelected = selectedDate === day.dateKey;
-          const holiday = getHolidayInfo(day.dateKey, holidayContext.region);
+          const holiday = holidayMap.get(day.dateKey) ?? null;
           const incomeLabel = formatMiniAmount(summary?.income ?? 0, locale);
           const expenseLabel = formatMiniAmount(summary?.expense ?? 0, locale);
           const tone = getDayTone(day.weekday);
