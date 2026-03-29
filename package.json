@@ -17,6 +17,7 @@
     "lint:api": "pnpm --filter @budgetflow/api lint",
     "test": "turbo run test",
     "test:api": "pnpm --filter @budgetflow/api test -- --runInBand",
+    "test:web:e2e": "pnpm --filter @budgetflow/web test:e2e",
     "format": "turbo run format",
     "format:api": "pnpm --filter @budgetflow/api format",
     "docker:start": "docker compose up -d postgres",

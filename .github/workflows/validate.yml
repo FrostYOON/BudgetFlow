@@ -68,3 +68,9 @@ jobs:
 
       - name: API e2e tests
         run: pnpm --filter @budgetflow/api test:e2e
+
+      - name: Install Playwright browsers
+        run: pnpm --filter @budgetflow/web exec playwright install --with-deps chromium
+
+      - name: Web e2e tests
+        run: pnpm test:web:e2e
