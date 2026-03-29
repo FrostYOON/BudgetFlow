@@ -65,6 +65,30 @@ const TOAST_MESSAGES: Record<string, { type: "success" | "error"; text: string }
     type: "error",
     text: "Failed to accept invite.",
   },
+  category_created: {
+    type: "success",
+    text: "Category created.",
+  },
+  category_updated: {
+    type: "success",
+    text: "Category updated.",
+  },
+  category_archived: {
+    type: "success",
+    text: "Category archived.",
+  },
+  category_create_failed: {
+    type: "error",
+    text: "Failed to create category.",
+  },
+  category_update_failed: {
+    type: "error",
+    text: "Failed to update category.",
+  },
+  category_archive_failed: {
+    type: "error",
+    text: "Failed to archive category.",
+  },
   budget_saved: {
     type: "success",
     text: "Budget saved.",
