@@ -135,4 +135,41 @@ describe('CategoriesService', () => {
       data: { isArchived: true },
     });
   });
+
+  it('unarchive should restore an archived category', async () => {
+    prisma.category.findFirst.mockResolvedValue({
+      id: 'category-1',
+      workspaceId: 'workspace-1',
+      name: 'Groceries',
+      type: CategoryType.EXPENSE,
+      color: null,
+      icon: null,
+      sortOrder: 0,
+      isDefault: false,
+      isArchived: true,
+    });
+    prisma.category.update.mockResolvedValue({
+      id: 'category-1',
+      workspaceId: 'workspace-1',
+      name: 'Groceries',
+      type: CategoryType.EXPENSE,
+      color: null,
+      icon: null,
+      sortOrder: 0,
+      isDefault: false,
+      isArchived: false,
+    });
+
+    const result = await service.unarchive(
+      'workspace-1',
+      'category-1',
+      'user-1',
+    );
+
+    expect(result.isArchived).toBe(false);
+    expect(prisma.category.update).toHaveBeenCalledWith({
+      where: { id: 'category-1' },
+      data: { isArchived: false },
+    });
+  });
 });

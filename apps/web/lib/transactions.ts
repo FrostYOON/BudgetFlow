@@ -182,6 +182,56 @@ export async function updateWorkspaceTransaction(input: {
   return response.json();
 }
 
+export async function deleteWorkspaceTransaction(input: {
+  accessToken: string;
+  workspaceId: string;
+  transactionId: string;
+}) {
+  const response = await fetch(
+    `${getApiBaseUrl()}/workspaces/${input.workspaceId}/transactions/${input.transactionId}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${input.accessToken}`,
+      },
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(response, "Failed to delete transaction."),
+    );
+  }
+
+  return response.json();
+}
+
+export async function restoreWorkspaceTransaction(input: {
+  accessToken: string;
+  workspaceId: string;
+  transactionId: string;
+}) {
+  const response = await fetch(
+    `${getApiBaseUrl()}/workspaces/${input.workspaceId}/transactions/${input.transactionId}/restore`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${input.accessToken}`,
+      },
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(response, "Failed to restore transaction."),
+    );
+  }
+
+  return response.json();
+}
+
 export function formatCurrency(
   amount: string,
   currency: string,

@@ -161,7 +161,18 @@ function CategoryRow({
               Archive
             </button>
           </form>
-        ) : null}
+        ) : (
+          <form action="/app/settings/categories/unarchive" method="post">
+            <input type="hidden" name="workspaceId" value={workspaceId} />
+            <input type="hidden" name="categoryId" value={category.id} />
+            <button
+              type="submit"
+              className="inline-flex items-center justify-center rounded-full border border-emerald-200 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:border-emerald-400 hover:text-emerald-800"
+            >
+              Restore
+            </button>
+          </form>
+        )}
       </div>
     </article>
   );

@@ -155,3 +155,28 @@ export async function archiveWorkspaceCategory(input: {
 
   return (await response.json()) as WorkspaceCategory;
 }
+
+export async function unarchiveWorkspaceCategory(input: {
+  accessToken: string;
+  workspaceId: string;
+  categoryId: string;
+}) {
+  const response = await fetch(
+    `${getApiBaseUrl()}/workspaces/${input.workspaceId}/categories/${input.categoryId}/unarchive`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${input.accessToken}`,
+      },
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(response, "Failed to restore category."),
+    );
+  }
+
+  return (await response.json()) as WorkspaceCategory;
+}

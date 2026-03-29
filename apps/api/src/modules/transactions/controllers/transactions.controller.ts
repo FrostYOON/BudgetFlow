@@ -104,4 +104,19 @@ export class TransactionsController {
       user.userId,
     );
   }
+
+  @Post(':transactionId/restore')
+  @ApiOperation({ summary: 'Restore a soft-deleted transaction' })
+  @ApiOkResponse({ type: TransactionResponseDto })
+  restore(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('workspaceId', new ParseUUIDPipe()) workspaceId: string,
+    @Param('transactionId', new ParseUUIDPipe()) transactionId: string,
+  ): Promise<TransactionResponseDto> {
+    return this.transactionsService.restore(
+      workspaceId,
+      transactionId,
+      user.userId,
+    );
+  }
 }

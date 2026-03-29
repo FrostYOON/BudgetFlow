@@ -198,7 +198,6 @@ function QuickAddCard({
       <div className="flex items-center justify-between gap-4">
         <div>
           <p className="text-sm font-semibold text-slate-950">Quick add</p>
-          <p className="mt-1 text-sm text-slate-500">Add one transaction fast.</p>
         </div>
         <div className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
           {currency}
@@ -313,9 +312,7 @@ function EditTransactionCard({
       <div className="flex items-center justify-between gap-4">
         <div>
           <p className="text-sm font-semibold text-slate-950">Edit transaction</p>
-          <p className="mt-1 text-sm text-slate-500">
-            Type stays {transaction.type.toLowerCase()} for this edit.
-          </p>
+          <p className="mt-1 text-sm text-slate-500">{transaction.type}</p>
         </div>
         <Link
           href={returnTo}
@@ -418,6 +415,7 @@ export default async function TransactionsPage({
   searchParams,
 }: {
   searchParams: Promise<{
+    deleted?: string;
     year?: string;
     month?: string;
     type?: string;
@@ -435,6 +433,8 @@ export default async function TransactionsPage({
     redirect("/app/onboarding");
   }
 
+  const currentWorkspace = session.currentWorkspace;
+
   const params = await searchParams;
   const requestedPeriod = getPeriod(params);
   const type = getType(params.type);
@@ -447,7 +447,7 @@ export default async function TransactionsPage({
   const [transactions, categories, members] = await Promise.all([
     fetchWorkspaceTransactions({
       accessToken: session.accessToken,
-      workspaceId: session.currentWorkspace.id,
+      workspaceId: currentWorkspace.id,
       from: monthRange.from,
       to: monthRange.to,
       type: type === "ALL" ? undefined : type,
@@ -455,11 +455,11 @@ export default async function TransactionsPage({
     }),
     fetchWorkspaceCategories({
       accessToken: session.accessToken,
-      workspaceId: session.currentWorkspace.id,
+      workspaceId: currentWorkspace.id,
     }),
     fetchWorkspaceMembers({
       accessToken: session.accessToken,
-      workspaceId: session.currentWorkspace.id,
+      workspaceId: currentWorkspace.id,
     }),
   ]);
 
@@ -479,6 +479,10 @@ export default async function TransactionsPage({
     monthRange,
   );
   const defaultCreateType = type === "ALL" ? "EXPENSE" : type;
+  const deletedTransactionId =
+    typeof params.deleted === "string" && params.deleted.length > 0
+      ? params.deleted
+      : null;
 
   const grouped = Object.entries(
     transactions.items.reduce<Record<string, typeof transactions.items>>(
@@ -523,7 +527,7 @@ export default async function TransactionsPage({
               {formatMonthLabel(requestedPeriod.year, requestedPeriod.month)}
             </h1>
             <p className="mt-1 text-sm text-slate-500">
-              {session.currentWorkspace.name}
+              {currentWorkspace.name}
             </p>
           </div>
           <div className="rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white">
@@ -559,7 +563,7 @@ export default async function TransactionsPage({
 
       <QuickAddCard
         categories={categories}
-        currency={session.currentWorkspace.baseCurrency}
+        currency={currentWorkspace.baseCurrency}
         defaultDate={defaultCreateDate}
         defaultType={defaultCreateType}
         members={members}
@@ -569,11 +573,41 @@ export default async function TransactionsPage({
       {editableTransaction ? (
         <EditTransactionCard
           categories={categories}
-          currency={session.currentWorkspace.baseCurrency}
+          currency={currentWorkspace.baseCurrency}
           members={members}
           returnTo={baseHref}
           transaction={editableTransaction}
         />
+      ) : null}
+
+      {deletedTransactionId ? (
+        <section className="rounded-[1.5rem] border border-amber-200 bg-amber-50 px-5 py-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-slate-950">
+                Transaction deleted
+              </p>
+              <p className="mt-1 text-sm text-slate-600">
+                Restore it if you removed the wrong entry.
+              </p>
+            </div>
+            <form action="/app/transactions/restore" method="post">
+              <input
+                type="hidden"
+                name="workspaceId"
+                value={currentWorkspace.id}
+              />
+              <input type="hidden" name="transactionId" value={deletedTransactionId} />
+              <input type="hidden" name="returnTo" value={baseHref} />
+              <button
+                type="submit"
+                className="inline-flex items-center justify-center rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+              >
+                Restore
+              </button>
+            </form>
+          </div>
+        </section>
       ) : null}
 
       <section className="grid gap-3 sm:grid-cols-2">
@@ -582,7 +616,7 @@ export default async function TransactionsPage({
           <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
             {formatCurrency(
               String(totals.income),
-              session.currentWorkspace.baseCurrency,
+              currentWorkspace.baseCurrency,
               locale,
             )}
           </p>
@@ -592,7 +626,7 @@ export default async function TransactionsPage({
           <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
             {formatCurrency(
               String(totals.expense),
-              session.currentWorkspace.baseCurrency,
+              currentWorkspace.baseCurrency,
               locale,
             )}
           </p>
@@ -602,7 +636,7 @@ export default async function TransactionsPage({
           <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
             {formatCurrency(
               String(totals.shared),
-              session.currentWorkspace.baseCurrency,
+              currentWorkspace.baseCurrency,
               locale,
             )}
           </p>
@@ -612,7 +646,7 @@ export default async function TransactionsPage({
           <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
             {formatCurrency(
               String(totals.personal),
-              session.currentWorkspace.baseCurrency,
+              currentWorkspace.baseCurrency,
               locale,
             )}
           </p>
@@ -681,9 +715,7 @@ export default async function TransactionsPage({
 
       {grouped.length === 0 ? (
         <section className="rounded-[1.75rem] border border-dashed border-slate-300 bg-white px-6 py-10 text-center">
-          <p className="text-sm font-medium text-slate-950">
-            No transactions for this month
-          </p>
+          <p className="text-sm font-medium text-slate-950">No entries</p>
         </section>
       ) : (
         <div className="space-y-6">
@@ -730,12 +762,33 @@ export default async function TransactionsPage({
                     </div>
 
                     <div className="mt-4 flex justify-end">
-                      <Link
-                        href={buildEditHref(baseHref, transaction.id)}
-                        className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
-                      >
-                        Edit
-                      </Link>
+                      <div className="flex gap-2">
+                        <form action="/app/transactions/delete" method="post">
+                          <input
+                            type="hidden"
+                            name="workspaceId"
+                            value={currentWorkspace.id}
+                          />
+                          <input
+                            type="hidden"
+                            name="transactionId"
+                            value={transaction.id}
+                          />
+                          <input type="hidden" name="returnTo" value={baseHref} />
+                          <button
+                            type="submit"
+                            className="rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:border-rose-400 hover:text-rose-800"
+                          >
+                            Delete
+                          </button>
+                        </form>
+                        <Link
+                          href={buildEditHref(baseHref, transaction.id)}
+                          className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+                        >
+                          Edit
+                        </Link>
+                      </div>
                     </div>
                   </article>
                 ))}

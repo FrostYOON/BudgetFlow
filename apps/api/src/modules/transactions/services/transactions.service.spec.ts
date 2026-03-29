@@ -336,4 +336,57 @@ describe('TransactionsService', () => {
       },
     });
   });
+
+  it('restore should restore a soft-deleted transaction', async () => {
+    prisma.transaction.findFirst.mockResolvedValue({
+      id: 'transaction-1',
+      workspaceId: 'workspace-1',
+      type: TransactionType.EXPENSE,
+      visibility: TransactionVisibility.SHARED,
+      amount: new Prisma.Decimal('52000.00'),
+      currency: 'KRW',
+      transactionDate: new Date('2026-03-24T00:00:00.000Z'),
+      categoryId: null,
+      category: null,
+      memo: null,
+      createdByUserId: 'user-1',
+      paidByUserId: 'user-1',
+      paidBy: { name: 'Minji' },
+      isDeleted: true,
+      createdAt: new Date('2026-03-24T10:00:00.000Z'),
+    });
+    prisma.transaction.update.mockResolvedValue({
+      id: 'transaction-1',
+      workspaceId: 'workspace-1',
+      type: TransactionType.EXPENSE,
+      visibility: TransactionVisibility.SHARED,
+      amount: new Prisma.Decimal('52000.00'),
+      currency: 'KRW',
+      transactionDate: new Date('2026-03-24T00:00:00.000Z'),
+      categoryId: null,
+      category: null,
+      memo: null,
+      createdByUserId: 'user-1',
+      paidByUserId: 'user-1',
+      paidBy: { name: 'Minji' },
+      isDeleted: false,
+      createdAt: new Date('2026-03-24T10:00:00.000Z'),
+    });
+
+    const result = await service.restore(
+      'workspace-1',
+      'transaction-1',
+      'user-1',
+    );
+
+    expect(result.isDeleted).toBe(false);
+    expect(prisma.transaction.update).toHaveBeenCalledWith({
+      where: { id: 'transaction-1' },
+      data: { isDeleted: false },
+      include: {
+        category: true,
+        paidBy: true,
+      },
+    });
+  });
 });

@@ -268,7 +268,7 @@ export default async function SettingsPage() {
             </form>
           ) : (
             <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-sm text-slate-500">
-              Create or join a workspace to set a household nickname.
+              No household.
             </div>
           )}
         </section>
@@ -332,7 +332,11 @@ export default async function SettingsPage() {
                 {pendingInvites.length > 0 ? (
                   <div className="space-y-3">
                     {pendingInvites.map((invite) => (
-                      <InviteCard key={invite.id} invite={invite} />
+                      <InviteCard
+                        key={invite.id}
+                        invite={invite}
+                        workspaceId={invite.workspaceId}
+                      />
                     ))}
                   </div>
                 ) : (
@@ -343,12 +347,12 @@ export default async function SettingsPage() {
               </div>
             ) : (
               <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm text-slate-500">
-                Only owners can send or review invites.
+                Owner only.
               </div>
             )
           ) : (
             <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-sm text-slate-500">
-              Create or join a workspace before inviting anyone.
+              No household.
             </div>
           )}
         </section>
@@ -509,13 +513,13 @@ export default async function SettingsPage() {
                 </div>
 
                 <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm text-slate-500">
-                  Only owners can edit household settings.
+                  Owner only.
                 </div>
               </div>
             )
           ) : (
             <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-sm text-slate-500">
-              Create or join a workspace to manage household settings.
+              No household.
             </div>
           )}
         </section>
@@ -524,7 +528,13 @@ export default async function SettingsPage() {
   );
 }
 
-function InviteCard({ invite }: { invite: WorkspaceInviteSummary }) {
+function InviteCard({
+  invite,
+  workspaceId,
+}: {
+  invite: WorkspaceInviteSummary;
+  workspaceId: string;
+}) {
   const joinPath = `/join/${invite.token}`;
 
   return (
@@ -545,7 +555,27 @@ function InviteCard({ invite }: { invite: WorkspaceInviteSummary }) {
         {joinPath}
       </div>
 
-      <div className="mt-3 flex justify-end">
+      <div className="mt-3 flex flex-wrap justify-end gap-2">
+        <form action="/app/settings/invites/resend" method="post">
+          <input type="hidden" name="workspaceId" value={workspaceId} />
+          <input type="hidden" name="inviteId" value={invite.id} />
+          <button
+            type="submit"
+            className="inline-flex items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+          >
+            Resend
+          </button>
+        </form>
+        <form action="/app/settings/invites/revoke" method="post">
+          <input type="hidden" name="workspaceId" value={workspaceId} />
+          <input type="hidden" name="inviteId" value={invite.id} />
+          <button
+            type="submit"
+            className="inline-flex items-center justify-center rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:border-rose-400 hover:text-rose-800"
+          >
+            Revoke
+          </button>
+        </form>
         <Link
           href={joinPath}
           className="inline-flex items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950"

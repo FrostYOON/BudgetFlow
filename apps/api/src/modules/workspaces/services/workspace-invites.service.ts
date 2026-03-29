@@ -48,6 +48,20 @@ export class WorkspaceInvitesService {
       );
     }
 
+    const existingPendingInvite = await this.prisma.workspaceInvite.findFirst({
+      where: {
+        workspaceId,
+        email: input.email,
+        status: WorkspaceMemberStatus.INVITED,
+      },
+    });
+
+    if (existingPendingInvite) {
+      throw new ConflictException(
+        'User already has a pending workspace invite.',
+      );
+    }
+
     const invite = await this.prisma.workspaceInvite.create({
       data: {
         workspaceId,
@@ -80,25 +94,60 @@ export class WorkspaceInvitesService {
     return invites.map((invite) => this.toInviteResponse(invite));
   }
 
+  async revokeInvite(
+    workspaceId: string,
+    inviteId: string,
+    actorUserId: string,
+  ): Promise<WorkspaceInviteResponseDto> {
+    await this.workspacesService.assertOwner(workspaceId, actorUserId);
+
+    const invite = await this.findInviteOrThrow(workspaceId, inviteId);
+
+    if (invite.status !== WorkspaceMemberStatus.INVITED) {
+      throw new ConflictException('Invite is not pending.');
+    }
+
+    const updatedInvite = await this.prisma.workspaceInvite.update({
+      where: { id: invite.id },
+      data: {
+        status: WorkspaceMemberStatus.LEFT,
+      },
+    });
+
+    return this.toInviteResponse(updatedInvite);
+  }
+
+  async resendInvite(
+    workspaceId: string,
+    inviteId: string,
+    actorUserId: string,
+  ): Promise<WorkspaceInviteResponseDto> {
+    await this.workspacesService.assertOwner(workspaceId, actorUserId);
+
+    const invite = await this.findInviteOrThrow(workspaceId, inviteId);
+
+    if (invite.status !== WorkspaceMemberStatus.INVITED) {
+      throw new ConflictException('Invite is not pending.');
+    }
+
+    const updatedInvite = await this.prisma.workspaceInvite.update({
+      where: { id: invite.id },
+      data: {
+        token: randomUUID(),
+        expiresAt: this.buildExpirationDate(),
+      },
+    });
+
+    return this.toInviteResponse(updatedInvite);
+  }
+
   async acceptInvite(
     token: string,
     user: AuthenticatedUser,
   ): Promise<AcceptWorkspaceInviteResponseDto> {
-    const invite = await this.prisma.workspaceInvite.findUnique({
-      where: { token },
-    });
+    const invite = await this.findPendingInviteByTokenOrThrow(token);
 
-    if (!invite || invite.status !== WorkspaceMemberStatus.INVITED) {
-      throw new NotFoundException('Invite was not found.');
-    }
-
-    if (invite.email !== user.email) {
-      throw new ForbiddenException('Invite does not belong to this account.');
-    }
-
-    if (invite.expiresAt.getTime() < Date.now()) {
-      throw new ConflictException('Invite has expired.');
-    }
+    this.assertInviteBelongsToUser(invite, user);
 
     const existingMembership = await this.prisma.workspaceMember.findUnique({
       where: {
@@ -155,6 +204,51 @@ export class WorkspaceInvitesService {
       workspaceId: invite.workspaceId,
       memberStatus: WorkspaceMemberStatus.ACTIVE,
     };
+  }
+
+  private async findInviteOrThrow(
+    workspaceId: string,
+    inviteId: string,
+  ): Promise<WorkspaceInvite> {
+    const invite = await this.prisma.workspaceInvite.findFirst({
+      where: {
+        id: inviteId,
+        workspaceId,
+      },
+    });
+
+    if (!invite) {
+      throw new NotFoundException('Invite was not found.');
+    }
+
+    return invite;
+  }
+
+  private async findPendingInviteByTokenOrThrow(
+    token: string,
+  ): Promise<WorkspaceInvite> {
+    const invite = await this.prisma.workspaceInvite.findUnique({
+      where: { token },
+    });
+
+    if (!invite || invite.status !== WorkspaceMemberStatus.INVITED) {
+      throw new NotFoundException('Invite was not found.');
+    }
+
+    if (invite.expiresAt.getTime() < Date.now()) {
+      throw new ConflictException('Invite has expired.');
+    }
+
+    return invite;
+  }
+
+  private assertInviteBelongsToUser(
+    invite: WorkspaceInvite,
+    user: AuthenticatedUser,
+  ): void {
+    if (invite.email !== user.email) {
+      throw new ForbiddenException('Invite does not belong to this account.');
+    }
   }
 
   private toInviteResponse(

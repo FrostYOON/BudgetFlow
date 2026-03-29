@@ -1,14 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AUTH_ACCESS_COOKIE_NAME } from "@/lib/auth/constants";
-import { createWorkspaceTransaction } from "@/lib/transactions";
+import { deleteWorkspaceTransaction } from "@/lib/transactions";
 
 function normalizeValue(value: FormDataEntryValue | null) {
   return String(value ?? "").trim();
-}
-
-function normalizeOptionalValue(value: FormDataEntryValue | null) {
-  const normalized = normalizeValue(value);
-  return normalized.length > 0 ? normalized : undefined;
 }
 
 function getReturnTo(value: FormDataEntryValue | null) {
@@ -43,48 +38,31 @@ export async function POST(request: NextRequest) {
 
   const formData = await request.formData();
   const workspaceId = normalizeValue(formData.get("workspaceId"));
+  const transactionId = normalizeValue(formData.get("transactionId"));
   const returnTo = getReturnTo(formData.get("returnTo"));
-  const type = normalizeValue(formData.get("type")) as "INCOME" | "EXPENSE";
-  const visibility = normalizeValue(formData.get("visibility")) as
-    | "SHARED"
-    | "PERSONAL";
-  const amount = normalizeValue(formData.get("amount"));
-  const currency = normalizeValue(formData.get("currency"));
-  const transactionDate = normalizeValue(formData.get("transactionDate"));
 
-  if (
-    !workspaceId ||
-    !type ||
-    !visibility ||
-    !amount ||
-    !currency ||
-    !transactionDate
-  ) {
+  if (!workspaceId || !transactionId) {
     return NextResponse.redirect(
-      buildReturnUrl(request, returnTo, { error: "transaction_save_failed" }),
+      buildReturnUrl(request, returnTo, { error: "transaction_delete_failed" }),
     );
   }
 
   try {
-    await createWorkspaceTransaction({
+    await deleteWorkspaceTransaction({
       accessToken,
       workspaceId,
-      type,
-      visibility,
-      amount,
-      currency,
-      transactionDate,
-      categoryId: normalizeOptionalValue(formData.get("categoryId")),
-      memo: normalizeOptionalValue(formData.get("memo")),
-      paidByUserId: normalizeOptionalValue(formData.get("paidByUserId")),
+      transactionId,
     });
 
     return NextResponse.redirect(
-      buildReturnUrl(request, returnTo, { toast: "transaction_created" }),
+      buildReturnUrl(request, returnTo, {
+        toast: "transaction_deleted",
+        deleted: transactionId,
+      }),
     );
   } catch {
     return NextResponse.redirect(
-      buildReturnUrl(request, returnTo, { error: "transaction_save_failed" }),
+      buildReturnUrl(request, returnTo, { error: "transaction_delete_failed" }),
     );
   }
 }
