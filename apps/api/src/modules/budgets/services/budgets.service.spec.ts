@@ -1,5 +1,5 @@
 import { Prisma } from '@budgetflow/database';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../../../core/database/prisma.service';
 import { WorkspacesService } from '../../workspaces/services/workspaces.service';
@@ -116,12 +116,25 @@ describe('BudgetsService', () => {
     expect(result.actualAmount).toBe('420000.00');
   });
 
-  it('getMonthlyBudget should throw when the month budget does not exist', async () => {
+  it('getMonthlyBudget should return an empty-state payload when the month budget does not exist', async () => {
     prisma.budgetMonth.findUnique.mockResolvedValue(null);
+    prisma.transaction.aggregate.mockResolvedValue({
+      _sum: { amount: new Prisma.Decimal('180000.00') },
+    });
 
     await expect(
       service.getMonthlyBudget('workspace-1', 2026, 3, 'user-1'),
-    ).rejects.toBeInstanceOf(NotFoundException);
+    ).resolves.toMatchObject({
+      id: '',
+      workspaceId: 'workspace-1',
+      year: 2026,
+      month: 3,
+      totalBudgetAmount: '0.00',
+      allocatedAmount: '0.00',
+      unallocatedAmount: '0.00',
+      actualAmount: '180000.00',
+      categories: [],
+    });
   });
 
   it('replaceCategoryBudgets should reject when allocations exceed the monthly budget', async () => {
