@@ -223,6 +223,7 @@ export default async function SettingsPage() {
                 type="password"
                 required
                 minLength={8}
+                autoComplete="current-password"
                 className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-950 outline-none transition focus:border-emerald-500"
               />
             </label>
@@ -236,6 +237,21 @@ export default async function SettingsPage() {
                 type="password"
                 required
                 minLength={8}
+                autoComplete="new-password"
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-950 outline-none transition focus:border-emerald-500"
+              />
+            </label>
+
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-slate-700">
+                Confirm new password
+              </span>
+              <input
+                name="confirmNextPassword"
+                type="password"
+                required
+                minLength={8}
+                autoComplete="new-password"
                 className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-950 outline-none transition focus:border-emerald-500"
               />
             </label>

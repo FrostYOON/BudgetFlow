@@ -2,6 +2,7 @@
 
 import { LazyMotion, domAnimation, m, useReducedMotion } from "framer-motion";
 import type { ReactNode } from "react";
+import { useSyncExternalStore } from "react";
 
 type RevealProps = {
   children: ReactNode;
@@ -9,8 +10,21 @@ type RevealProps = {
   delay?: number;
 };
 
+function useHasMounted() {
+  return useSyncExternalStore(
+    () => () => undefined,
+    () => true,
+    () => false,
+  );
+}
+
 export function Reveal({ children, className, delay = 0 }: RevealProps) {
+  const hasMounted = useHasMounted();
   const reduceMotion = useReducedMotion();
+
+  if (!hasMounted) {
+    return <div className={className}>{children}</div>;
+  }
 
   return (
     <LazyMotion features={domAnimation}>
@@ -36,7 +50,12 @@ type StaggerProps = {
 };
 
 export function StaggerReveal({ children, className }: StaggerProps) {
+  const hasMounted = useHasMounted();
   const reduceMotion = useReducedMotion();
+
+  if (!hasMounted) {
+    return <div className={className}>{children}</div>;
+  }
 
   return (
     <LazyMotion features={domAnimation}>
@@ -69,7 +88,12 @@ export function StaggerReveal({ children, className }: StaggerProps) {
 }
 
 export function StaggerItem({ children, className }: StaggerProps) {
+  const hasMounted = useHasMounted();
   const reduceMotion = useReducedMotion();
+
+  if (!hasMounted) {
+    return <div className={className}>{children}</div>;
+  }
 
   return (
     <m.div

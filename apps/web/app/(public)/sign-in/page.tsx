@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AppButton, AppButtonLink } from "@/components/ui/app-button";
 
 export default async function SignInPage({
   searchParams,
@@ -27,19 +28,10 @@ export default async function SignInPage({
             </p>
           </div>
 
-          <div className="grid gap-4 border-t border-white/10 pt-8 text-sm text-slate-300 sm:grid-cols-3">
-            <div>
-              <p className="font-semibold text-white">Track together</p>
-              <p className="mt-1">Personal spending with optional shared spaces.</p>
-            </div>
-            <div>
-              <p className="font-semibold text-white">Budget clearly</p>
-              <p className="mt-1">Monthly budgets and recurring spend.</p>
-            </div>
-            <div>
-              <p className="font-semibold text-white">Stay synced</p>
-              <p className="mt-1">Live dashboard and shared visibility.</p>
-            </div>
+          <div className="border-t border-white/10 pt-8 text-sm text-slate-300">
+            <p className="max-w-lg">
+              Track personal spending first. Move into shared budgeting when you need a household space.
+            </p>
           </div>
         </section>
 
@@ -88,22 +80,25 @@ export default async function SignInPage({
               />
             </label>
 
-            <button
+            <AppButton
               type="submit"
-              className="mt-2 inline-flex w-full items-center justify-center rounded-full bg-emerald-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300"
+              tone="success"
+              className="mt-2 w-full px-5 py-3"
             >
               Sign in
-            </button>
+            </AppButton>
           </form>
 
           <p className="mt-6 text-sm text-slate-400">
             Need a new account?{" "}
-            <Link
+            <AppButtonLink
               href={`/sign-up?next=${encodeURIComponent(next)}`}
-              className="text-white underline underline-offset-4"
+              tone="secondary"
+              size="sm"
+              className="ml-2 border-white/20 text-white hover:border-white hover:text-white"
             >
-              Create one here
-            </Link>
+              Create account
+            </AppButtonLink>
           </p>
         </section>
       </div>

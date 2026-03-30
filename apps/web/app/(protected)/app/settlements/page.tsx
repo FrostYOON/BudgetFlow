@@ -13,7 +13,7 @@ import {
   getPreviousMonth,
 } from "@/lib/dashboard";
 import {
-  fetchWorkspaceTransactions,
+  fetchAllWorkspaceTransactions,
   formatDateLabel,
   getMonthRange,
   type WorkspaceTransaction,
@@ -93,7 +93,7 @@ export default async function SettlementsPage({
       year: requestedPeriod.year,
       month: requestedPeriod.month,
     }),
-    fetchWorkspaceTransactions({
+    fetchAllWorkspaceTransactions({
       accessToken: session.accessToken,
       workspaceId: session.currentWorkspace.id,
       from: monthRange.from,
@@ -225,7 +225,7 @@ export default async function SettlementsPage({
           <AppMetricSurface>
             <p className="text-sm text-slate-500">Shared entries</p>
             <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
-              {sharedTransactions.items.length}
+              {sharedTransactions.length}
             </p>
           </AppMetricSurface>
         </StaggerItem>
@@ -338,17 +338,17 @@ export default async function SettlementsPage({
               Shared expense ledger
             </h2>
             <AppBadge tone="default">
-              {sharedTransactions.items.length} items
+              {sharedTransactions.length} items
             </AppBadge>
           </div>
 
           <div className="mt-5 space-y-3">
-            {sharedTransactions.items.length === 0 ? (
+            {sharedTransactions.length === 0 ? (
               <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-sm text-slate-500">
                 No shared expenses recorded in this month.
               </div>
             ) : (
-              sharedTransactions.items.map((transaction) => (
+              sharedTransactions.map((transaction) => (
                 <div
                   key={transaction.id}
                   className="rounded-[1.5rem] border border-slate-900/8 bg-slate-50 px-4 py-4"

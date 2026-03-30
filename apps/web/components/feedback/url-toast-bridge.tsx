@@ -57,6 +57,10 @@ const TOAST_MESSAGES: Record<string, { type: "success" | "error"; text: string }
     type: "error",
     text: "Failed to change password.",
   },
+  password_confirm_mismatch: {
+    type: "error",
+    text: "New password confirmation does not match.",
+  },
   session_revoked: {
     type: "success",
     text: "Session revoked.",
