@@ -9,6 +9,7 @@ import { AppButton, AppButtonLink } from "@/components/ui/app-button";
 import { AppMetricSurface, AppSurface } from "@/components/ui/app-surface";
 import { getAppSession } from "@/lib/auth/session";
 import {
+  fetchBudgetTemplate,
   fetchExpenseCategories,
   fetchMonthlyBudget,
 } from "@/lib/budgets";
@@ -55,7 +56,7 @@ export default async function BudgetsPage({
   }
 
   const requestedPeriod = getPeriod(await searchParams);
-  const [budget, categories] = await Promise.all([
+  const [budget, categories, budgetTemplate] = await Promise.all([
     fetchMonthlyBudget({
       accessToken: session.accessToken,
       workspaceId: session.currentWorkspace.id,
@@ -63,6 +64,10 @@ export default async function BudgetsPage({
       month: requestedPeriod.month,
     }),
     fetchExpenseCategories({
+      accessToken: session.accessToken,
+      workspaceId: session.currentWorkspace.id,
+    }),
+    fetchBudgetTemplate({
       accessToken: session.accessToken,
       workspaceId: session.currentWorkspace.id,
     }),
@@ -113,6 +118,39 @@ export default async function BudgetsPage({
             Next
           </AppButtonLink>
         </div>
+
+        <div className="mt-4 flex flex-wrap gap-3">
+          <form action="/app/budgets/copy-previous" method="post">
+            <input type="hidden" name="workspaceId" value={session.currentWorkspace.id} />
+            <input type="hidden" name="year" value={requestedPeriod.year} />
+            <input type="hidden" name="month" value={requestedPeriod.month} />
+            <AppButton type="submit" tone="secondary" size="sm">
+              Copy previous month
+            </AppButton>
+          </form>
+          <form action="/app/budgets/save-template" method="post">
+            <input type="hidden" name="workspaceId" value={session.currentWorkspace.id} />
+            <input type="hidden" name="year" value={requestedPeriod.year} />
+            <input type="hidden" name="month" value={requestedPeriod.month} />
+            <AppButton type="submit" tone="secondary" size="sm">
+              Save as template
+            </AppButton>
+          </form>
+          <form action="/app/budgets/apply-template" method="post">
+            <input type="hidden" name="workspaceId" value={session.currentWorkspace.id} />
+            <input type="hidden" name="year" value={requestedPeriod.year} />
+            <input type="hidden" name="month" value={requestedPeriod.month} />
+            <AppButton type="submit" tone="secondary" size="sm">
+              Apply template
+            </AppButton>
+          </form>
+        </div>
+
+        {budgetTemplate?.id ? (
+          <p className="mt-3 text-xs text-slate-500">
+            Template ready: {budgetTemplate.categories.length} categories
+          </p>
+        ) : null}
         </AppSurface>
       </Reveal>
 

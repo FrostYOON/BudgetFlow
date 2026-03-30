@@ -17,6 +17,9 @@ describe('DashboardService', () => {
       groupBy: jest.Mock;
       findMany: jest.Mock;
     };
+    settlementTransfer: {
+      findMany: jest.Mock;
+    };
     budgetMonth: {
       findUnique: jest.Mock;
     };
@@ -36,6 +39,9 @@ describe('DashboardService', () => {
       transaction: {
         aggregate: jest.fn(),
         groupBy: jest.fn(),
+        findMany: jest.fn(),
+      },
+      settlementTransfer: {
         findMany: jest.fn(),
       },
       budgetMonth: {
@@ -119,6 +125,7 @@ describe('DashboardService', () => {
         name: 'Groceries',
       },
     ]);
+    prisma.settlementTransfer.findMany.mockResolvedValue([]);
     insightsService.listMonthlyInsights.mockResolvedValue([
       {
         id: 'insight-1',
@@ -157,6 +164,7 @@ describe('DashboardService', () => {
     prisma.budgetMonth.findUnique.mockResolvedValue(null);
     prisma.transaction.groupBy.mockResolvedValue([]);
     prisma.transaction.findMany.mockResolvedValue([]);
+    prisma.settlementTransfer.findMany.mockResolvedValue([]);
     prisma.category.findMany.mockResolvedValue([]);
     insightsService.listMonthlyInsights.mockResolvedValue([]);
 
@@ -176,6 +184,7 @@ describe('DashboardService', () => {
     prisma.budgetMonth.findUnique.mockResolvedValue(null);
     prisma.transaction.groupBy.mockResolvedValue([]);
     prisma.transaction.findMany.mockResolvedValue([]);
+    prisma.settlementTransfer.findMany.mockResolvedValue([]);
     prisma.category.findMany.mockResolvedValue([]);
     insightsService.listMonthlyInsights.mockResolvedValue([]);
 

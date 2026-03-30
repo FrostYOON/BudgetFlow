@@ -2,16 +2,16 @@ import { redirect } from "next/navigation";
 import { Reveal, StaggerItem, StaggerReveal } from "@/components/motion/reveal";
 import { SettlementShareActions } from "@/components/settlements/settlement-share-actions";
 import { AppBadge } from "@/components/ui/app-badge";
-import { AppButtonLink } from "@/components/ui/app-button";
+import { AppButton, AppButtonLink } from "@/components/ui/app-button";
 import { AppMetricSurface, AppSurface } from "@/components/ui/app-surface";
 import { getAppSession } from "@/lib/auth/session";
 import {
-  fetchWorkspaceDashboard,
   formatCurrency,
   formatMonthLabel,
   getNextMonth,
   getPreviousMonth,
 } from "@/lib/dashboard";
+import { fetchSettlementSummary } from "@/lib/settlements";
 import {
   fetchAllWorkspaceTransactions,
   formatDateLabel,
@@ -81,21 +81,23 @@ export default async function SettlementsPage({
     redirect("/app/onboarding");
   }
 
+  const currentWorkspace = session.currentWorkspace;
+
   const requestedPeriod = getPeriod(await searchParams);
   const monthRange = getMonthRange(
     requestedPeriod.year,
     requestedPeriod.month,
   );
-  const [dashboard, sharedTransactions] = await Promise.all([
-    fetchWorkspaceDashboard({
+  const [settlementSummary, sharedTransactions] = await Promise.all([
+    fetchSettlementSummary({
       accessToken: session.accessToken,
-      workspaceId: session.currentWorkspace.id,
+      workspaceId: currentWorkspace.id,
       year: requestedPeriod.year,
       month: requestedPeriod.month,
     }),
     fetchAllWorkspaceTransactions({
       accessToken: session.accessToken,
-      workspaceId: session.currentWorkspace.id,
+      workspaceId: currentWorkspace.id,
       from: monthRange.from,
       to: monthRange.to,
       type: "EXPENSE",
@@ -103,18 +105,15 @@ export default async function SettlementsPage({
     }),
   ]);
 
-  const prev = getPreviousMonth(dashboard.period.year, dashboard.period.month);
-  const next = getNextMonth(dashboard.period.year, dashboard.period.month);
-  const currency = session.currentWorkspace.baseCurrency;
+  const prev = getPreviousMonth(requestedPeriod.year, requestedPeriod.month);
+  const next = getNextMonth(requestedPeriod.year, requestedPeriod.month);
+  const currency = currentWorkspace.baseCurrency;
   const locale = session.user.locale === "ko-KR" ? "ko-KR" : "en-CA";
-  const monthLabel = formatMonthLabel(
-    dashboard.period.year,
-    dashboard.period.month,
-  );
-  const isPersonalWorkspace = session.currentWorkspace.type === "PERSONAL";
+  const monthLabel = formatMonthLabel(requestedPeriod.year, requestedPeriod.month);
+  const isPersonalWorkspace = currentWorkspace.type === "PERSONAL";
   const hasSharedSettlement =
-    dashboard.settlement.balances.length > 1 ||
-    Number(dashboard.settlement.totalSharedExpense) > 0;
+    settlementSummary.balances.length > 1 ||
+    Number(settlementSummary.totalSharedExpense) > 0;
 
   if (isPersonalWorkspace) {
     return (
@@ -152,18 +151,18 @@ export default async function SettlementsPage({
                 Settlements
               </p>
               <h1 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">
-                {session.currentWorkspace.name}
+                {currentWorkspace.name}
               </h1>
               <p className="mt-1 text-sm text-slate-500">{monthLabel}</p>
             </div>
             <SettlementShareActions
-              balances={dashboard.settlement.balances}
+              balances={settlementSummary.balances}
               currency={currency}
               locale={locale}
               monthLabel={monthLabel}
-              totalSharedExpense={dashboard.settlement.totalSharedExpense}
-              transfers={dashboard.settlement.suggestedTransfers}
-              workspaceName={session.currentWorkspace.name}
+              totalSharedExpense={settlementSummary.totalSharedExpense}
+              transfers={settlementSummary.suggestedTransfers}
+              workspaceName={currentWorkspace.name}
             />
           </div>
 
@@ -198,7 +197,7 @@ export default async function SettlementsPage({
             <p className="text-sm text-slate-500">Shared expense</p>
             <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
               {formatCurrency(
-                dashboard.settlement.totalSharedExpense,
+                settlementSummary.totalSharedExpense,
                 currency,
                 locale,
               )}
@@ -209,7 +208,7 @@ export default async function SettlementsPage({
           <AppMetricSurface>
             <p className="text-sm text-slate-500">People involved</p>
             <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
-              {dashboard.settlement.balances.length}
+              {settlementSummary.balances.length}
             </p>
           </AppMetricSurface>
         </StaggerItem>
@@ -217,7 +216,7 @@ export default async function SettlementsPage({
           <AppMetricSurface>
             <p className="text-sm text-slate-500">Suggested transfers</p>
             <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
-              {dashboard.settlement.suggestedTransfers.length}
+              {settlementSummary.suggestedTransfers.length}
             </p>
           </AppMetricSurface>
         </StaggerItem>
@@ -257,7 +256,7 @@ export default async function SettlementsPage({
                 </h2>
                 <AppBadge tone="success">
                   {formatCurrency(
-                    dashboard.settlement.totalSharedExpense,
+                    settlementSummary.totalSharedExpense,
                     currency,
                     locale,
                   )}
@@ -265,7 +264,7 @@ export default async function SettlementsPage({
               </div>
 
               <div className="mt-5 space-y-3">
-                {dashboard.settlement.balances.map((balance) => {
+                {settlementSummary.balances.map((balance) => {
                   const amount = Number(balance.netAmount);
                   return (
                     <div
@@ -306,12 +305,12 @@ export default async function SettlementsPage({
               </div>
 
               <div className="mt-5 space-y-3">
-                {dashboard.settlement.suggestedTransfers.length === 0 ? (
+                {settlementSummary.suggestedTransfers.length === 0 ? (
                   <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-sm text-slate-500">
                     Everyone is settled for this month.
                   </div>
                 ) : (
-                  dashboard.settlement.suggestedTransfers.map((transfer) => (
+                  settlementSummary.suggestedTransfers.map((transfer) => (
                     <div
                       key={`${transfer.fromUserId}-${transfer.toUserId}`}
                       className="rounded-[1.5rem] bg-slate-50 px-4 py-4"
@@ -322,6 +321,17 @@ export default async function SettlementsPage({
                       <p className="mt-1 text-sm text-slate-500">
                         {formatCurrency(transfer.amount, currency, locale)}
                       </p>
+                      <form action="/app/settlements/record" method="post" className="mt-3">
+                        <input type="hidden" name="workspaceId" value={currentWorkspace.id} />
+                        <input type="hidden" name="year" value={requestedPeriod.year} />
+                        <input type="hidden" name="month" value={requestedPeriod.month} />
+                        <input type="hidden" name="fromUserId" value={transfer.fromUserId} />
+                        <input type="hidden" name="toUserId" value={transfer.toUserId} />
+                        <input type="hidden" name="amount" value={transfer.amount} />
+                        <AppButton type="submit" tone="secondary" size="sm">
+                          Mark settled
+                        </AppButton>
+                      </form>
                     </div>
                   ))
                 )}
@@ -330,6 +340,45 @@ export default async function SettlementsPage({
           </Reveal>
         </div>
       )}
+
+      <Reveal delay={0.16}>
+        <AppSurface padding="lg">
+          <div className="flex items-center justify-between gap-3 border-b border-slate-900/8 pb-4">
+            <h2 className="text-lg font-semibold text-slate-950">Completed transfers</h2>
+            <AppBadge tone="default">{settlementSummary.completedTransfers.length} items</AppBadge>
+          </div>
+
+          <div className="mt-5 space-y-3">
+            {settlementSummary.completedTransfers.length === 0 ? (
+              <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-sm text-slate-500">
+                No settlement transfers recorded yet.
+              </div>
+            ) : (
+              settlementSummary.completedTransfers.map((transfer) => (
+                <div
+                  key={transfer.id}
+                  className="rounded-[1.5rem] border border-slate-900/8 bg-slate-50 px-4 py-4"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-950">
+                        {transfer.fromName} → {transfer.toName}
+                      </p>
+                      <p className="mt-1 text-sm text-slate-500">
+                        {new Date(transfer.settledAt).toLocaleDateString(locale)}
+                        {transfer.memo ? ` · ${transfer.memo}` : ""}
+                      </p>
+                    </div>
+                    <p className="text-sm font-semibold text-slate-950">
+                      {formatCurrency(transfer.amount, currency, locale)}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </AppSurface>
+      </Reveal>
 
       <Reveal delay={0.18}>
         <AppSurface padding="lg">

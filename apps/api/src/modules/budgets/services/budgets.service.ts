@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { CategoryType, Prisma, TransactionType } from '@budgetflow/database';
 import { PrismaService } from '../../../core/database/prisma.service';
 import { WorkspacesService } from '../../workspaces/services/workspaces.service';
+import { BudgetTemplateResponseDto } from '../dto/budget-template-response.dto';
 import { CategoryBudgetListResponseDto } from '../dto/category-budget-list-response.dto';
 import { CategoryBudgetResponseDto } from '../dto/category-budget-response.dto';
 import { MonthlyBudgetResponseDto } from '../dto/monthly-budget-response.dto';
@@ -199,6 +200,153 @@ export class BudgetsService {
     return this.buildCategoryBudgetListResponse(refreshed, null, actualMap);
   }
 
+  async getBudgetTemplate(
+    workspaceId: string,
+    userId: string,
+  ): Promise<BudgetTemplateResponseDto> {
+    await this.workspacesService.assertMemberAccess(workspaceId, userId);
+
+    const template = await this.prisma.budgetTemplate.findUnique({
+      where: { workspaceId },
+      include: {
+        categoryPlans: {
+          include: {
+            category: true,
+          },
+          orderBy: {
+            category: {
+              sortOrder: 'asc',
+            },
+          },
+        },
+      },
+    });
+
+    return this.toBudgetTemplateResponse(template);
+  }
+
+  async saveTemplateFromMonth(
+    workspaceId: string,
+    year: number,
+    month: number,
+    userId: string,
+  ): Promise<BudgetTemplateResponseDto> {
+    await this.workspacesService.assertMemberAccess(workspaceId, userId);
+    this.assertValidPeriod(year, month);
+
+    const monthBudget = await this.findBudgetMonthOrThrow(
+      workspaceId,
+      year,
+      month,
+    );
+
+    await this.prisma.$transaction(async (tx) => {
+      const template = await tx.budgetTemplate.upsert({
+        where: { workspaceId },
+        update: {
+          totalBudgetAmount: monthBudget.totalBudgetAmount,
+          createdByUserId: userId,
+        },
+        create: {
+          workspaceId,
+          createdByUserId: userId,
+          totalBudgetAmount: monthBudget.totalBudgetAmount,
+        },
+      });
+
+      await tx.budgetTemplateCategory.deleteMany({
+        where: { budgetTemplateId: template.id },
+      });
+
+      if (monthBudget.categoryBudgets.length > 0) {
+        await tx.budgetTemplateCategory.createMany({
+          data: monthBudget.categoryBudgets.map((item) => ({
+            budgetTemplateId: template.id,
+            categoryId: item.categoryId,
+            plannedAmount: item.plannedAmount,
+            alertThresholdPct: item.alertThresholdPct ?? null,
+          })),
+        });
+      }
+    });
+
+    return this.getBudgetTemplate(workspaceId, userId);
+  }
+
+  async applyTemplateToMonth(
+    workspaceId: string,
+    year: number,
+    month: number,
+    userId: string,
+  ): Promise<MonthlyBudgetResponseDto> {
+    await this.workspacesService.assertMemberAccess(workspaceId, userId);
+    this.assertValidPeriod(year, month);
+
+    const template = await this.prisma.budgetTemplate.findUnique({
+      where: { workspaceId },
+      include: {
+        categoryPlans: true,
+      },
+    });
+
+    if (!template) {
+      throw new BadRequestException('Budget template was not found.');
+    }
+
+    await this.syncMonthBudgetFromSource({
+      workspaceId,
+      year,
+      month,
+      userId,
+      totalBudgetAmount: template.totalBudgetAmount,
+      categories: template.categoryPlans.map((item) => ({
+        categoryId: item.categoryId,
+        plannedAmount: item.plannedAmount,
+        alertThresholdPct: item.alertThresholdPct,
+      })),
+    });
+
+    return this.getMonthlyBudget(workspaceId, year, month, userId);
+  }
+
+  async copyPreviousMonth(
+    workspaceId: string,
+    year: number,
+    month: number,
+    userId: string,
+  ): Promise<MonthlyBudgetResponseDto> {
+    await this.workspacesService.assertMemberAccess(workspaceId, userId);
+    this.assertValidPeriod(year, month);
+
+    const previous =
+      month === 1 ? { year: year - 1, month: 12 } : { year, month: month - 1 };
+
+    const previousBudget = await this.findBudgetMonth(
+      workspaceId,
+      previous.year,
+      previous.month,
+    );
+
+    if (!previousBudget) {
+      throw new BadRequestException('Previous month budget was not found.');
+    }
+
+    await this.syncMonthBudgetFromSource({
+      workspaceId,
+      year,
+      month,
+      userId,
+      totalBudgetAmount: previousBudget.totalBudgetAmount,
+      categories: previousBudget.categoryBudgets.map((item) => ({
+        categoryId: item.categoryId,
+        plannedAmount: item.plannedAmount,
+        alertThresholdPct: item.alertThresholdPct,
+      })),
+    });
+
+    return this.getMonthlyBudget(workspaceId, year, month, userId);
+  }
+
   private assertValidPeriod(year: number, month: number): void {
     if (year < 2000 || year > 2100) {
       throw new BadRequestException('year must be between 2000 and 2100.');
@@ -258,6 +406,89 @@ export class BudgetsService {
         },
       },
     });
+  }
+
+  private async syncMonthBudgetFromSource(input: {
+    workspaceId: string;
+    year: number;
+    month: number;
+    userId: string;
+    totalBudgetAmount: Prisma.Decimal | null;
+    categories: Array<{
+      categoryId: string;
+      plannedAmount: Prisma.Decimal;
+      alertThresholdPct: number | null;
+    }>;
+  }): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      const monthBudget = await tx.budgetMonth.upsert({
+        where: {
+          workspaceId_year_month: {
+            workspaceId: input.workspaceId,
+            year: input.year,
+            month: input.month,
+          },
+        },
+        update: {
+          totalBudgetAmount: input.totalBudgetAmount,
+        },
+        create: {
+          workspaceId: input.workspaceId,
+          year: input.year,
+          month: input.month,
+          totalBudgetAmount: input.totalBudgetAmount,
+          createdByUserId: input.userId,
+        },
+      });
+
+      await tx.budgetCategory.deleteMany({
+        where: { budgetMonthId: monthBudget.id },
+      });
+
+      if (input.categories.length > 0) {
+        await tx.budgetCategory.createMany({
+          data: input.categories.map((item) => ({
+            budgetMonthId: monthBudget.id,
+            categoryId: item.categoryId,
+            plannedAmount: item.plannedAmount,
+            alertThresholdPct: item.alertThresholdPct,
+          })),
+        });
+      }
+    });
+  }
+
+  private toBudgetTemplateResponse(
+    template: Prisma.BudgetTemplateGetPayload<{
+      include: {
+        categoryPlans: {
+          include: {
+            category: true;
+          };
+        };
+      };
+    }> | null,
+  ): BudgetTemplateResponseDto {
+    if (!template) {
+      return {
+        id: null,
+        name: null,
+        totalBudgetAmount: null,
+        categories: [],
+      };
+    }
+
+    return {
+      id: template.id,
+      name: template.name,
+      totalBudgetAmount: template.totalBudgetAmount?.toFixed(2) ?? null,
+      categories: template.categoryPlans.map((item) => ({
+        categoryId: item.categoryId,
+        categoryName: item.category.name,
+        plannedAmount: item.plannedAmount.toFixed(2),
+        alertThresholdPct: item.alertThresholdPct ?? null,
+      })),
+    };
   }
 
   private async loadExpenseCategories(

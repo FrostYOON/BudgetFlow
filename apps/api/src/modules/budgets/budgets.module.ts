@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
 import { WorkspacesModule } from '../workspaces/workspaces.module';
+import { BudgetTemplatesController } from './controllers/budget-templates.controller';
 import { BudgetsController } from './controllers/budgets.controller';
 import { BudgetsService } from './services/budgets.service';
 
 @Module({
   imports: [WorkspacesModule],
-  controllers: [BudgetsController],
+  controllers: [BudgetsController, BudgetTemplatesController],
   providers: [BudgetsService],
 })
 export class BudgetsModule {}

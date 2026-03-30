@@ -62,6 +62,12 @@ export class TransactionResponseDto {
   @ApiProperty({ required: false, nullable: true, example: 'Minji' })
   paidByUserName!: string | null;
 
+  @ApiProperty({ required: false, nullable: true })
+  accountId!: string | null;
+
+  @ApiProperty({ required: false, nullable: true, example: 'Main Checking' })
+  accountName!: string | null;
+
   @ApiProperty({ type: [TransactionParticipantResponseDto] })
   participants!: TransactionParticipantResponseDto[];
 

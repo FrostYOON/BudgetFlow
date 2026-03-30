@@ -113,6 +113,30 @@ export default async function SettingsPage() {
       </Reveal>
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        <Reveal delay={0.04}>
+          <AppSurface padding="md">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-950">Workspace tools</h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  Manage accounts, categories, notifications, and member settings.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <AppButtonLink href="/app/settings/accounts" tone="secondary" size="sm">
+                  Accounts
+                </AppButtonLink>
+                <AppButtonLink href="/app/settings/categories" tone="secondary" size="sm">
+                  Categories
+                </AppButtonLink>
+                <AppButtonLink href="/app/notifications" tone="secondary" size="sm">
+                  Notifications
+                </AppButtonLink>
+              </div>
+            </div>
+          </AppSurface>
+        </Reveal>
+
         <Reveal delay={0.06}>
           <AppSurface padding="md">
           <div className="border-b border-slate-900/8 pb-4">

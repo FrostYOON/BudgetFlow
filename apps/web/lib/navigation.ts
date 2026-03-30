@@ -37,6 +37,12 @@ export const APP_NAVIGATION: AppNavigationItem[] = [
     shortLabel: "Auto",
   },
   {
+    href: "/app/notifications",
+    label: "Notifications",
+    description: "Budget, settlement, and recurring updates",
+    shortLabel: "Alerts",
+  },
+  {
     href: "/app/settings",
     label: "Settings",
     description: "Account and workspace profile",

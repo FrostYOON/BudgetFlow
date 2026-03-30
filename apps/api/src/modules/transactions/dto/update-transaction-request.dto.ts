@@ -61,6 +61,11 @@ export class UpdateTransactionRequestDto {
   @IsUUID()
   paidByUserId?: string;
 
+  @ApiPropertyOptional({ required: false, nullable: true, format: 'uuid' })
+  @ValidateIf((_, value) => value !== undefined && value !== null)
+  @IsUUID()
+  accountId?: string | null;
+
   @ApiPropertyOptional({
     type: [TransactionParticipantInputDto],
     description: 'Optional split participants for shared expense entries.',
