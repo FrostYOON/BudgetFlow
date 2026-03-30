@@ -101,6 +101,13 @@ export default async function DashboardPage({
 
           <div className="flex items-center gap-3 text-sm">
             <AppButtonLink
+              href={`/app/settlements?year=${dashboard.period.year}&month=${dashboard.period.month}`}
+              tone="success"
+              size="sm"
+            >
+              Settlement
+            </AppButtonLink>
+            <AppButtonLink
               href={`/app/reports?year=${dashboard.period.year}&month=${dashboard.period.month}`}
               tone="success"
               size="sm"

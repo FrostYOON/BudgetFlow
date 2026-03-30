@@ -19,6 +19,12 @@ export const APP_NAVIGATION: AppNavigationItem[] = [
     shortLabel: "Spend",
   },
   {
+    href: "/app/settlements",
+    label: "Settlements",
+    description: "Shared balances and suggested transfers",
+    shortLabel: "Settle",
+  },
+  {
     href: "/app/budgets",
     label: "Budgets",
     description: "Monthly envelope and category planning",

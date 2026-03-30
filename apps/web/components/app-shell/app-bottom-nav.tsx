@@ -11,7 +11,12 @@ export function AppBottomNav() {
   return (
     <LazyMotion features={domAnimation}>
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-900/8 bg-white/92 px-3 py-2 backdrop-blur xl:hidden">
-        <div className="mx-auto grid max-w-xl grid-cols-5 gap-2">
+        <div
+          className="mx-auto grid max-w-2xl gap-2"
+          style={{
+            gridTemplateColumns: `repeat(${APP_NAVIGATION.length}, minmax(0, 1fr))`,
+          }}
+        >
           {APP_NAVIGATION.map((item) => {
             const isActive = pathname === item.href;
 
