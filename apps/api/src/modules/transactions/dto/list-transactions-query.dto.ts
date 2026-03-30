@@ -51,6 +51,11 @@ export class ListTransactionsQueryDto {
   @ApiPropertyOptional({ format: 'uuid' })
   @IsOptional()
   @IsUUID()
+  accountId?: string;
+
+  @ApiPropertyOptional({ format: 'uuid' })
+  @IsOptional()
+  @IsUUID()
   cursor?: string;
 
   @ApiPropertyOptional({ example: 20, default: 20 })

@@ -102,6 +102,7 @@ export async function POST(request: NextRequest) {
       categoryId: normalizeNullableValue(formData.get("categoryId")),
       memo: normalizeNullableValue(formData.get("memo")),
       paidByUserId: normalizeOptionalValue(formData.get("paidByUserId")),
+      accountId: normalizeNullableValue(formData.get("accountId")),
       participants: parseSplitParticipants(formData.get("splitParticipants")),
     });
 

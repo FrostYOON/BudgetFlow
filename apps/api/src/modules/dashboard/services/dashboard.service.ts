@@ -47,6 +47,7 @@ export class DashboardService {
       insights,
       members,
       sharedTransactions,
+      settlementTransfers,
     ] = await Promise.all([
       this.aggregateTransactionAmount(workspaceId, start, endExclusive, {
         type: TransactionType.INCOME,
@@ -132,6 +133,18 @@ export class DashboardService {
           participants: true,
         },
       }),
+      this.prisma.settlementTransfer.findMany({
+        where: {
+          workspaceId,
+          year,
+          month,
+        },
+        select: {
+          fromUserId: true,
+          toUserId: true,
+          amount: true,
+        },
+      }),
     ]);
 
     const topCategoryIds = topCategoryRows
@@ -179,6 +192,7 @@ export class DashboardService {
         name: member.nickname ?? member.user.name,
       })),
       transactions: sharedTransactions,
+      transfers: settlementTransfers,
     });
 
     return {
@@ -275,6 +289,11 @@ export class DashboardService {
         shareValue: Prisma.Decimal | null;
       }[];
     }[];
+    transfers: {
+      fromUserId: string;
+      toUserId: string;
+      amount: Prisma.Decimal;
+    }[];
   }) {
     const balances = new Map(
       input.members.map((member) => [member.userId, new Prisma.Decimal(0)]),
@@ -315,6 +334,22 @@ export class DashboardService {
         balances.set(
           share.userId,
           balances.get(share.userId)!.sub(share.amount),
+        );
+      }
+    }
+
+    for (const transfer of input.transfers) {
+      if (balances.has(transfer.fromUserId)) {
+        balances.set(
+          transfer.fromUserId,
+          balances.get(transfer.fromUserId)!.add(transfer.amount),
+        );
+      }
+
+      if (balances.has(transfer.toUserId)) {
+        balances.set(
+          transfer.toUserId,
+          balances.get(transfer.toUserId)!.sub(transfer.amount),
         );
       }
     }

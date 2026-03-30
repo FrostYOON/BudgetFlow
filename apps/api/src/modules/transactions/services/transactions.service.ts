@@ -21,6 +21,7 @@ type TransactionWithParticipants = Prisma.TransactionGetPayload<{
   include: {
     category: true;
     paidBy: true;
+    account: true;
     participants: {
       include: {
         user: true;
@@ -33,6 +34,7 @@ type TransactionWithRelations = Prisma.TransactionGetPayload<{
   include: {
     category: true;
     paidBy: true;
+    account: true;
   };
 }> & {
   participants?: TransactionWithParticipants['participants'];
@@ -63,6 +65,7 @@ export class TransactionsService {
 
     await this.assertValidPaidBy(workspaceId, paidByUserId);
     await this.assertValidCategory(workspaceId, input.categoryId, input.type);
+    await this.assertValidAccount(workspaceId, input.accountId, input.currency);
 
     const splitParticipants = await this.buildSplitParticipants({
       workspaceId,
@@ -87,6 +90,7 @@ export class TransactionsService {
                 memo: input.memo ?? null,
                 createdByUserId: userId,
                 paidByUserId,
+                accountId: input.accountId ?? null,
               },
             });
 
@@ -101,6 +105,7 @@ export class TransactionsService {
               include: {
                 category: true,
                 paidBy: true,
+                account: true,
                 participants: {
                   include: {
                     user: true,
@@ -121,10 +126,12 @@ export class TransactionsService {
               memo: input.memo ?? null,
               createdByUserId: userId,
               paidByUserId,
+              accountId: input.accountId ?? null,
             },
             include: {
               category: true,
               paidBy: true,
+              account: true,
             },
           });
 
@@ -147,6 +154,7 @@ export class TransactionsService {
         visibility: query.visibility,
         categoryId: query.categoryId,
         paidByUserId: query.paidByUserId,
+        accountId: query.accountId,
         ...(query.from || query.to
           ? {
               transactionDate: {
@@ -159,6 +167,7 @@ export class TransactionsService {
       include: {
         category: true,
         paidBy: true,
+        account: true,
         participants: {
           include: {
             user: true,
@@ -211,6 +220,10 @@ export class TransactionsService {
       input.categoryId !== undefined
         ? input.categoryId
         : existingTransaction.categoryId;
+    const accountId =
+      input.accountId !== undefined
+        ? input.accountId
+        : existingTransaction.accountId;
     const nextVisibility = input.visibility ?? existingTransaction.visibility;
     const amount =
       input.amount !== undefined
@@ -222,6 +235,11 @@ export class TransactionsService {
       workspaceId,
       categoryId ?? undefined,
       existingTransaction.type,
+    );
+    await this.assertValidAccount(
+      workspaceId,
+      accountId ?? undefined,
+      input.currency ?? existingTransaction.currency,
     );
 
     const splitParticipants = await this.buildSplitParticipants({
@@ -255,6 +273,8 @@ export class TransactionsService {
                   input.categoryId !== undefined ? input.categoryId : undefined,
                 memo: input.memo !== undefined ? input.memo : undefined,
                 paidByUserId,
+                accountId:
+                  input.accountId !== undefined ? input.accountId : undefined,
               },
             });
 
@@ -269,6 +289,7 @@ export class TransactionsService {
               include: {
                 category: true,
                 paidBy: true,
+                account: true,
                 participants: {
                   include: {
                     user: true,
@@ -290,10 +311,13 @@ export class TransactionsService {
                 input.categoryId !== undefined ? input.categoryId : undefined,
               memo: input.memo !== undefined ? input.memo : undefined,
               paidByUserId,
+              accountId:
+                input.accountId !== undefined ? input.accountId : undefined,
             },
             include: {
               category: true,
               paidBy: true,
+              account: true,
             },
           });
 
@@ -314,6 +338,7 @@ export class TransactionsService {
       include: {
         category: true,
         paidBy: true,
+        account: true,
       },
     });
 
@@ -343,6 +368,7 @@ export class TransactionsService {
       include: {
         category: true,
         paidBy: true,
+        account: true,
       },
     });
 
@@ -362,6 +388,7 @@ export class TransactionsService {
       include: {
         category: true,
         paidBy: true,
+        account: true,
         participants: {
           include: {
             user: true,
@@ -389,6 +416,7 @@ export class TransactionsService {
       include: {
         category: true,
         paidBy: true,
+        account: true,
         participants: {
           include: {
             user: true,
@@ -450,6 +478,36 @@ export class TransactionsService {
     if (category.type !== type) {
       throw new BadRequestException(
         'Transaction type must match the selected category type.',
+      );
+    }
+  }
+
+  private async assertValidAccount(
+    workspaceId: string,
+    accountId: string | undefined,
+    currency: string,
+  ): Promise<void> {
+    if (!accountId) {
+      return;
+    }
+
+    const account = await this.prisma.financialAccount.findFirst({
+      where: {
+        id: accountId,
+        workspaceId,
+        isArchived: false,
+      },
+    });
+
+    if (!account) {
+      throw new BadRequestException(
+        'accountId must reference an active account in this workspace.',
+      );
+    }
+
+    if (account.currency !== currency) {
+      throw new BadRequestException(
+        'Transaction currency must match the selected account currency.',
       );
     }
   }
@@ -633,6 +691,8 @@ export class TransactionsService {
       createdByUserId: transaction.createdByUserId,
       paidByUserId: transaction.paidByUserId,
       paidByUserName: transaction.paidBy?.name ?? null,
+      accountId: transaction.accountId ?? null,
+      accountName: transaction.account?.name ?? null,
       participants: (transaction.participants ?? []).map((participant) => ({
         userId: participant.userId,
         userName: participant.user.name,

@@ -56,6 +56,11 @@ export class CreateTransactionRequestDto {
   @IsUUID()
   paidByUserId?: string;
 
+  @ApiProperty({ required: false, format: 'uuid' })
+  @IsOptional()
+  @IsUUID()
+  accountId?: string;
+
   @ApiPropertyOptional({
     type: [TransactionParticipantInputDto],
     description: 'Optional split participants for shared expense entries.',

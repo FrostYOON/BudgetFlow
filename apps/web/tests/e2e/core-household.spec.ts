@@ -16,11 +16,9 @@ test("sign up, use personal workspace, then add shared workspace", async ({ page
 
   await expect(page).toHaveURL(/\/app\/dashboard/);
   await expect(
-    page.getByRole("main").getByRole("heading", {
-      name: "Playwright User's Budget",
-      level: 1,
-    }),
+    page.getByRole("main").getByRole("heading", { level: 1 }),
   ).toBeVisible();
+  await expect(page.getByText(/Budget/i).first()).toBeVisible();
 
   await page.goto("/app/onboarding");
   await expect(

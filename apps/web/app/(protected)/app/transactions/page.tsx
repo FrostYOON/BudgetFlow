@@ -9,6 +9,7 @@ import { TransactionSplitFields } from "@/components/transactions/transaction-sp
 import { AppBadge } from "@/components/ui/app-badge";
 import { AppButton, AppButtonLink } from "@/components/ui/app-button";
 import { AppMetricSurface, AppSurface } from "@/components/ui/app-surface";
+import { fetchFinancialAccounts, type FinancialAccount } from "@/lib/accounts";
 import { getAppSession } from "@/lib/auth/session";
 import { fetchWorkspaceMembers, type WorkspaceMemberSummary } from "@/lib/settings";
 import {
@@ -232,12 +233,42 @@ function MemberSelect({
   );
 }
 
+function AccountSelect({
+  accounts,
+  name,
+  defaultValue,
+  emptyLabel = "No account",
+}: {
+  accounts: FinancialAccount[];
+  name: string;
+  defaultValue?: string | null;
+  emptyLabel?: string;
+}) {
+  return (
+    <select
+      name={name}
+      defaultValue={defaultValue ?? ""}
+      className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
+    >
+      <option value="">{emptyLabel}</option>
+      {accounts
+        .filter((account) => !account.isArchived)
+        .map((account) => (
+          <option key={account.id} value={account.id}>
+            {account.name}
+          </option>
+        ))}
+    </select>
+  );
+}
+
 function QuickAddCard({
   categories,
   currency,
   defaultDate,
   defaultType,
   members,
+  accounts,
   returnTo,
   workspaceId,
 }: {
@@ -246,6 +277,7 @@ function QuickAddCard({
   defaultDate: string;
   defaultType: "INCOME" | "EXPENSE";
   members: WorkspaceMemberSummary[];
+  accounts: FinancialAccount[];
   returnTo: string;
   workspaceId: string;
 }) {
@@ -307,6 +339,10 @@ function QuickAddCard({
           <span className="text-sm font-medium text-slate-700">Paid by</span>
           <MemberSelect members={members} name="paidByUserId" />
         </label>
+        <label className="block">
+          <span className="text-sm font-medium text-slate-700">Account</span>
+          <AccountSelect accounts={accounts} name="accountId" />
+        </label>
       </div>
 
       <label className="mt-4 block">
@@ -333,6 +369,7 @@ function EditTransactionCard({
   categories,
   currency,
   members,
+  accounts,
   returnTo,
   transaction,
   workspaceId,
@@ -340,6 +377,7 @@ function EditTransactionCard({
   categories: TransactionCategory[];
   currency: string;
   members: WorkspaceMemberSummary[];
+  accounts: FinancialAccount[];
   returnTo: string;
   transaction: WorkspaceTransaction;
   workspaceId: string;
@@ -430,6 +468,14 @@ function EditTransactionCard({
             type="text"
             defaultValue={transaction.currency}
             className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400"
+          />
+        </label>
+        <label className="block">
+          <span className="text-sm font-medium text-slate-700">Account</span>
+          <AccountSelect
+            accounts={accounts}
+            name="accountId"
+            defaultValue={transaction.accountId}
           />
         </label>
       </div>
@@ -524,6 +570,14 @@ function TransactionDetailCard({
           </p>
           <p className="mt-2 text-sm font-semibold text-slate-950">
             {transaction.currency}
+          </p>
+        </div>
+        <div className="rounded-[1.1rem] bg-slate-50 px-4 py-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+            Account
+          </p>
+          <p className="mt-2 text-sm font-semibold text-slate-950">
+            {transaction.accountName ?? "No account"}
           </p>
         </div>
       </div>
@@ -627,7 +681,7 @@ export default async function TransactionsPage({
     requestedPeriod.month,
   );
 
-  const [transactions, categories, members] = await Promise.all([
+  const [transactions, categories, members, accounts] = await Promise.all([
     fetchWorkspaceTransactions({
       accessToken: session.accessToken,
       workspaceId: currentWorkspace.id,
@@ -641,6 +695,10 @@ export default async function TransactionsPage({
       workspaceId: currentWorkspace.id,
     }),
     fetchWorkspaceMembers({
+      accessToken: session.accessToken,
+      workspaceId: currentWorkspace.id,
+    }),
+    fetchFinancialAccounts({
       accessToken: session.accessToken,
       workspaceId: currentWorkspace.id,
     }),
@@ -809,6 +867,7 @@ export default async function TransactionsPage({
 
       <Reveal delay={0.06}>
         <QuickAddCard
+          accounts={accounts}
           categories={categories}
           currency={currentWorkspace.baseCurrency}
           defaultDate={defaultCreateDate}
@@ -822,6 +881,7 @@ export default async function TransactionsPage({
       {editableTransaction ? (
         <Reveal delay={0.1}>
           <EditTransactionCard
+            accounts={accounts}
             categories={categories}
             currency={currentWorkspace.baseCurrency}
             members={members}
@@ -925,6 +985,36 @@ export default async function TransactionsPage({
 
       <Reveal delay={0.16}>
         <section className="space-y-4">
+        <form action="/app/transactions/import" method="post" encType="multipart/form-data">
+        <AppSurface as="div" padding="md" className="space-y-4">
+          <input type="hidden" name="workspaceId" value={currentWorkspace.id} />
+          <input type="hidden" name="returnTo" value={baseHref} />
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold text-slate-950">CSV import</p>
+              <p className="mt-1 text-sm text-slate-500">
+                Headers: date,type,amount,currency,category,memo,visibility,paidBy,account
+              </p>
+            </div>
+            <AppButton type="submit" tone="secondary" size="sm">
+              Import CSV
+            </AppButton>
+          </div>
+          <input
+            name="file"
+            type="file"
+            accept=".csv,text/csv"
+            className="block w-full text-sm text-slate-600"
+          />
+          <textarea
+            name="csvText"
+            rows={5}
+            placeholder="Paste CSV content here if you do not want to upload a file."
+            className="w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
+          />
+        </AppSurface>
+        </form>
+
         <form method="get">
         <AppSurface as="div" padding="md" className="space-y-4">
           <input type="hidden" name="year" value={requestedPeriod.year} />
@@ -1113,7 +1203,10 @@ export default async function TransactionsPage({
                           {transaction.categoryName ?? "Uncategorized"}
                         </p>
                         <p className="mt-1 text-sm text-slate-500">
-                          {transaction.memo ?? transaction.paidByUserName ?? "No note"}
+                          {transaction.memo ??
+                            transaction.accountName ??
+                            transaction.paidByUserName ??
+                            "No note"}
                         </p>
                       </div>
                       <div className="text-right">

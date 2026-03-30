@@ -14,6 +14,8 @@ export interface WorkspaceTransaction {
   createdByUserId: string;
   paidByUserId: string | null;
   paidByUserName: string | null;
+  accountId: string | null;
+  accountName: string | null;
   participants: WorkspaceTransactionParticipant[];
   isDeleted: boolean;
   createdAt: string;
@@ -68,6 +70,7 @@ export async function fetchWorkspaceTransactions(input: {
   limit?: number;
   type?: "INCOME" | "EXPENSE";
   visibility?: "SHARED" | "PERSONAL";
+  accountId?: string;
 }) {
   const params = new URLSearchParams({
     from: input.from,
@@ -88,6 +91,10 @@ export async function fetchWorkspaceTransactions(input: {
 
   if (input.limit) {
     params.set("limit", String(input.limit));
+  }
+
+  if (input.accountId) {
+    params.set("accountId", input.accountId);
   }
 
   const response = await fetch(
@@ -168,6 +175,7 @@ export async function createWorkspaceTransaction(input: {
   categoryId?: string;
   memo?: string;
   paidByUserId?: string;
+  accountId?: string;
   participants?: {
     userId: string;
     shareType: "EQUAL" | "FIXED" | "PERCENTAGE";
@@ -208,6 +216,7 @@ export async function updateWorkspaceTransaction(input: {
   categoryId: string | null;
   memo: string | null;
   paidByUserId?: string;
+  accountId?: string | null;
   participants?: {
     userId: string;
     shareType: "EQUAL" | "FIXED" | "PERCENTAGE";

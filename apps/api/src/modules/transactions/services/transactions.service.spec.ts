@@ -234,6 +234,7 @@ describe('TransactionsService', () => {
     expect(prisma.transaction.update).toHaveBeenCalledWith({
       where: { id: 'transaction-1' },
       data: {
+        accountId: undefined,
         visibility: TransactionVisibility.PERSONAL,
         amount: new Prisma.Decimal('21000.00'),
         currency: undefined,
@@ -243,6 +244,7 @@ describe('TransactionsService', () => {
         paidByUserId: 'user-2',
       },
       include: {
+        account: true,
         category: true,
         paidBy: true,
       },
@@ -331,6 +333,7 @@ describe('TransactionsService', () => {
       where: { id: 'transaction-1' },
       data: { isDeleted: true },
       include: {
+        account: true,
         category: true,
         paidBy: true,
       },
@@ -384,6 +387,7 @@ describe('TransactionsService', () => {
       where: { id: 'transaction-1' },
       data: { isDeleted: false },
       include: {
+        account: true,
         category: true,
         paidBy: true,
       },

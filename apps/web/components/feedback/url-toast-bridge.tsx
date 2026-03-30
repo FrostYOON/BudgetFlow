@@ -9,6 +9,14 @@ const TOAST_MESSAGES: Record<string, { type: "success" | "error"; text: string }
     type: "success",
     text: "Account created.",
   },
+  account_saved: {
+    type: "success",
+    text: "Account created.",
+  },
+  account_archived: {
+    type: "success",
+    text: "Account archived.",
+  },
   signed_in: {
     type: "success",
     text: "Signed in.",
@@ -157,6 +165,26 @@ const TOAST_MESSAGES: Record<string, { type: "success" | "error"; text: string }
     type: "error",
     text: "Category plan is over the monthly total.",
   },
+  budget_copied: {
+    type: "success",
+    text: "Previous month copied.",
+  },
+  budget_copy_failed: {
+    type: "error",
+    text: "Failed to copy previous month.",
+  },
+  budget_template_saved: {
+    type: "success",
+    text: "Budget template saved.",
+  },
+  budget_template_applied: {
+    type: "success",
+    text: "Budget template applied.",
+  },
+  budget_template_failed: {
+    type: "error",
+    text: "Failed to use budget template.",
+  },
   workspace_created: {
     type: "success",
     text: "Workspace created.",
@@ -196,6 +224,46 @@ const TOAST_MESSAGES: Record<string, { type: "success" | "error"; text: string }
   transaction_restore_failed: {
     type: "error",
     text: "Failed to restore transaction.",
+  },
+  transactions_imported: {
+    type: "success",
+    text: "Transactions imported.",
+  },
+  csv_import_empty: {
+    type: "error",
+    text: "No importable CSV rows found.",
+  },
+  csv_import_failed: {
+    type: "error",
+    text: "Failed to import CSV.",
+  },
+  settlement_recorded: {
+    type: "success",
+    text: "Settlement recorded.",
+  },
+  settlement_record_failed: {
+    type: "error",
+    text: "Failed to record settlement.",
+  },
+  notification_read: {
+    type: "success",
+    text: "Notification marked read.",
+  },
+  notifications_read: {
+    type: "success",
+    text: "Notifications marked read.",
+  },
+  notification_read_failed: {
+    type: "error",
+    text: "Failed to update notifications.",
+  },
+  account_save_failed: {
+    type: "error",
+    text: "Failed to save account.",
+  },
+  account_archive_failed: {
+    type: "error",
+    text: "Failed to archive account.",
   },
   recurring_saved: {
     type: "success",

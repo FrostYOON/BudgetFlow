@@ -10,6 +10,18 @@ export interface BudgetCategorySummary {
   alertThresholdPct: number | null;
 }
 
+export interface BudgetTemplateSummary {
+  id: string | null;
+  name: string | null;
+  totalBudgetAmount: string | null;
+  categories: Array<{
+    categoryId: string;
+    categoryName: string;
+    plannedAmount: string;
+    alertThresholdPct: number | null;
+  }>;
+}
+
 export interface MonthlyBudgetSummary {
   id: string;
   workspaceId: string;
@@ -162,4 +174,105 @@ export async function replaceCategoryBudgets(input: {
   }
 
   return response.json();
+}
+
+export async function fetchBudgetTemplate(input: {
+  accessToken: string;
+  workspaceId: string;
+}) {
+  const response = await fetch(
+    `${getApiBaseUrl()}/workspaces/${input.workspaceId}/budgets/template`,
+    {
+      headers: {
+        Authorization: `Bearer ${input.accessToken}`,
+      },
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(response, "Failed to load budget template."),
+    );
+  }
+
+  return (await response.json()) as BudgetTemplateSummary;
+}
+
+export async function copyPreviousMonthBudget(input: {
+  accessToken: string;
+  workspaceId: string;
+  year: number;
+  month: number;
+}) {
+  const response = await fetch(
+    `${getApiBaseUrl()}/workspaces/${input.workspaceId}/budgets/${input.year}/${input.month}/copy-previous`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${input.accessToken}`,
+      },
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(response, "Failed to copy previous month budget."),
+    );
+  }
+
+  return (await response.json()) as MonthlyBudgetSummary;
+}
+
+export async function saveBudgetTemplate(input: {
+  accessToken: string;
+  workspaceId: string;
+  year: number;
+  month: number;
+}) {
+  const response = await fetch(
+    `${getApiBaseUrl()}/workspaces/${input.workspaceId}/budgets/${input.year}/${input.month}/save-template`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${input.accessToken}`,
+      },
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(response, "Failed to save budget template."),
+    );
+  }
+
+  return (await response.json()) as BudgetTemplateSummary;
+}
+
+export async function applyBudgetTemplate(input: {
+  accessToken: string;
+  workspaceId: string;
+  year: number;
+  month: number;
+}) {
+  const response = await fetch(
+    `${getApiBaseUrl()}/workspaces/${input.workspaceId}/budgets/${input.year}/${input.month}/apply-template`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${input.accessToken}`,
+      },
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(response, "Failed to apply budget template."),
+    );
+  }
+
+  return (await response.json()) as MonthlyBudgetSummary;
 }
