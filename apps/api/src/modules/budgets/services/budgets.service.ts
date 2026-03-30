@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CategoryType, Prisma, TransactionType } from '@budgetflow/database';
 import { PrismaService } from '../../../core/database/prisma.service';
 import { WorkspacesService } from '../../workspaces/services/workspaces.service';
@@ -86,11 +82,12 @@ export class BudgetsService {
     await this.workspacesService.assertMemberAccess(workspaceId, userId);
     this.assertValidPeriod(year, month);
 
-    const monthBudget = await this.findBudgetMonthOrThrow(
-      workspaceId,
-      year,
-      month,
-    );
+    const monthBudget = await this.findBudgetMonth(workspaceId, year, month);
+
+    if (!monthBudget) {
+      return this.buildEmptyMonthlyBudgetResponse(workspaceId, year, month);
+    }
+
     return this.buildMonthlyBudgetResponse(monthBudget);
   }
 
@@ -226,7 +223,21 @@ export class BudgetsService {
     year: number,
     month: number,
   ): Promise<BudgetMonthWithCategories> {
-    const monthBudget = await this.prisma.budgetMonth.findUnique({
+    const monthBudget = await this.findBudgetMonth(workspaceId, year, month);
+
+    if (!monthBudget) {
+      throw new BadRequestException('Monthly budget must be created first.');
+    }
+
+    return monthBudget;
+  }
+
+  private findBudgetMonth(
+    workspaceId: string,
+    year: number,
+    month: number,
+  ): Promise<BudgetMonthWithCategories | null> {
+    return this.prisma.budgetMonth.findUnique({
       where: {
         workspaceId_year_month: {
           workspaceId,
@@ -247,12 +258,6 @@ export class BudgetsService {
         },
       },
     });
-
-    if (!monthBudget) {
-      throw new NotFoundException('Monthly budget was not found.');
-    }
-
-    return monthBudget;
   }
 
   private async loadExpenseCategories(
@@ -458,6 +463,30 @@ export class BudgetsService {
       unallocatedAmount: categoryBudgetList.unallocatedAmount,
       actualAmount: actualAmount.toFixed(2),
       categories: categoryBudgetList.categories,
+    };
+  }
+
+  private async buildEmptyMonthlyBudgetResponse(
+    workspaceId: string,
+    year: number,
+    month: number,
+  ): Promise<MonthlyBudgetResponseDto> {
+    const actualAmount = await this.loadActualExpenseTotal(
+      workspaceId,
+      year,
+      month,
+    );
+
+    return {
+      id: '',
+      workspaceId,
+      year,
+      month,
+      totalBudgetAmount: '0.00',
+      allocatedAmount: '0.00',
+      unallocatedAmount: '0.00',
+      actualAmount: actualAmount.toFixed(2),
+      categories: [],
     };
   }
 }
