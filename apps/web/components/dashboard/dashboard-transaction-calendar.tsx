@@ -219,6 +219,27 @@ function getDayNumberClassName({
   return inCurrentMonth ? "text-slate-950" : "text-slate-300";
 }
 
+function buildDayAriaLabel(input: {
+  dateKey: string;
+  holiday: HolidayInfo | null;
+  locale: string;
+  summary?: CalendarDaySummary;
+}) {
+  const parts = [formatDateLabel(input.dateKey, input.locale)];
+
+  if (input.holiday) {
+    parts.push(`Holiday: ${input.holiday.name}`);
+  }
+
+  if (input.summary) {
+    parts.push(`${input.summary.count} transaction${input.summary.count === 1 ? "" : "s"}`);
+  } else {
+    parts.push("No transactions");
+  }
+
+  return parts.join(". ");
+}
+
 export function DashboardTransactionCalendar({
   currency,
   locale,
@@ -436,6 +457,13 @@ export function DashboardTransactionCalendar({
             <m.button
               key={day.dateKey}
               type="button"
+              aria-label={buildDayAriaLabel({
+                dateKey: day.dateKey,
+                holiday,
+                locale,
+                summary,
+              })}
+              aria-pressed={isSelected}
               onClick={() => setSelectedDate(day.dateKey)}
               whileTap={{ scale: 0.975 }}
               transition={{ type: "spring", stiffness: 520, damping: 32 }}

@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { SignUpContextFields } from "@/components/auth/sign-up-context-fields";
+import { AppButton, AppButtonLink } from "@/components/ui/app-button";
 
 export default async function SignUpPage({
   searchParams,
@@ -75,18 +75,15 @@ export default async function SignUpPage({
             </label>
 
             <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-              <button
-                type="submit"
-                className="inline-flex items-center justify-center rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
-              >
+              <AppButton type="submit" className="px-6 py-3">
                 Create account
-              </button>
-              <Link
+              </AppButton>
+              <AppButtonLink
                 href={`/sign-in?next=${encodeURIComponent(next)}`}
-                className="inline-flex items-center justify-center rounded-full border border-slate-300 px-6 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+                className="px-6 py-3"
               >
                 Back to sign in
-              </Link>
+              </AppButtonLink>
             </div>
           </form>
         </div>

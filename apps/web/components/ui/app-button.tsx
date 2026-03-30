@@ -29,7 +29,7 @@ function getSizeClassName(size: ButtonSize) {
 
 function getBaseClassName(tone: ButtonTone, size: ButtonSize, className?: string) {
   return joinClasses(
-    "inline-flex items-center justify-center rounded-full font-semibold transition active:scale-[0.98]",
+    "inline-flex items-center justify-center rounded-full font-semibold transition active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white",
     getToneClassName(tone),
     getSizeClassName(size),
     className,

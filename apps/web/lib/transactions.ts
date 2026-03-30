@@ -64,6 +64,8 @@ export async function fetchWorkspaceTransactions(input: {
   workspaceId: string;
   from: string;
   to: string;
+  cursor?: string;
+  limit?: number;
   type?: "INCOME" | "EXPENSE";
   visibility?: "SHARED" | "PERSONAL";
 }) {
@@ -78,6 +80,14 @@ export async function fetchWorkspaceTransactions(input: {
 
   if (input.visibility) {
     params.set("visibility", input.visibility);
+  }
+
+  if (input.cursor) {
+    params.set("cursor", input.cursor);
+  }
+
+  if (input.limit) {
+    params.set("limit", String(input.limit));
   }
 
   const response = await fetch(
@@ -97,6 +107,31 @@ export async function fetchWorkspaceTransactions(input: {
   }
 
   return (await response.json()) as TransactionListResponse;
+}
+
+export async function fetchAllWorkspaceTransactions(input: {
+  accessToken: string;
+  workspaceId: string;
+  from: string;
+  to: string;
+  type?: "INCOME" | "EXPENSE";
+  visibility?: "SHARED" | "PERSONAL";
+}) {
+  const items: WorkspaceTransaction[] = [];
+  let cursor: string | undefined;
+
+  do {
+    const page = await fetchWorkspaceTransactions({
+      ...input,
+      cursor,
+      limit: 100,
+    });
+
+    items.push(...page.items);
+    cursor = page.nextCursor ?? undefined;
+  } while (cursor);
+
+  return items;
 }
 
 export async function fetchWorkspaceCategories(input: {

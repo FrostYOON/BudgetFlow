@@ -18,10 +18,26 @@ export async function POST(request: NextRequest) {
   const formData = await request.formData();
 
   try {
+    const currentPassword = normalizeValue(formData.get("currentPassword"));
+    const nextPassword = normalizeValue(formData.get("nextPassword"));
+    const confirmNextPassword = normalizeValue(formData.get("confirmNextPassword"));
+
+    if (!currentPassword || !nextPassword || !confirmNextPassword) {
+      return NextResponse.redirect(
+        new URL("/app/settings?error=missing_fields", request.url),
+      );
+    }
+
+    if (nextPassword !== confirmNextPassword) {
+      return NextResponse.redirect(
+        new URL("/app/settings?error=password_confirm_mismatch", request.url),
+      );
+    }
+
     await changePassword({
       accessToken,
-      currentPassword: normalizeValue(formData.get("currentPassword")),
-      nextPassword: normalizeValue(formData.get("nextPassword")),
+      currentPassword,
+      nextPassword,
     });
 
     return NextResponse.redirect(

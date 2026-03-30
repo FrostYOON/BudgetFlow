@@ -50,6 +50,13 @@ test("sign up, use personal workspace, then add shared workspace", async ({ page
   await expect(page).toHaveURL(/\/app\/transactions/);
   await expect(page.getByText(transactionMemo).first()).toBeVisible();
 
+  await page.goto("/app/settlements");
+  await expect(
+    page.getByRole("heading", { name: householdName, level: 1 }),
+  ).toBeVisible();
+  await expect(page.getByText("Shared expense").first()).toBeVisible();
+  await expect(page.getByText(transactionMemo).first()).toBeVisible();
+
   await page.goto("/app/budgets");
   await expect(page.getByRole("heading", { name: /March 2026|Mar 2026/i })).toBeVisible();
   await page.locator('input[name="totalBudgetAmount"]').fill("1500");
@@ -58,7 +65,17 @@ test("sign up, use personal workspace, then add shared workspace", async ({ page
   await expect(page).toHaveURL(/\/app\/budgets/);
   await expect(page.locator('input[name="totalBudgetAmount"]')).toHaveValue("1500");
 
+  await page.goto("/app/reports");
+  await expect(page.getByRole("heading", { name: /March 2026|Mar 2026/i })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Export CSV" })).toBeVisible();
+
   await page.goto("/app/settings");
+  await expect(page.getByRole("heading", { name: "Security" })).toBeVisible();
+  await page.locator('input[name="currentPassword"]').fill(password);
+  await page.locator('input[name="nextPassword"]').fill(`${password}-next`);
+  await page.locator('input[name="confirmNextPassword"]').fill(`${password}-wrong`);
+  await page.getByRole("button", { name: "Change password" }).click();
+  await expect(page).toHaveURL(/\/app\/settings/);
   await page.getByRole("button", { name: "Sign out", exact: true }).click();
 
   await expect(page).toHaveURL(/\/sign-in/);
