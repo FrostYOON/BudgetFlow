@@ -89,10 +89,19 @@ export default async function BudgetsPage({
   const totalBudgetAmount = parseAmount(budget?.totalBudgetAmount);
   const allocatedAmount = parseAmount(budget?.allocatedAmount);
   const actualAmount = parseAmount(budget?.actualAmount);
-  const plannedCategoryCount = categories.filter((category) => {
+  const categoryEntries = categories.map((category) => {
     const existingBudget = categoryBudgetMap.get(category.id);
-    return parseAmount(existingBudget?.plannedAmount) > 0;
-  }).length;
+    const plannedAmount = parseAmount(existingBudget?.plannedAmount);
+
+    return {
+      category,
+      existingBudget,
+      hasAllocation: plannedAmount > 0,
+    };
+  });
+  const plannedCategoryEntries = categoryEntries.filter((entry) => entry.hasAllocation);
+  const openCategoryEntries = categoryEntries.filter((entry) => !entry.hasAllocation);
+  const plannedCategoryCount = plannedCategoryEntries.length;
   const openCategoryCount = Math.max(categories.length - plannedCategoryCount, 0);
   const allocationProgress =
     totalBudgetAmount > 0
@@ -313,59 +322,121 @@ export default async function BudgetsPage({
                 <input type="hidden" name="year" value={requestedPeriod.year} />
                 <input type="hidden" name="month" value={requestedPeriod.month} />
 
-                {categories.map((category) => {
-                  const existingBudget = categoryBudgetMap.get(category.id);
-                  const plannedAmount = parseAmount(existingBudget?.plannedAmount);
-                  const hasAllocation = plannedAmount > 0;
+                {plannedCategoryEntries.length > 0 ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-sm font-semibold text-slate-950">Planned now</p>
+                      <AppBadge tone="success">{plannedCategoryEntries.length}</AppBadge>
+                    </div>
 
-                  return (
-                    <article
-                      key={category.id}
-                      className="rounded-[1.35rem] border border-slate-900/8 bg-slate-50/85 px-4 py-4"
-                    >
-                      <input type="hidden" name="categoryId" value={category.id} />
-                      <input
-                        type="hidden"
-                        name={`alertThresholdPct:${category.id}`}
-                        value={existingBudget?.alertThresholdPct ?? ""}
-                      />
+                    {plannedCategoryEntries.map(({ category, existingBudget }) => (
+                      <article
+                        key={category.id}
+                        className="rounded-[1.35rem] border border-slate-900/8 bg-slate-50/85 px-4 py-4"
+                      >
+                        <input type="hidden" name="categoryId" value={category.id} />
+                        <input
+                          type="hidden"
+                          name={`alertThresholdPct:${category.id}`}
+                          value={existingBudget?.alertThresholdPct ?? ""}
+                        />
 
-                      <div className="space-y-3">
-                        <div className="min-w-0">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="font-semibold text-slate-950">{category.name}</p>
-                            <AppBadge tone={hasAllocation ? "success" : "subtle"}>
-                              {hasAllocation ? "Planned" : "Open"}
-                            </AppBadge>
+                        <div className="space-y-3">
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="font-semibold text-slate-950">{category.name}</p>
+                              <AppBadge tone="success">Planned</AppBadge>
+                            </div>
+                            <p className="mt-1 text-sm text-slate-500">
+                              {existingBudget
+                                ? `Spent ${formatCurrency(existingBudget.actualAmount, currency, locale)}`
+                                : "No allocation yet"}
+                            </p>
                           </div>
-                          <p className="mt-1 text-sm text-slate-500">
-                            {existingBudget
-                              ? `Spent ${formatCurrency(existingBudget.actualAmount, currency, locale)}`
-                              : "No allocation yet"}
-                          </p>
-                        </div>
 
-                        <label className="block">
-                          <span className="sr-only">{category.name}</span>
-                          <input
-                            id={`planned-mobile-${category.id}`}
-                            name={`plannedAmount:${category.id}`}
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            placeholder="0"
-                            defaultValue={
-                              existingBudget
-                                ? formatInputAmount(existingBudget.plannedAmount)
-                                : ""
-                            }
-                            className="w-full rounded-[1rem] border border-slate-200 bg-white px-4 py-3 text-right text-base font-semibold text-slate-950 outline-none transition focus:border-emerald-400"
-                          />
-                        </label>
+                          <label className="block">
+                            <span className="sr-only">{category.name}</span>
+                            <input
+                              id={`planned-mobile-${category.id}`}
+                              name={`plannedAmount:${category.id}`}
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              placeholder="0"
+                              defaultValue={
+                                existingBudget
+                                  ? formatInputAmount(existingBudget.plannedAmount)
+                                  : ""
+                              }
+                              className="w-full rounded-[1rem] border border-slate-200 bg-white px-4 py-3 text-right text-base font-semibold text-slate-950 outline-none transition focus:border-emerald-400"
+                            />
+                          </label>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-[1.35rem] border border-dashed border-slate-200 bg-slate-50/70 px-4 py-4">
+                    <p className="text-sm font-semibold text-slate-950">Nothing planned yet</p>
+                    <p className="mt-1 text-sm text-slate-500">
+                      Open the categories below and start with the ones you use most.
+                    </p>
+                  </div>
+                )}
+
+                <details className="rounded-[1.35rem] border border-slate-200 bg-slate-50/70 px-4 py-4">
+                  <summary className="cursor-pointer list-none">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-slate-950">Open categories</p>
+                        <p className="mt-1 text-sm text-slate-500">
+                          {openCategoryEntries.length} categories still blank
+                        </p>
                       </div>
-                    </article>
-                  );
-                })}
+                      <AppBadge tone="subtle">{openCategoryEntries.length}</AppBadge>
+                    </div>
+                  </summary>
+
+                  <div className="mt-4 space-y-3">
+                    {openCategoryEntries.map(({ category, existingBudget }) => (
+                      <article
+                        key={category.id}
+                        className="rounded-[1.35rem] border border-slate-900/8 bg-white px-4 py-4"
+                      >
+                        <input type="hidden" name="categoryId" value={category.id} />
+                        <input
+                          type="hidden"
+                          name={`alertThresholdPct:${category.id}`}
+                          value={existingBudget?.alertThresholdPct ?? ""}
+                        />
+
+                        <div className="space-y-3">
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="font-semibold text-slate-950">{category.name}</p>
+                              <AppBadge tone="subtle">Open</AppBadge>
+                            </div>
+                            <p className="mt-1 text-sm text-slate-500">No allocation yet</p>
+                          </div>
+
+                          <label className="block">
+                            <span className="sr-only">{category.name}</span>
+                            <input
+                              id={`planned-mobile-open-${category.id}`}
+                              name={`plannedAmount:${category.id}`}
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              placeholder="0"
+                              defaultValue=""
+                              className="w-full rounded-[1rem] border border-slate-200 bg-white px-4 py-3 text-right text-base font-semibold text-slate-950 outline-none transition focus:border-emerald-400"
+                            />
+                          </label>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </details>
 
                 <AppButton type="submit" tone="primary" size="sm" className="w-full">
                   Save plan
