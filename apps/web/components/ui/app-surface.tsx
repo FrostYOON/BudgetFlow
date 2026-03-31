@@ -1,4 +1,4 @@
-import type { ElementType, ReactNode } from "react";
+import type { ComponentPropsWithoutRef, ElementType, ReactNode } from "react";
 
 type SurfaceTone = "default" | "muted" | "success" | "danger";
 type SurfacePadding = "md" | "lg";
@@ -24,23 +24,27 @@ function getPaddingClassName(padding: SurfacePadding) {
   return padding === "lg" ? "px-6 py-6" : "px-5 py-5 sm:px-6";
 }
 
-export function AppSurface({
+type AppSurfaceProps<T extends ElementType> = {
+  as?: T;
+  children: ReactNode;
+  className?: string;
+  padding?: SurfacePadding;
+  tone?: SurfaceTone;
+} & Omit<ComponentPropsWithoutRef<T>, "as" | "children" | "className">;
+
+export function AppSurface<T extends ElementType = "section">({
   as,
   children,
   className,
   padding = "md",
   tone = "default",
-}: {
-  as?: ElementType;
-  children: ReactNode;
-  className?: string;
-  padding?: SurfacePadding;
-  tone?: SurfaceTone;
-}) {
+  ...props
+}: AppSurfaceProps<T>) {
   const Component = as ?? "section";
 
   return (
     <Component
+      {...props}
       className={joinClasses(
         "rounded-[1.75rem] border shadow-[0_18px_60px_rgba(15,23,42,0.06)]",
         getToneClassName(tone),
