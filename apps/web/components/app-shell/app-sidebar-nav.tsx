@@ -3,7 +3,10 @@
 import { LazyMotion, domAnimation, m } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { APP_NAVIGATION } from "@/lib/navigation";
+import {
+  APP_SIDEBAR_NAVIGATION,
+  isNavigationItemActive,
+} from "@/lib/navigation";
 
 export function AppSidebarNav() {
   const pathname = usePathname();
@@ -11,8 +14,8 @@ export function AppSidebarNav() {
   return (
     <LazyMotion features={domAnimation}>
       <nav className="space-y-2">
-        {APP_NAVIGATION.map((item) => {
-          const isActive = pathname === item.href;
+        {APP_SIDEBAR_NAVIGATION.map((item) => {
+          const isActive = isNavigationItemActive(pathname, item);
 
           return (
             <Link

@@ -3,7 +3,10 @@
 import { LazyMotion, domAnimation, m } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { APP_NAVIGATION } from "@/lib/navigation";
+import {
+  APP_MOBILE_NAVIGATION,
+  isNavigationItemActive,
+} from "@/lib/navigation";
 
 export function AppBottomNav() {
   const pathname = usePathname();
@@ -14,11 +17,11 @@ export function AppBottomNav() {
         <div
           className="mx-auto grid max-w-2xl gap-2"
           style={{
-            gridTemplateColumns: `repeat(${APP_NAVIGATION.length}, minmax(0, 1fr))`,
+            gridTemplateColumns: `repeat(${APP_MOBILE_NAVIGATION.length}, minmax(0, 1fr))`,
           }}
         >
-          {APP_NAVIGATION.map((item) => {
-            const isActive = pathname === item.href;
+          {APP_MOBILE_NAVIGATION.map((item) => {
+            const isActive = isNavigationItemActive(pathname, item);
 
             return (
               <Link
