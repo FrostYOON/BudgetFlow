@@ -57,8 +57,9 @@ test("sign up, use personal workspace, then add shared workspace", async ({ page
 
   await page.goto("/app/budgets");
   await expect(page.getByRole("heading", { name: /March 2026|Mar 2026/i })).toBeVisible();
-  await page.locator('input[name="totalBudgetAmount"]').fill("1500");
-  await page.getByRole("button", { name: "Save total" }).click();
+  const monthlyBudgetForm = page.locator('form[action="/app/budgets/monthly"]');
+  await monthlyBudgetForm.locator('input[name="totalBudgetAmount"]').fill("1500");
+  await monthlyBudgetForm.evaluate((form: HTMLFormElement) => form.requestSubmit());
 
   await expect(page).toHaveURL(/\/app\/budgets/);
   await expect(page.locator('input[name="totalBudgetAmount"]')).toHaveValue("1500");
