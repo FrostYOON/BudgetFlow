@@ -182,7 +182,7 @@ export default async function BudgetsPage({
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-3">
+              <div className="hidden flex-wrap gap-3 sm:flex">
                 <AppButtonLink href="#budget-total" size="sm" tone="success">
                   Edit total
                 </AppButtonLink>
@@ -192,7 +192,7 @@ export default async function BudgetsPage({
               </div>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+            <div className="hidden gap-3 lg:grid">
               <article className="rounded-[1.5rem] border border-slate-200 bg-white/85 px-4 py-4">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-medium text-slate-500">Allocated</p>
@@ -229,6 +229,149 @@ export default async function BudgetsPage({
                 </p>
               </article>
             </div>
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 gap-3 lg:hidden">
+            <article className="rounded-[1.25rem] border border-slate-200 bg-white/85 px-4 py-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
+                Allocated
+              </p>
+              <p className="mt-2 text-xl font-semibold tracking-tight text-slate-950">
+                {allocationProgress}%
+              </p>
+              <p className="mt-1 text-sm text-slate-500">
+                {formatCurrency(budget?.allocatedAmount ?? "0.00", currency, locale)}
+              </p>
+            </article>
+
+            <article className="rounded-[1.25rem] border border-emerald-100 bg-emerald-50/80 px-4 py-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-emerald-700">
+                Spent
+              </p>
+              <p className="mt-2 text-xl font-semibold tracking-tight text-slate-950">
+                {spendProgress}%
+              </p>
+              <p className="mt-1 text-sm text-slate-600">
+                {formatCurrency(budget?.actualAmount ?? "0.00", currency, locale)}
+              </p>
+            </article>
+          </div>
+
+          <div className="mt-5 space-y-3 sm:hidden">
+            <details className="rounded-[1.5rem] border border-slate-200 bg-white/80 p-4">
+              <summary className="cursor-pointer list-none">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-950">Edit monthly total</p>
+                    <p className="mt-1 text-sm text-slate-500">
+                      {formatCurrency(budget?.totalBudgetAmount ?? "0.00", currency, locale)}
+                    </p>
+                  </div>
+                  <AppBadge tone="success">Quick edit</AppBadge>
+                </div>
+              </summary>
+
+              <form action="/app/budgets/monthly" method="post" className="mt-4 space-y-4">
+                <input type="hidden" name="workspaceId" value={session.currentWorkspace.id} />
+                <input type="hidden" name="year" value={requestedPeriod.year} />
+                <input type="hidden" name="month" value={requestedPeriod.month} />
+
+                <label className="block">
+                  <span className="text-sm font-medium text-slate-700">Amount</span>
+                  <input
+                    name="totalBudgetAmount"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    defaultValue={formatInputAmount(budget?.totalBudgetAmount ?? "0")}
+                    placeholder="0"
+                    className="mt-2 w-full rounded-[1.2rem] border border-emerald-200 bg-white px-4 py-4 text-lg font-semibold text-slate-950 outline-none transition focus:border-emerald-400"
+                  />
+                </label>
+
+                <AppButton type="submit" tone="success" size="sm" className="w-full">
+                  Save total
+                </AppButton>
+              </form>
+            </details>
+
+            <details className="rounded-[1.5rem] border border-slate-200 bg-white/80 p-4">
+              <summary className="cursor-pointer list-none">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-950">Plan categories</p>
+                    <p className="mt-1 text-sm text-slate-500">
+                      {plannedCategoryCount} planned, {openCategoryCount} open
+                    </p>
+                  </div>
+                  <AppBadge tone="subtle">{categories.length} items</AppBadge>
+                </div>
+              </summary>
+
+              <form action="/app/budgets/categories" method="post" className="mt-4 space-y-3">
+                <input type="hidden" name="workspaceId" value={session.currentWorkspace.id} />
+                <input type="hidden" name="year" value={requestedPeriod.year} />
+                <input type="hidden" name="month" value={requestedPeriod.month} />
+
+                {categories.map((category) => {
+                  const existingBudget = categoryBudgetMap.get(category.id);
+                  const plannedAmount = parseAmount(existingBudget?.plannedAmount);
+                  const hasAllocation = plannedAmount > 0;
+
+                  return (
+                    <article
+                      key={category.id}
+                      className="rounded-[1.35rem] border border-slate-900/8 bg-slate-50/85 px-4 py-4"
+                    >
+                      <input type="hidden" name="categoryId" value={category.id} />
+                      <input
+                        type="hidden"
+                        name={`alertThresholdPct:${category.id}`}
+                        value={existingBudget?.alertThresholdPct ?? ""}
+                      />
+
+                      <div className="space-y-3">
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="font-semibold text-slate-950">{category.name}</p>
+                            <AppBadge tone={hasAllocation ? "success" : "subtle"}>
+                              {hasAllocation ? "Planned" : "Open"}
+                            </AppBadge>
+                          </div>
+                          <p className="mt-1 text-sm text-slate-500">
+                            {existingBudget
+                              ? `Spent ${formatCurrency(existingBudget.actualAmount, currency, locale)}`
+                              : "No allocation yet"}
+                          </p>
+                        </div>
+
+                        <label className="block">
+                          <span className="sr-only">{category.name}</span>
+                          <input
+                            id={`planned-mobile-${category.id}`}
+                            name={`plannedAmount:${category.id}`}
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            placeholder="0"
+                            defaultValue={
+                              existingBudget
+                                ? formatInputAmount(existingBudget.plannedAmount)
+                                : ""
+                            }
+                            className="w-full rounded-[1rem] border border-slate-200 bg-white px-4 py-3 text-right text-base font-semibold text-slate-950 outline-none transition focus:border-emerald-400"
+                          />
+                        </label>
+                      </div>
+                    </article>
+                  );
+                })}
+
+                <AppButton type="submit" tone="primary" size="sm" className="w-full">
+                  Save plan
+                </AppButton>
+              </form>
+            </details>
           </div>
 
           <details className="mt-5 rounded-[1.5rem] border border-slate-200 bg-white/80 p-4 sm:hidden">
@@ -302,7 +445,7 @@ export default async function BudgetsPage({
         </AppSurface>
       </Reveal>
 
-      <StaggerReveal className="grid gap-3 sm:grid-cols-2">
+      <StaggerReveal className="hidden gap-3 sm:grid sm:grid-cols-2">
         <StaggerItem>
           <AppMetricSurface>
           <p className="text-sm text-slate-500">Monthly total</p>
@@ -345,7 +488,7 @@ export default async function BudgetsPage({
         </StaggerItem>
       </StaggerReveal>
 
-      <Reveal delay={0.08}>
+      <Reveal delay={0.08} className="hidden sm:block">
         <form action="/app/budgets/monthly" method="post">
           <AppSurface as="div" padding="md" tone="success" className="scroll-mt-28" id="budget-total">
             <input type="hidden" name="workspaceId" value={session.currentWorkspace.id} />
@@ -399,7 +542,7 @@ export default async function BudgetsPage({
         </form>
       </Reveal>
 
-      <Reveal delay={0.12}>
+      <Reveal delay={0.12} className="hidden sm:block">
         <form action="/app/budgets/categories" method="post">
           <AppSurface as="div" padding="md" className="scroll-mt-28" id="budget-categories">
             <input type="hidden" name="workspaceId" value={session.currentWorkspace.id} />
