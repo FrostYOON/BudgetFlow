@@ -76,6 +76,22 @@ export default async function SettingsPage() {
   const sessions = await fetchAuthSessions({
     accessToken: session.accessToken,
   });
+  const orderedSessions = [...sessions].sort((left, right) => {
+    if (left.isCurrent && !right.isCurrent) {
+      return -1;
+    }
+
+    if (!left.isCurrent && right.isCurrent) {
+      return 1;
+    }
+
+    const leftDate = new Date(left.lastUsedAt ?? left.createdAt).getTime();
+    const rightDate = new Date(right.lastUsedAt ?? right.createdAt).getTime();
+
+    return rightDate - leftDate;
+  });
+  const visibleSessions = orderedSessions.slice(0, 3);
+  const hiddenSessionCount = Math.max(orderedSessions.length - visibleSessions.length, 0);
 
   return (
     <div className="space-y-8">
@@ -112,26 +128,84 @@ export default async function SettingsPage() {
         </section>
       </Reveal>
 
+      <Reveal delay={0.03}>
+        <AppSurface padding="md" tone="muted">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-sm font-medium text-slate-500">Manage in stages</p>
+              <h2 className="mt-2 text-xl font-semibold text-slate-950">
+                Profile first, workspace second, sharing when needed
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm text-slate-600">
+                Keep high-frequency account tasks here and use dedicated management pages for
+                accounts, categories, notifications, and recurring operations.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <AppBadge tone="subtle">
+                {session.currentWorkspace?.memberRole ?? "No role"}
+              </AppBadge>
+              <AppBadge tone={pendingInvites.length > 0 ? "success" : "subtle"}>
+                {pendingInvites.length} pending invite{pendingInvites.length === 1 ? "" : "s"}
+              </AppBadge>
+              <AppBadge tone="subtle">
+                {sessions.length} session{sessions.length === 1 ? "" : "s"}
+              </AppBadge>
+            </div>
+          </div>
+
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <AppButtonLink href="/app/settings/accounts" tone="secondary" className="w-full">
+              Manage accounts
+            </AppButtonLink>
+            <AppButtonLink href="/app/settings/categories" tone="secondary" className="w-full">
+              Manage categories
+            </AppButtonLink>
+            <AppButtonLink href="/app/notifications" tone="secondary" className="w-full">
+              Open notifications
+            </AppButtonLink>
+            <AppButtonLink href="/app/recurring" tone="secondary" className="w-full">
+              Open recurring
+            </AppButtonLink>
+          </div>
+        </AppSurface>
+      </Reveal>
+
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <Reveal delay={0.04}>
           <AppSurface padding="md">
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-slate-950">Workspace tools</h2>
+                <h2 className="text-lg font-semibold text-slate-950">Workspace snapshot</h2>
                 <p className="mt-1 text-sm text-slate-500">
-                  Manage accounts, categories, notifications, and member settings.
+                  Keep the current role, currency, and workspace context visible while editing.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-2">
-                <AppButtonLink href="/app/settings/accounts" tone="secondary" size="sm">
-                  Accounts
-                </AppButtonLink>
-                <AppButtonLink href="/app/settings/categories" tone="secondary" size="sm">
-                  Categories
-                </AppButtonLink>
-                <AppButtonLink href="/app/notifications" tone="secondary" size="sm">
-                  Notifications
-                </AppButtonLink>
+              <div className="grid gap-3 sm:grid-cols-3 sm:text-right">
+                <div className="rounded-2xl bg-slate-50 px-4 py-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                    Workspace
+                  </p>
+                  <p className="mt-2 text-sm font-semibold text-slate-950">
+                    {session.currentWorkspace?.name ?? "None"}
+                  </p>
+                </div>
+                <div className="rounded-2xl bg-slate-50 px-4 py-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                    Type
+                  </p>
+                  <p className="mt-2 text-sm font-semibold text-slate-950">
+                    {session.currentWorkspace?.type ?? "No workspace"}
+                  </p>
+                </div>
+                <div className="rounded-2xl bg-slate-50 px-4 py-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                    Currency
+                  </p>
+                  <p className="mt-2 text-sm font-semibold text-slate-950">
+                    {session.currentWorkspace?.baseCurrency ?? "-"}
+                  </p>
+                </div>
               </div>
             </div>
           </AppSurface>
@@ -297,7 +371,7 @@ export default async function SettingsPage() {
               </form>
             </div>
 
-            {sessions.map((authSession) => (
+            {visibleSessions.map((authSession) => (
               <div
                 key={authSession.id}
                 className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4"
@@ -348,6 +422,11 @@ export default async function SettingsPage() {
                 </div>
               </div>
             ))}
+            {hiddenSessionCount > 0 ? (
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm text-slate-500">
+                Showing the 3 most relevant sessions. Use <span className="font-semibold text-slate-700">Sign out others</span> to clean up the remaining {hiddenSessionCount}.
+              </div>
+            ) : null}
           </div>
           </AppSurface>
         </Reveal>
@@ -429,7 +508,7 @@ export default async function SettingsPage() {
         </Reveal>
 
         <Reveal delay={0.14}>
-          <AppSurface className="xl:col-span-2" padding="md">
+        <AppSurface className="xl:col-span-2" padding="md">
           <div className="border-b border-slate-900/8 pb-4">
             <h2 className="text-lg font-semibold text-slate-950">
               Shared space

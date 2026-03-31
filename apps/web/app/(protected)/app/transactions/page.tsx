@@ -65,6 +65,9 @@ function getType(
 
 function buildTransactionsHref(input: {
   categoryId?: string;
+  compose?: boolean;
+  filters?: boolean;
+  importCsv?: boolean;
   maxAmount?: string;
   minAmount?: string;
   year: number;
@@ -101,6 +104,18 @@ function buildTransactionsHref(input: {
     params.set("maxAmount", input.maxAmount);
   }
 
+  if (input.compose) {
+    params.set("compose", "1");
+  }
+
+  if (input.filters) {
+    params.set("filters", "1");
+  }
+
+  if (input.importCsv) {
+    params.set("importCsv", "1");
+  }
+
   return `/app/transactions?${params.toString()}`;
 }
 
@@ -134,6 +149,10 @@ function parseAmountFilter(value?: string) {
 
   const amount = Number(normalized);
   return Number.isFinite(amount) ? amount : null;
+}
+
+function getPanelState(value?: string) {
+  return value === "1";
 }
 
 function getDefaultTransactionDate(
@@ -640,8 +659,11 @@ export default async function TransactionsPage({
 }: {
   searchParams: Promise<{
     categoryId?: string;
+    compose?: string;
     deleted?: string;
     edit?: string;
+    filters?: string;
+    importCsv?: string;
     maxAmount?: string;
     year?: string;
     month?: string;
@@ -676,6 +698,9 @@ export default async function TransactionsPage({
   const rawMaxAmount = normalizeFilterValue(params.maxAmount);
   const minAmount = parseAmountFilter(params.minAmount);
   const maxAmount = parseAmountFilter(params.maxAmount);
+  const isComposeOpen = getPanelState(params.compose);
+  const isFiltersOpen = getPanelState(params.filters);
+  const isImportOpen = getPanelState(params.importCsv);
   const monthRange = getMonthRange(
     requestedPeriod.year,
     requestedPeriod.month,
@@ -712,6 +737,42 @@ export default async function TransactionsPage({
     maxAmount: rawMaxAmount,
     year: requestedPeriod.year,
     minAmount: rawMinAmount,
+    month: requestedPeriod.month,
+    paidByUserId,
+    query,
+    type,
+    visibility,
+  });
+  const composeHref = buildTransactionsHref({
+    categoryId,
+    compose: true,
+    maxAmount: rawMaxAmount,
+    minAmount: rawMinAmount,
+    year: requestedPeriod.year,
+    month: requestedPeriod.month,
+    paidByUserId,
+    query,
+    type,
+    visibility,
+  });
+  const filtersHref = buildTransactionsHref({
+    categoryId,
+    filters: true,
+    maxAmount: rawMaxAmount,
+    minAmount: rawMinAmount,
+    year: requestedPeriod.year,
+    month: requestedPeriod.month,
+    paidByUserId,
+    query,
+    type,
+    visibility,
+  });
+  const importHref = buildTransactionsHref({
+    categoryId,
+    importCsv: true,
+    maxAmount: rawMaxAmount,
+    minAmount: rawMinAmount,
+    year: requestedPeriod.year,
     month: requestedPeriod.month,
     paidByUserId,
     query,
@@ -773,6 +834,21 @@ export default async function TransactionsPage({
     typeof params.deleted === "string" && params.deleted.length > 0
       ? params.deleted
       : null;
+  const activeFilterCount = [
+    query,
+    categoryId,
+    paidByUserId,
+    rawMinAmount,
+    rawMaxAmount,
+    type !== "ALL" ? type : null,
+    visibility !== "ALL" ? visibility : null,
+  ].filter(Boolean).length;
+  const showMobileBackToList =
+    isComposeOpen ||
+    isFiltersOpen ||
+    isImportOpen ||
+    Boolean(editableTransaction) ||
+    Boolean(viewedTransaction);
 
   const grouped = Object.entries(
     filteredTransactions.reduce<Record<string, typeof filteredTransactions>>(
@@ -862,21 +938,58 @@ export default async function TransactionsPage({
             Next
           </AppButtonLink>
         </div>
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:hidden">
+          <AppButtonLink href={composeHref} tone="primary" className="w-full">
+            Add entry
+          </AppButtonLink>
+          <AppButtonLink href={filtersHref} tone="secondary" className="w-full">
+            Filters {activeFilterCount > 0 ? `(${activeFilterCount})` : ""}
+          </AppButtonLink>
+          <AppButtonLink href={importHref} tone="secondary" className="w-full">
+            Import CSV
+          </AppButtonLink>
+          {showMobileBackToList ? (
+            <AppButtonLink href={baseHref} tone="secondary" className="w-full">
+              Back to list
+            </AppButtonLink>
+          ) : null}
+        </div>
         </AppSurface>
       </Reveal>
 
-      <Reveal delay={0.06}>
-        <QuickAddCard
-          accounts={accounts}
-          categories={categories}
-          currency={currentWorkspace.baseCurrency}
-          defaultDate={defaultCreateDate}
-          defaultType={defaultCreateType}
-          members={members}
-          returnTo={baseHref}
-          workspaceId={currentWorkspace.id}
-        />
-      </Reveal>
+      {isComposeOpen ? (
+        <Reveal delay={0.05}>
+          <AppSurface padding="md" tone="muted" className="xl:hidden">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold text-slate-950">
+                  New transaction
+                </p>
+                <p className="mt-1 text-sm text-slate-500">
+                  Start with the essentials, then save and return to the list.
+                </p>
+              </div>
+              <AppBadge tone="subtle">Mobile focus</AppBadge>
+            </div>
+          </AppSurface>
+        </Reveal>
+      ) : null}
+
+      <div className={isComposeOpen ? "block" : "hidden xl:block"}>
+        <Reveal delay={0.06}>
+          <QuickAddCard
+            accounts={accounts}
+            categories={categories}
+            currency={currentWorkspace.baseCurrency}
+            defaultDate={defaultCreateDate}
+            defaultType={defaultCreateType}
+            members={members}
+            returnTo={baseHref}
+            workspaceId={currentWorkspace.id}
+          />
+        </Reveal>
+      </div>
 
       {editableTransaction ? (
         <Reveal delay={0.1}>
@@ -985,119 +1098,123 @@ export default async function TransactionsPage({
 
       <Reveal delay={0.16}>
         <section className="space-y-4">
-        <form action="/app/transactions/import" method="post" encType="multipart/form-data">
-        <AppSurface as="div" padding="md" className="space-y-4">
-          <input type="hidden" name="workspaceId" value={currentWorkspace.id} />
-          <input type="hidden" name="returnTo" value={baseHref} />
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="text-sm font-semibold text-slate-950">CSV import</p>
-              <p className="mt-1 text-sm text-slate-500">
-                Headers: date,type,amount,currency,category,memo,visibility,paidBy,account
-              </p>
+        <div className={isImportOpen ? "block" : "hidden xl:block"}>
+          <form action="/app/transactions/import" method="post" encType="multipart/form-data">
+          <AppSurface as="div" padding="md" className="space-y-4">
+            <input type="hidden" name="workspaceId" value={currentWorkspace.id} />
+            <input type="hidden" name="returnTo" value={baseHref} />
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold text-slate-950">CSV import</p>
+                <p className="mt-1 text-sm text-slate-500">
+                  Headers: date,type,amount,currency,category,memo,visibility,paidBy,account
+                </p>
+              </div>
+              <AppButton type="submit" tone="secondary" size="sm">
+                Import CSV
+              </AppButton>
             </div>
-            <AppButton type="submit" tone="secondary" size="sm">
-              Import CSV
-            </AppButton>
-          </div>
-          <input
-            name="file"
-            type="file"
-            accept=".csv,text/csv"
-            className="block w-full text-sm text-slate-600"
-          />
-          <textarea
-            name="csvText"
-            rows={5}
-            placeholder="Paste CSV content here if you do not want to upload a file."
-            className="w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
-          />
-        </AppSurface>
-        </form>
+            <input
+              name="file"
+              type="file"
+              accept=".csv,text/csv"
+              className="block w-full text-sm text-slate-600"
+            />
+            <textarea
+              name="csvText"
+              rows={5}
+              placeholder="Paste CSV content here if you do not want to upload a file."
+              className="w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
+            />
+          </AppSurface>
+          </form>
+        </div>
 
-        <form method="get">
-        <AppSurface as="div" padding="md" className="space-y-4">
-          <input type="hidden" name="year" value={requestedPeriod.year} />
-          <input type="hidden" name="month" value={requestedPeriod.month} />
-          <input type="hidden" name="type" value={type} />
-          <input type="hidden" name="visibility" value={visibility} />
+        <div className={isFiltersOpen ? "block" : "hidden xl:block"}>
+          <form method="get">
+          <AppSurface as="div" padding="md" className="space-y-4">
+            <input type="hidden" name="year" value={requestedPeriod.year} />
+            <input type="hidden" name="month" value={requestedPeriod.month} />
+            <input type="hidden" name="type" value={type} />
+            <input type="hidden" name="visibility" value={visibility} />
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label className="block sm:col-span-2">
-              <span className="text-sm font-medium text-slate-700">Search</span>
-              <input
-                name="q"
-                type="text"
-                defaultValue={query}
-                placeholder="Category, memo, payer"
-                className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
-              />
-            </label>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="block sm:col-span-2">
+                <span className="text-sm font-medium text-slate-700">Search</span>
+                <input
+                  name="q"
+                  type="text"
+                  defaultValue={query}
+                  placeholder="Category, memo, payer"
+                  className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
+                />
+              </label>
 
-            <label className="block">
-              <span className="text-sm font-medium text-slate-700">Category</span>
-              <CategorySelect
-                categories={categories}
-                name="categoryId"
-                defaultValue={categoryId}
-                emptyLabel="All categories"
-              />
-            </label>
+              <label className="block">
+                <span className="text-sm font-medium text-slate-700">Category</span>
+                <CategorySelect
+                  categories={categories}
+                  name="categoryId"
+                  defaultValue={categoryId}
+                  emptyLabel="All categories"
+                />
+              </label>
 
-            <label className="block">
-              <span className="text-sm font-medium text-slate-700">Paid by</span>
-              <MemberSelect
-                members={members}
-                name="paidByUserId"
-                defaultValue={paidByUserId}
-                emptyLabel="All members"
-              />
-            </label>
+              <label className="block">
+                <span className="text-sm font-medium text-slate-700">Paid by</span>
+                <MemberSelect
+                  members={members}
+                  name="paidByUserId"
+                  defaultValue={paidByUserId}
+                  emptyLabel="All members"
+                />
+              </label>
 
-            <label className="block">
-              <span className="text-sm font-medium text-slate-700">Min amount</span>
-              <input
-                name="minAmount"
-                type="number"
-                min="0"
-                step="0.01"
-                defaultValue={rawMinAmount}
-                className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
-              />
-            </label>
+              <label className="block">
+                <span className="text-sm font-medium text-slate-700">Min amount</span>
+                <input
+                  name="minAmount"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  defaultValue={rawMinAmount}
+                  className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
+                />
+              </label>
 
-            <label className="block">
-              <span className="text-sm font-medium text-slate-700">Max amount</span>
-              <input
-                name="maxAmount"
-                type="number"
-                min="0"
-                step="0.01"
-                defaultValue={rawMaxAmount}
-                className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
-              />
-            </label>
-          </div>
+              <label className="block">
+                <span className="text-sm font-medium text-slate-700">Max amount</span>
+                <input
+                  name="maxAmount"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  defaultValue={rawMaxAmount}
+                  className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-emerald-400 focus:bg-white"
+                />
+              </label>
+            </div>
 
-          <div className="flex gap-3">
-            <AppButton type="submit" className="flex-1">
-              Apply filters
-            </AppButton>
-            <AppButtonLink
-              href={buildTransactionsHref({
-                year: requestedPeriod.year,
-                month: requestedPeriod.month,
-                type,
-                visibility,
-              })}
-              tone="secondary"
-              className="flex-1"
-            >
-              Reset
-            </AppButtonLink>
-          </div>
-        </AppSurface>
-        </form>
+            <div className="flex gap-3">
+              <AppButton type="submit" className="flex-1">
+                Apply filters
+              </AppButton>
+              <AppButtonLink
+                href={buildTransactionsHref({
+                  year: requestedPeriod.year,
+                  month: requestedPeriod.month,
+                  type,
+                  visibility,
+                })}
+                tone="secondary"
+                className="flex-1"
+              >
+                Reset
+              </AppButtonLink>
+            </div>
+          </AppSurface>
+          </form>
+        </div>
 
         <div className="flex gap-2 overflow-x-auto pb-1">
           {[

@@ -10,7 +10,8 @@
       "persistent": true
     },
     "lint": {
-      "dependsOn": ["^lint"]
+      "dependsOn": ["^lint"],
+      "env": ["DATABASE_URL"]
     },
     "test": {
       "dependsOn": ["^test"],
