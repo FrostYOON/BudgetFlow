@@ -72,6 +72,11 @@ export default async function DashboardPage({
   const next = getNextMonth(dashboard.period.year, dashboard.period.month);
   const currency = session.currentWorkspace.baseCurrency;
   const locale = session.user.locale === "ko-KR" ? "ko-KR" : "en-CA";
+  const settlementsHref = `/app/settlements?year=${dashboard.period.year}&month=${dashboard.period.month}`;
+  const reportsHref = `/app/reports?year=${dashboard.period.year}&month=${dashboard.period.month}`;
+  const composeTransactionHref = `/app/transactions?year=${dashboard.period.year}&month=${dashboard.period.month}&type=EXPENSE&visibility=ALL&compose=1`;
+  const visibleInsights = dashboard.insights.slice(0, 3);
+  const hiddenInsightsCount = Math.max(dashboard.insights.length - visibleInsights.length, 0);
 
   const budgetUsedPct =
     Number(dashboard.summary.monthlyBudget) > 0
@@ -84,60 +89,90 @@ export default async function DashboardPage({
       : 0;
 
   return (
-    <div className="space-y-10">
-      <section className="border-b border-slate-900/8 pb-8">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
-              Dashboard
-            </p>
-            <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
-              {session.currentWorkspace.name}
-            </h1>
-            <p className="mt-3 text-sm text-slate-500">
-              {formatMonthLabel(dashboard.period.year, dashboard.period.month)}
-            </p>
+    <div className="space-y-8">
+      <Reveal delay={0.02}>
+        <AppSurface padding="lg">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
+                Dashboard
+              </p>
+              <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+                {session.currentWorkspace.name}
+              </h1>
+              <p className="mt-3 text-sm text-slate-500">
+                {formatMonthLabel(dashboard.period.year, dashboard.period.month)}
+              </p>
+            </div>
+
+            <div className="hidden items-center gap-3 text-sm lg:flex">
+              <AppButtonLink
+                href={settlementsHref}
+                tone="success"
+                size="sm"
+              >
+                Settlements
+              </AppButtonLink>
+              <AppButtonLink
+                href={reportsHref}
+                tone="secondary"
+                size="sm"
+              >
+                Report
+              </AppButtonLink>
+              <AppButtonLink
+                href={`/app/dashboard?year=${prev.year}&month=${prev.month}`}
+                tone="secondary"
+                size="sm"
+              >
+                Previous
+              </AppButtonLink>
+              <AppBadge tone="default" className="px-4 py-2 text-sm font-medium">
+                {formatMonthLabel(dashboard.period.year, dashboard.period.month)}
+              </AppBadge>
+              <AppButtonLink
+                href={`/app/dashboard?year=${next.year}&month=${next.month}`}
+                tone="secondary"
+                size="sm"
+              >
+                Next
+              </AppButtonLink>
+            </div>
           </div>
 
-          <div className="flex items-center gap-3 text-sm">
-            <AppButtonLink
-              href={`/app/settlements?year=${dashboard.period.year}&month=${dashboard.period.month}`}
-              tone="success"
-              size="sm"
-            >
-              Settlement
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:hidden">
+            <AppButtonLink href={composeTransactionHref} tone="primary" className="w-full">
+              Add transaction
             </AppButtonLink>
-            <AppButtonLink
-              href={`/app/reports?year=${dashboard.period.year}&month=${dashboard.period.month}`}
-              tone="success"
-              size="sm"
-            >
-              Report
+            <AppButtonLink href={settlementsHref} tone="secondary" className="w-full">
+              View settlements
             </AppButtonLink>
-            <AppButtonLink
-              href={`/app/dashboard?year=${prev.year}&month=${prev.month}`}
-              tone="secondary"
-              size="sm"
-            >
-              Previous
+            <AppButtonLink href={reportsHref} tone="secondary" className="w-full">
+              Monthly report
             </AppButtonLink>
-            <AppBadge tone="default" className="px-4 py-2 text-sm font-medium">
-              {formatMonthLabel(dashboard.period.year, dashboard.period.month)}
-            </AppBadge>
-            <AppButtonLink
-              href={`/app/dashboard?year=${next.year}&month=${next.month}`}
-              tone="secondary"
-              size="sm"
-            >
-              Next
-            </AppButtonLink>
+            <div className="flex gap-3">
+              <AppButtonLink
+                href={`/app/dashboard?year=${prev.year}&month=${prev.month}`}
+                tone="secondary"
+                className="flex-1"
+              >
+                Prev
+              </AppButtonLink>
+              <AppButtonLink
+                href={`/app/dashboard?year=${next.year}&month=${next.month}`}
+                tone="secondary"
+                className="flex-1"
+              >
+                Next
+              </AppButtonLink>
+            </div>
           </div>
-        </div>
-      </section>
+        </AppSurface>
+      </Reveal>
 
-      <StaggerReveal className="grid gap-6 xl:grid-cols-4">
+      <StaggerReveal className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StaggerItem>
-          <AppMetricSurface>
+          <AppMetricSurface className="sm:col-span-2 xl:col-span-1">
           <p className="text-sm text-slate-500">Budget used</p>
           <p className="mt-3 text-4xl font-semibold tracking-tight text-slate-950">
             {budgetUsedPct.toFixed(0)}%
@@ -177,7 +212,7 @@ export default async function DashboardPage({
         </StaggerItem>
 
         <StaggerItem>
-          <AppMetricSurface>
+          <AppMetricSurface className="hidden sm:block">
           <p className="text-sm text-slate-500">Monthly budget</p>
           <p className="mt-3 text-4xl font-semibold tracking-tight text-slate-950">
             {formatCurrency(dashboard.summary.monthlyBudget, currency, locale)}
@@ -194,7 +229,7 @@ export default async function DashboardPage({
         </StaggerItem>
 
         <StaggerItem>
-          <AppMetricSurface>
+          <AppMetricSurface className="hidden sm:block">
           <p className="text-sm text-slate-500">Open insights</p>
           <p className="mt-3 text-4xl font-semibold tracking-tight text-slate-950">
             {dashboard.insights.length}
@@ -207,8 +242,88 @@ export default async function DashboardPage({
         </StaggerItem>
       </StaggerReveal>
 
+      <Reveal delay={0.08}>
+        <AppSurface padding="md" tone="muted" className="sm:hidden">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold text-slate-950">Mobile summary</p>
+              <p className="mt-1 text-sm text-slate-500">
+                Keep budget status first and open the rest when needed.
+              </p>
+            </div>
+            <AppBadge tone="success">
+              {dashboard.insights.length} insight{dashboard.insights.length === 1 ? "" : "s"}
+            </AppBadge>
+          </div>
+
+          <div className="mt-4 grid gap-3">
+            <div className="rounded-2xl bg-white px-4 py-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                Monthly budget
+              </p>
+              <p className="mt-2 text-lg font-semibold text-slate-950">
+                {formatCurrency(dashboard.summary.monthlyBudget, currency, locale)}
+              </p>
+            </div>
+            <div className="rounded-2xl bg-white px-4 py-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                Open insights
+              </p>
+              <p className="mt-2 text-lg font-semibold text-slate-950">
+                {dashboard.insights.length}
+              </p>
+            </div>
+          </div>
+        </AppSurface>
+      </Reveal>
+
+      <Reveal delay={0.12}>
+        <AppSurface padding="lg" className="lg:hidden">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-950">
+                Shared settlement
+              </h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Check balances and suggested transfers from the settlements page.
+              </p>
+            </div>
+            <AppBadge tone="success">
+              {formatCurrency(
+                dashboard.settlement.totalSharedExpense,
+                currency,
+                locale,
+              )}
+            </AppBadge>
+          </div>
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div className="rounded-2xl bg-slate-50 px-4 py-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                People involved
+              </p>
+              <p className="mt-2 text-lg font-semibold text-slate-950">
+                {dashboard.settlement.balances.length}
+              </p>
+            </div>
+            <div className="rounded-2xl bg-slate-50 px-4 py-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                Suggested transfers
+              </p>
+              <p className="mt-2 text-lg font-semibold text-slate-950">
+                {dashboard.settlement.suggestedTransfers.length}
+              </p>
+            </div>
+          </div>
+
+          <AppButtonLink href={settlementsHref} tone="secondary" className="mt-4 w-full">
+            Open settlements
+          </AppButtonLink>
+        </AppSurface>
+      </Reveal>
+
       <Reveal delay={0.14}>
-        <AppSurface padding="lg">
+        <AppSurface padding="lg" className="hidden lg:block">
           <div className="flex items-center justify-between gap-3 border-b border-slate-900/8 pb-4">
             <div>
               <h2 className="text-lg font-semibold text-slate-950">
@@ -380,12 +495,12 @@ export default async function DashboardPage({
             <h2 className="text-lg font-semibold text-slate-950">Insights</h2>
 
             <div className="mt-5 space-y-3">
-              {dashboard.insights.length === 0 ? (
+              {visibleInsights.length === 0 ? (
                 <div className="rounded-2xl bg-emerald-50 px-4 py-4 text-sm text-emerald-900">
                   No insights this month.
                 </div>
               ) : (
-                dashboard.insights.map((insight, index) => (
+                visibleInsights.map((insight, index) => (
                   <article
                     key={`${insight.type}-${index}`}
                     className="rounded-2xl border border-slate-900/8 px-4 py-4"
@@ -403,6 +518,12 @@ export default async function DashboardPage({
                 ))
               )}
             </div>
+            {hiddenInsightsCount > 0 ? (
+              <p className="mt-4 text-sm text-slate-500">
+                {hiddenInsightsCount} more insight
+                {hiddenInsightsCount === 1 ? "" : "s"} remain after the highest-priority items.
+              </p>
+            ) : null}
             </AppSurface>
           </Reveal>
 
