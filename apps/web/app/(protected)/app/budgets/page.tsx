@@ -101,6 +101,8 @@ export default async function BudgetsPage({
   });
   const plannedCategoryEntries = categoryEntries.filter((entry) => entry.hasAllocation);
   const openCategoryEntries = categoryEntries.filter((entry) => !entry.hasAllocation);
+  const mobilePlannedPreviewEntries = plannedCategoryEntries.slice(0, 3);
+  const mobilePlannedOverflowEntries = plannedCategoryEntries.slice(3);
   const plannedCategoryCount = plannedCategoryEntries.length;
   const openCategoryCount = Math.max(categories.length - plannedCategoryCount, 0);
   const allocationProgress =
@@ -329,7 +331,7 @@ export default async function BudgetsPage({
                       <AppBadge tone="success">{plannedCategoryEntries.length}</AppBadge>
                     </div>
 
-                    {plannedCategoryEntries.map(({ category, existingBudget }) => (
+                    {mobilePlannedPreviewEntries.map(({ category, existingBudget }) => (
                       <article
                         key={category.id}
                         className="rounded-[1.35rem] border border-slate-900/8 bg-slate-50/85 px-4 py-4"
@@ -374,6 +376,72 @@ export default async function BudgetsPage({
                         </div>
                       </article>
                     ))}
+
+                    {mobilePlannedOverflowEntries.length > 0 ? (
+                      <details className="rounded-[1.35rem] border border-slate-200 bg-slate-50/70 px-4 py-4">
+                        <summary className="cursor-pointer list-none">
+                          <div className="flex items-center justify-between gap-3">
+                            <div>
+                              <p className="text-sm font-semibold text-slate-950">
+                                More planned categories
+                              </p>
+                              <p className="mt-1 text-sm text-slate-500">
+                                {mobilePlannedOverflowEntries.length} more already budgeted
+                              </p>
+                            </div>
+                            <AppBadge tone="success">{mobilePlannedOverflowEntries.length}</AppBadge>
+                          </div>
+                        </summary>
+
+                        <div className="mt-4 space-y-3">
+                          {mobilePlannedOverflowEntries.map(({ category, existingBudget }) => (
+                            <article
+                              key={category.id}
+                              className="rounded-[1.35rem] border border-slate-900/8 bg-white px-4 py-4"
+                            >
+                              <input type="hidden" name="categoryId" value={category.id} />
+                              <input
+                                type="hidden"
+                                name={`alertThresholdPct:${category.id}`}
+                                value={existingBudget?.alertThresholdPct ?? ""}
+                              />
+
+                              <div className="space-y-3">
+                                <div className="min-w-0">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <p className="font-semibold text-slate-950">{category.name}</p>
+                                    <AppBadge tone="success">Planned</AppBadge>
+                                  </div>
+                                  <p className="mt-1 text-sm text-slate-500">
+                                    {existingBudget
+                                      ? `Spent ${formatCurrency(existingBudget.actualAmount, currency, locale)}`
+                                      : "No allocation yet"}
+                                  </p>
+                                </div>
+
+                                <label className="block">
+                                  <span className="sr-only">{category.name}</span>
+                                  <input
+                                    id={`planned-mobile-more-${category.id}`}
+                                    name={`plannedAmount:${category.id}`}
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    placeholder="0"
+                                    defaultValue={
+                                      existingBudget
+                                        ? formatInputAmount(existingBudget.plannedAmount)
+                                        : ""
+                                    }
+                                    className="w-full rounded-[1rem] border border-slate-200 bg-white px-4 py-3 text-right text-base font-semibold text-slate-950 outline-none transition focus:border-emerald-400"
+                                  />
+                                </label>
+                              </div>
+                            </article>
+                          ))}
+                        </div>
+                      </details>
+                    ) : null}
                   </div>
                 ) : (
                   <div className="rounded-[1.35rem] border border-dashed border-slate-200 bg-slate-50/70 px-4 py-4">
