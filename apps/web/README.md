@@ -1,36 +1,41 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BudgetFlow Web
 
-## Getting Started
+Next.js App Router frontend for BudgetFlow.
 
-First, run the development server:
+## Local Run
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp apps/web/.env.example apps/web/.env.local
+pnpm dev:web
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Default local URL:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- web: `http://localhost:3001`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Current App Scope
 
-## Learn More
+Implemented route groups include:
 
-To learn more about Next.js, take a look at the following resources:
+- public marketing and auth entry
+- personal-first onboarding plus shared workspace creation
+- dashboard
+- transactions
+- budgets
+- settlements
+- recurring automation console
+- reports with export and print
+- notifications
+- settings, categories, and financial accounts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Current Frontend Priority
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The current UI priority is mobile-first refinement:
 
-## Deploy on Vercel
+- reduce bottom navigation overload
+- move secondary tools behind a clearer handheld information architecture
+- compress dense form-heavy screens into faster mobile flows
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+See the repo-level execution plan:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [docs/DELIVERY_EXECUTION_PLAN.md](/Users/yoon-yongseol/WorkSpace/BudgetFlow/docs/DELIVERY_EXECUTION_PLAN.md)

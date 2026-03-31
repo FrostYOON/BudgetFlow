@@ -11,6 +11,20 @@ Shared household budgeting SaaS for couples and families.
 - `packages/ui`: shared UI components
 - `docs`: product, DB, and API planning docs
 
+## Current Product Status
+
+BudgetFlow is no longer just an MVP scaffold. The repository currently includes:
+
+- auth and account session management
+- personal-first onboarding plus additional shared workspace creation
+- dashboard, transactions, budgets, settlements, recurring, reports, notifications, and settings flows
+- Prisma migrations, API e2e coverage, web e2e coverage, and CI validation
+
+The highest-priority current work is mobile-first UX refinement and delivery-plan sync rather than adding broad new modules.
+
+- delivery execution plan: [docs/DELIVERY_EXECUTION_PLAN.md](/Users/yoon-yongseol/WorkSpace/BudgetFlow/docs/DELIVERY_EXECUTION_PLAN.md)
+- product direction: [docs/PRODUCT_PLAN.md](/Users/yoon-yongseol/WorkSpace/BudgetFlow/docs/PRODUCT_PLAN.md)
+
 ## Quick Start
 
 ```bash
@@ -95,5 +109,6 @@ BudgetFlow tracks active engineering work with GitHub Issues and GitHub Projects
 - workflow guide: [docs/TASK_MANAGEMENT.md](/Users/yoon-yongseol/WorkSpace/BudgetFlow/docs/TASK_MANAGEMENT.md)
 - project board setup: [docs/GITHUB_PROJECTS_SETUP.md](/Users/yoon-yongseol/WorkSpace/BudgetFlow/docs/GITHUB_PROJECTS_SETUP.md)
 - initial backlog seed: [docs/INITIAL_BACKLOG.md](/Users/yoon-yongseol/WorkSpace/BudgetFlow/docs/INITIAL_BACKLOG.md)
+- current execution plan: [docs/DELIVERY_EXECUTION_PLAN.md](/Users/yoon-yongseol/WorkSpace/BudgetFlow/docs/DELIVERY_EXECUTION_PLAN.md)
 - issue and PR templates: [.github](/Users/yoon-yongseol/WorkSpace/BudgetFlow/.github)
 - deployment checklist: [docs/DEPLOYMENT_RELEASE_CHECKLIST.md](/Users/yoon-yongseol/WorkSpace/BudgetFlow/docs/DEPLOYMENT_RELEASE_CHECKLIST.md)
