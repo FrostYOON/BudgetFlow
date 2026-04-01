@@ -3,6 +3,7 @@ import type { AppSession } from "@/lib/auth/session";
 import { AppBottomNav } from "@/components/app-shell/app-bottom-nav";
 import { PageTransitionShell } from "@/components/app-shell/page-transition-shell";
 import { AppSidebarNav } from "@/components/app-shell/app-sidebar-nav";
+import { AppSwipeNavigator } from "@/components/app-shell/app-swipe-navigator";
 import { WorkspaceSwitcher } from "@/components/app-shell/workspace-switcher";
 
 interface AppShellFrameProps {
@@ -127,7 +128,9 @@ export function AppShellFrame({ children, session }: AppShellFrameProps) {
           </header>
 
           <main className="mx-auto flex w-full max-w-[1240px] flex-1 px-4 py-6 sm:px-6 xl:px-8 xl:py-8">
-            <PageTransitionShell>{children}</PageTransitionShell>
+            <AppSwipeNavigator>
+              <PageTransitionShell>{children}</PageTransitionShell>
+            </AppSwipeNavigator>
           </main>
         </div>
       </div>

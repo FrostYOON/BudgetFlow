@@ -99,6 +99,12 @@ export const APP_MOBILE_NAVIGATION: AppNavigationItem[] = [
   },
 ];
 
+export function getActiveMobileNavigationIndex(pathname: string) {
+  return APP_MOBILE_NAVIGATION.findIndex((item) =>
+    isNavigationItemActive(pathname, item),
+  );
+}
+
 export function isNavigationItemActive(
   pathname: string,
   item: AppNavigationItem,

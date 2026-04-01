@@ -140,33 +140,35 @@ export default async function DashboardPage({
             </div>
           </div>
 
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:hidden">
-            <AppButtonLink href={composeTransactionHref} tone="primary" className="w-full">
-              Add transaction
-            </AppButtonLink>
-            <AppButtonLink href={settlementsHref} tone="secondary" className="w-full">
-              View settlements
-            </AppButtonLink>
-            <AppButtonLink href={reportsHref} tone="secondary" className="w-full">
-              Monthly report
-            </AppButtonLink>
-            <div className="flex gap-3">
-              <AppButtonLink
-                href={`/app/dashboard?year=${prev.year}&month=${prev.month}`}
-                tone="secondary"
-                className="flex-1"
-              >
-                Prev
-              </AppButtonLink>
-              <AppButtonLink
-                href={`/app/dashboard?year=${next.year}&month=${next.month}`}
-                tone="secondary"
-                className="flex-1"
-              >
-                Next
-              </AppButtonLink>
-            </div>
-          </div>
+        <div className="mt-5 grid grid-cols-2 gap-3 lg:hidden">
+          <AppButtonLink
+            href={composeTransactionHref}
+            tone="primary"
+            className="col-span-2 w-full"
+          >
+            Add transaction
+          </AppButtonLink>
+          <AppButtonLink href={settlementsHref} tone="secondary" className="w-full">
+            View settlements
+          </AppButtonLink>
+          <AppButtonLink href={reportsHref} tone="secondary" className="w-full">
+            Monthly report
+          </AppButtonLink>
+          <AppButtonLink
+            href={`/app/dashboard?year=${prev.year}&month=${prev.month}`}
+            tone="secondary"
+            className="w-full"
+          >
+            Prev
+          </AppButtonLink>
+          <AppButtonLink
+            href={`/app/dashboard?year=${next.year}&month=${next.month}`}
+            tone="secondary"
+            className="w-full"
+          >
+            Next
+          </AppButtonLink>
+        </div>
         </AppSurface>
       </Reveal>
 
