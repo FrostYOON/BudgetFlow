@@ -22,6 +22,7 @@ export function AppBottomNav() {
         >
           {APP_MOBILE_NAVIGATION.map((item) => {
             const isActive = isNavigationItemActive(pathname, item);
+            const Icon = item.icon;
 
             return (
               <Link
@@ -52,11 +53,11 @@ export function AppBottomNav() {
                   className="relative z-10 flex flex-col items-center"
                 >
                   <span
-                    className={`text-[11px] font-semibold uppercase tracking-[0.18em] ${
-                      isActive ? "scale-105" : ""
+                    className={`inline-flex h-8 w-8 items-center justify-center rounded-full ${
+                      isActive ? "bg-white/14" : "bg-slate-100 text-slate-700"
                     }`}
                   >
-                    {item.shortLabel.slice(0, 1)}
+                    <Icon className="h-4 w-4" strokeWidth={2.2} />
                   </span>
                   <span className="mt-1 text-[11px] font-medium">
                     {item.shortLabel}

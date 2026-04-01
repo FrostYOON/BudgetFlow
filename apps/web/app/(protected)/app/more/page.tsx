@@ -1,4 +1,17 @@
 import { redirect } from "next/navigation";
+import {
+  ArrowLeftRight,
+  ArrowUpRight,
+  BarChart3,
+  Bell,
+  CreditCard,
+  Repeat2,
+  Settings,
+  Sparkles,
+  Tags,
+  UsersRound,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { AppBadge } from "@/components/ui/app-badge";
 import { AppButtonLink } from "@/components/ui/app-button";
 import { AppSurface } from "@/components/ui/app-surface";
@@ -24,22 +37,26 @@ const QUICK_LINKS = [
   {
     href: "/app/settlements",
     label: "Settlements",
-    description: "Review who owes whom for shared expenses.",
+    description: "Review shared balances fast.",
+    icon: ArrowLeftRight,
   },
   {
     href: "/app/reports",
     label: "Reports",
-    description: "Open monthly summaries, CSV export, and print view.",
+    description: "Open monthly breakdowns.",
+    icon: BarChart3,
   },
   {
     href: "/app/notifications",
     label: "Notifications",
-    description: "Catch budget pressure, recurring failures, and invite updates.",
+    description: "Catch household alerts.",
+    icon: Bell,
   },
   {
     href: "/app/recurring",
     label: "Recurring",
-    description: "Manage automated entries and execution history.",
+    description: "Manage automated entries.",
+    icon: Repeat2,
   },
 ] as const;
 
@@ -47,24 +64,66 @@ const MANAGEMENT_LINKS = [
   {
     href: "/app/settings",
     label: "Settings",
-    description: "Profile, security, workspace details, and invites.",
+    description: "Profile and workspace setup.",
+    icon: Settings,
   },
   {
     href: "/app/settings/accounts",
     label: "Accounts",
-    description: "Manage cash, bank, card, and wallet sources.",
+    description: "Manage money sources.",
+    icon: CreditCard,
   },
   {
     href: "/app/settings/categories",
     label: "Categories",
-    description: "Tune starter categories, order, labels, and archive state.",
+    description: "Tune order and labels.",
+    icon: Tags,
   },
   {
     href: "/app/onboarding",
     label: "Shared space",
-    description: "Create an additional shared workspace when needed.",
+    description: "Create another shared workspace.",
+    icon: UsersRound,
   },
 ] as const;
+
+function MoreMenuCard({
+  href,
+  label,
+  description,
+  icon: Icon,
+  tone = "default",
+  actionLabel,
+}: {
+  href: string;
+  label: string;
+  description: string;
+  icon: LucideIcon;
+  tone?: "default" | "muted";
+  actionLabel: string;
+}) {
+  return (
+    <AppSurface padding="md" tone={tone}>
+      <div className="flex items-start justify-between gap-4">
+        <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-950 text-white">
+          <Icon className="h-5 w-5" strokeWidth={2.2} />
+        </span>
+        <AppBadge tone="subtle">Menu</AppBadge>
+      </div>
+      <h2 className="mt-4 text-base font-semibold text-slate-950">{label}</h2>
+      <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
+      <AppButtonLink
+        href={href}
+        tone="secondary"
+        size="sm"
+        className="mt-4 w-full gap-2"
+      >
+        <ArrowUpRight className="h-4 w-4" strokeWidth={2.2} />
+        {actionLabel}
+      </AppButtonLink>
+    </AppSurface>
+  );
+}
 
 export default async function MorePage() {
   const session = await getAppSession();
@@ -87,6 +146,9 @@ export default async function MorePage() {
       <AppSurface padding="lg">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
+            <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-slate-950 text-white shadow-[0_12px_30px_rgba(15,23,42,0.16)]">
+              <Sparkles className="h-5 w-5" strokeWidth={2.2} />
+            </span>
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
               More
             </p>
@@ -94,8 +156,8 @@ export default async function MorePage() {
               Mobile shortcuts and workspace tools
             </h1>
             <p className="mt-2 max-w-2xl text-sm text-slate-500">
-              Keep the main navigation focused on daily budgeting. Reach secondary
-              tools here without crowding the bottom bar.
+              Keep the main navigation focused on daily budgeting. Secondary
+              tools live here with clearer visual cues.
             </p>
           </div>
           <AppBadge tone={unreadCount > 0 ? "success" : "subtle"}>
@@ -132,22 +194,14 @@ export default async function MorePage() {
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           {QUICK_LINKS.map((item) => (
-            <AppSurface key={item.href} padding="md">
-              <h2 className="text-base font-semibold text-slate-950">
-                {item.label}
-              </h2>
-              <p className="mt-2 text-sm leading-6 text-slate-600">
-                {item.description}
-              </p>
-              <AppButtonLink
-                href={item.href}
-                tone="secondary"
-                size="sm"
-                className="mt-4 w-full"
-              >
-                Open {item.label}
-              </AppButtonLink>
-            </AppSurface>
+            <MoreMenuCard
+              key={item.href}
+              href={item.href}
+              label={item.label}
+              description={item.description}
+              icon={item.icon}
+              actionLabel={`Open ${item.label}`}
+            />
           ))}
         </div>
       </section>
@@ -160,22 +214,15 @@ export default async function MorePage() {
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           {MANAGEMENT_LINKS.map((item) => (
-            <AppSurface key={item.href} padding="md" tone="muted">
-              <h2 className="text-base font-semibold text-slate-950">
-                {item.label}
-              </h2>
-              <p className="mt-2 text-sm leading-6 text-slate-600">
-                {item.description}
-              </p>
-              <AppButtonLink
-                href={item.href}
-                tone="secondary"
-                size="sm"
-                className="mt-4 w-full"
-              >
-                Go to {item.label}
-              </AppButtonLink>
-            </AppSurface>
+            <MoreMenuCard
+              key={item.href}
+              href={item.href}
+              label={item.label}
+              description={item.description}
+              icon={item.icon}
+              tone="muted"
+              actionLabel={`Go to ${item.label}`}
+            />
           ))}
         </div>
       </section>

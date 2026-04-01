@@ -1,8 +1,20 @@
+import {
+  ArrowLeftRight,
+  Bell,
+  LayoutDashboard,
+  PiggyBank,
+  Repeat2,
+  Settings,
+  Wallet,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+
 export interface AppNavigationItem {
   href: string;
   label: string;
   description: string;
   shortLabel: string;
+  icon: LucideIcon;
   matchers?: string[];
 }
 
@@ -10,50 +22,57 @@ export const APP_SIDEBAR_NAVIGATION: AppNavigationItem[] = [
   {
     href: "/app/dashboard",
     label: "Dashboard",
-    description: "Monthly overview and insights",
+    description: "Overview and month health",
     shortLabel: "Home",
+    icon: LayoutDashboard,
     matchers: ["/app/dashboard"],
   },
   {
     href: "/app/transactions",
     label: "Transactions",
-    description: "Shared and personal money movement",
+    description: "Daily money movement",
     shortLabel: "Spend",
+    icon: Wallet,
     matchers: ["/app/transactions"],
   },
   {
     href: "/app/settlements",
     label: "Settlements",
-    description: "Shared balances and suggested transfers",
+    description: "Shared balances and transfers",
     shortLabel: "Settle",
+    icon: ArrowLeftRight,
     matchers: ["/app/settlements"],
   },
   {
     href: "/app/budgets",
     label: "Budgets",
-    description: "Monthly envelope and category planning",
+    description: "Monthly plan and targets",
     shortLabel: "Plan",
+    icon: PiggyBank,
     matchers: ["/app/budgets"],
   },
   {
     href: "/app/recurring",
     label: "Recurring",
-    description: "Automation and execution monitoring",
+    description: "Automation and run history",
     shortLabel: "Auto",
+    icon: Repeat2,
     matchers: ["/app/recurring"],
   },
   {
     href: "/app/notifications",
     label: "Notifications",
-    description: "Budget, settlement, and recurring updates",
+    description: "Alerts and household updates",
     shortLabel: "Alerts",
+    icon: Bell,
     matchers: ["/app/notifications"],
   },
   {
     href: "/app/settings",
     label: "Settings",
-    description: "Account and workspace profile",
+    description: "Account and workspace setup",
     shortLabel: "You",
+    icon: Settings,
     matchers: ["/app/settings"],
   },
 ];
@@ -65,8 +84,9 @@ export const APP_MOBILE_NAVIGATION: AppNavigationItem[] = [
   {
     href: "/app/more",
     label: "More",
-    description: "Settlements, reports, alerts, and settings",
+    description: "Secondary tools and management",
     shortLabel: "More",
+    icon: Settings,
     matchers: [
       "/app/more",
       "/app/settlements",

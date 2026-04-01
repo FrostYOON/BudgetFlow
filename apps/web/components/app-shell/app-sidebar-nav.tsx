@@ -16,6 +16,7 @@ export function AppSidebarNav() {
       <nav className="space-y-2">
         {APP_SIDEBAR_NAVIGATION.map((item) => {
           const isActive = isNavigationItemActive(pathname, item);
+          const Icon = item.icon;
 
           return (
             <Link
@@ -43,16 +44,27 @@ export function AppSidebarNav() {
               <m.span
                 whileHover={!isActive ? { x: 6 } : undefined}
                 transition={{ type: "spring", stiffness: 420, damping: 28 }}
-                className="relative z-10 block"
+                className="relative z-10 flex items-center gap-3"
               >
-                <p className="text-sm font-semibold">{item.label}</p>
-                <p
-                  className={`mt-1 text-xs ${
-                    isActive ? "text-slate-300" : "text-slate-500"
+                <span
+                  className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${
+                    isActive
+                      ? "bg-white/12 text-white"
+                      : "bg-slate-100 text-slate-700"
                   }`}
                 >
-                  {item.description}
-                </p>
+                  <Icon className="h-4 w-4" strokeWidth={2.2} />
+                </span>
+                <span className="block min-w-0">
+                  <p className="text-sm font-semibold">{item.label}</p>
+                  <p
+                    className={`mt-1 text-xs ${
+                      isActive ? "text-slate-300" : "text-slate-500"
+                    }`}
+                  >
+                    {item.description}
+                  </p>
+                </span>
               </m.span>
             </Link>
           );
