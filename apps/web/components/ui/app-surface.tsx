@@ -10,13 +10,13 @@ function joinClasses(...values: Array<string | false | null | undefined>) {
 function getToneClassName(tone: SurfaceTone) {
   switch (tone) {
     case "muted":
-      return "border-slate-200 bg-slate-50";
+      return "border-[color:var(--surface-border)] bg-[color:var(--surface-muted)] text-[color:var(--foreground)]";
     case "success":
-      return "border-emerald-200 bg-emerald-50";
+      return "border-[color:var(--success-border)] bg-[color:var(--success-surface)] text-[color:var(--foreground)]";
     case "danger":
-      return "border-rose-200 bg-rose-50";
+      return "border-[color:var(--danger-border)] bg-[color:var(--danger-surface)] text-[color:var(--foreground)]";
     default:
-      return "border-slate-900/8 bg-white";
+      return "border-[color:var(--surface-border)] bg-[color:var(--surface)] text-[color:var(--foreground)]";
   }
 }
 
@@ -46,7 +46,7 @@ export function AppSurface<T extends ElementType = "section">({
     <Component
       {...props}
       className={joinClasses(
-        "rounded-[1.75rem] border shadow-[0_18px_60px_rgba(15,23,42,0.06)]",
+        "rounded-[1.75rem] border shadow-[var(--surface-shadow)]",
         getToneClassName(tone),
         getPaddingClassName(padding),
         className,

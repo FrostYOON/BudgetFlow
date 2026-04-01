@@ -25,7 +25,7 @@ export function AppSidebarNav() {
               className={`relative block rounded-2xl px-4 py-3 ${
                 isActive
                   ? "text-white"
-                  : "text-slate-600 hover:text-slate-950"
+                  : "text-[color:var(--text-soft)] hover:text-[color:var(--foreground)]"
               }`}
             >
               {isActive ? (
@@ -37,7 +37,7 @@ export function AppSidebarNav() {
                     damping: 30,
                     mass: 0.85,
                   }}
-                  className="absolute inset-0 rounded-2xl bg-slate-950 shadow-[0_14px_30px_rgba(15,23,42,0.16)]"
+                  className="absolute inset-0 rounded-2xl bg-[color:var(--button-primary-bg)] shadow-[var(--button-primary-shadow)]"
                 />
               ) : null}
 
@@ -50,7 +50,7 @@ export function AppSidebarNav() {
                   className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${
                     isActive
                       ? "bg-white/12 text-white"
-                      : "bg-slate-100 text-slate-700"
+                      : "bg-[color:var(--surface-muted)] text-[color:var(--text-soft)]"
                   }`}
                 >
                   <Icon className="h-4 w-4" strokeWidth={2.2} />
@@ -59,7 +59,7 @@ export function AppSidebarNav() {
                   <p className="text-sm font-semibold">{item.label}</p>
                   <p
                     className={`mt-1 text-xs ${
-                      isActive ? "text-slate-300" : "text-slate-500"
+                      isActive ? "text-slate-300" : "text-[color:var(--text-muted)]"
                     }`}
                   >
                     {item.description}

@@ -11,13 +11,13 @@ function joinClasses(...values: Array<string | false | null | undefined>) {
 function getToneClassName(tone: ButtonTone) {
   switch (tone) {
     case "secondary":
-      return "border border-slate-200 bg-slate-100 text-slate-800 shadow-[0_8px_20px_rgba(15,23,42,0.06)] hover:border-slate-300 hover:bg-slate-200 hover:text-slate-950";
+      return "border border-[color:var(--button-secondary-border)] bg-[color:var(--button-secondary-bg)] text-[color:var(--button-secondary-fg)] shadow-[var(--button-secondary-shadow)] hover:border-[color:var(--button-secondary-hover-border)] hover:bg-[color:var(--button-secondary-hover-bg)] hover:text-[color:var(--button-secondary-hover-fg)]";
     case "success":
-      return "border border-emerald-700 bg-emerald-600 text-white shadow-[0_12px_28px_rgba(5,150,105,0.28)] hover:bg-emerald-700";
+      return "border border-[color:var(--button-success-border)] bg-[color:var(--button-success-bg)] text-[color:var(--button-success-fg)] shadow-[var(--button-success-shadow)] hover:bg-[color:var(--button-success-hover-bg)]";
     case "danger":
-      return "border border-rose-200 bg-rose-50 text-rose-700 shadow-[0_8px_20px_rgba(244,63,94,0.08)] hover:border-rose-300 hover:bg-rose-100 hover:text-rose-800";
+      return "border border-[color:var(--button-danger-border)] bg-[color:var(--button-danger-bg)] text-[color:var(--button-danger-fg)] shadow-[var(--button-danger-shadow)] hover:border-[color:var(--button-danger-hover-border)] hover:bg-[color:var(--button-danger-hover-bg)] hover:text-[color:var(--button-danger-hover-fg)]";
     default:
-      return "border border-slate-950 bg-slate-950 text-white shadow-[0_12px_30px_rgba(15,23,42,0.22)] hover:bg-slate-800";
+      return "border border-[color:var(--button-primary-border)] bg-[color:var(--button-primary-bg)] text-[color:var(--button-primary-fg)] shadow-[var(--button-primary-shadow)] hover:bg-[color:var(--button-primary-hover-bg)]";
   }
 }
 
@@ -29,7 +29,7 @@ function getSizeClassName(size: ButtonSize) {
 
 function getBaseClassName(tone: ButtonTone, size: ButtonSize, className?: string) {
   return joinClasses(
-    "inline-flex items-center justify-center gap-2 rounded-full font-semibold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-55 disabled:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white",
+    "inline-flex items-center justify-center gap-2 rounded-full font-semibold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-55 disabled:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--background)]",
     getToneClassName(tone),
     getSizeClassName(size),
     className,

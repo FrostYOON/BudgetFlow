@@ -13,7 +13,7 @@ export function AppBottomNav() {
 
   return (
     <LazyMotion features={domAnimation}>
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-900/8 bg-white/92 px-3 py-2 backdrop-blur xl:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-[color:var(--surface-border)] bg-[color:var(--surface-soft)] px-3 py-2 backdrop-blur xl:hidden">
         <div
           className="mx-auto grid max-w-2xl gap-2"
           style={{
@@ -31,7 +31,7 @@ export function AppBottomNav() {
                 className={`relative flex flex-col items-center justify-center rounded-2xl px-2 py-2 text-center ${
                   isActive
                     ? "text-white"
-                    : "text-slate-500 hover:text-slate-950"
+                    : "text-[color:var(--text-muted)] hover:text-[color:var(--foreground)]"
                 }`}
               >
                 {isActive ? (
@@ -43,7 +43,7 @@ export function AppBottomNav() {
                       damping: 34,
                       mass: 0.8,
                     }}
-                    className="absolute inset-0 rounded-2xl bg-slate-950 shadow-[0_12px_28px_rgba(15,23,42,0.22)]"
+                    className="absolute inset-0 rounded-2xl bg-[color:var(--button-primary-bg)] shadow-[var(--button-primary-shadow)]"
                   />
                 ) : null}
 
@@ -54,7 +54,9 @@ export function AppBottomNav() {
                 >
                   <span
                     className={`inline-flex h-8 w-8 items-center justify-center rounded-full ${
-                      isActive ? "bg-white/14" : "bg-slate-100 text-slate-700"
+                      isActive
+                        ? "bg-white/14"
+                        : "bg-[color:var(--surface-muted)] text-[color:var(--text-soft)]"
                     }`}
                   >
                     <Icon className="h-4 w-4" strokeWidth={2.2} />
