@@ -438,7 +438,7 @@ export function DashboardTransactionCalendar({
             "min-h-[106px] rounded-[1.35rem] border px-2.5 py-2.5 text-left transition sm:min-h-[116px]";
 
           if (isSelected) {
-            className += " border-slate-950 bg-slate-950 text-white shadow-[0_16px_24px_rgba(15,23,42,0.18)]";
+            className += " border-[color:var(--selection-bg)] bg-[color:var(--selection-bg)] text-[color:var(--selection-fg)] shadow-[var(--selection-shadow)]";
           } else if (day.inCurrentMonth) {
             className += ` ${tone.cellClassName} text-slate-950 hover:-translate-y-0.5 hover:border-slate-300`;
           } else {
@@ -477,7 +477,7 @@ export function DashboardTransactionCalendar({
                   {day.isToday ? (
                     <span
                       className={`h-1.5 w-1.5 rounded-full ${
-                        isSelected ? "bg-emerald-300" : "bg-emerald-500"
+                        isSelected ? "bg-[color:var(--selection-fg)]" : "bg-emerald-500"
                       }`}
                     />
                   ) : null}
@@ -487,7 +487,7 @@ export function DashboardTransactionCalendar({
                   <span
                     className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
                       isSelected
-                        ? "bg-white/15 text-white"
+                        ? "bg-black/10 text-[color:var(--selection-fg)]"
                         : "bg-slate-950/6 text-slate-700"
                     }`}
                   >

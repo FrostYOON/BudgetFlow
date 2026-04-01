@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { TypeDrivenCategoryFields } from "@/components/categories/type-driven-category-fields";
 import {
@@ -45,8 +44,8 @@ function getRunStatusTone(status: RecurringExecutionRun["status"]) {
 
 function getSchedulerTone(enabled: boolean) {
   return enabled
-    ? "bg-emerald-100 text-emerald-800"
-    : "bg-slate-200 text-slate-700";
+    ? "border border-[color:var(--selection-bg)] bg-[color:var(--selection-bg)] text-[color:var(--selection-fg)] shadow-[var(--selection-shadow)]"
+    : "border border-[color:var(--button-secondary-border)] bg-[color:var(--button-secondary-bg)] text-[color:var(--button-secondary-fg)] shadow-[var(--button-secondary-shadow)]";
 }
 
 function getSuccessRate(successRuns: number, totalRuns: number) {
@@ -761,12 +760,13 @@ export default async function RecurringPage({
                 </div>
 
                 <div className="mt-4 flex justify-end">
-                  <Link
+                  <AppButtonLink
                     href={`/app/recurring?edit=${item.id}`}
-                    className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950 active:scale-[0.98]"
+                    tone="secondary"
+                    size="sm"
                   >
                     Edit
-                  </Link>
+                  </AppButtonLink>
                 </div>
               </article>
             ))

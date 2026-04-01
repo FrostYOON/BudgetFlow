@@ -69,7 +69,7 @@ function getQuickStatClassName(tone: QuickStatTone) {
     case "white":
       return "border-white/70 bg-white/90 text-slate-950";
     default:
-      return "border-slate-200 bg-slate-950 text-white";
+      return "border-[color:var(--selection-bg)] bg-[color:var(--selection-bg)] text-[color:var(--selection-fg)]";
   }
 }
 
@@ -118,7 +118,7 @@ function BudgetMobileSectionSummary({
   return (
     <div className="flex items-center justify-between gap-4">
       <div className="flex min-w-0 items-center gap-3">
-        <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-950 text-white">
+        <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--selection-bg)] text-[color:var(--selection-fg)] shadow-[var(--selection-shadow)]">
           <Icon className="h-4 w-4" strokeWidth={2.2} />
         </span>
         <div className="min-w-0">
@@ -209,7 +209,7 @@ export default async function BudgetsPage({
         >
           <div className="flex items-start justify-between gap-4">
             <div>
-              <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-slate-950 text-white shadow-[0_12px_30px_rgba(15,23,42,0.16)]">
+              <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[color:var(--selection-bg)] text-[color:var(--selection-fg)] shadow-[var(--selection-shadow)]">
                 <PiggyBank className="h-5 w-5" strokeWidth={2.2} />
               </span>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">

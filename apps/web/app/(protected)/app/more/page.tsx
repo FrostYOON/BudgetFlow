@@ -105,7 +105,7 @@ function MoreMenuCard({
   return (
     <AppSurface padding="md" tone={tone}>
       <div className="flex items-start justify-between gap-4">
-        <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-950 text-white">
+        <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[color:var(--selection-bg)] text-[color:var(--selection-fg)] shadow-[var(--selection-shadow)]">
           <Icon className="h-5 w-5" strokeWidth={2.2} />
         </span>
         <AppBadge tone="subtle">Menu</AppBadge>
@@ -146,7 +146,7 @@ export default async function MorePage() {
       <AppSurface padding="lg">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-slate-950 text-white shadow-[0_12px_30px_rgba(15,23,42,0.16)]">
+            <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[color:var(--selection-bg)] text-[color:var(--selection-fg)] shadow-[var(--selection-shadow)]">
               <Sparkles className="h-5 w-5" strokeWidth={2.2} />
             </span>
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
