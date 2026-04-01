@@ -4,6 +4,7 @@ import { AppBadge } from "@/components/ui/app-badge";
 import { AppButton, AppButtonLink } from "@/components/ui/app-button";
 import { AppSurface } from "@/components/ui/app-surface";
 import { getAppSession } from "@/lib/auth/session";
+import { getDateDisplayLocale } from "@/lib/display-locale";
 import { fetchNotifications } from "@/lib/notifications";
 
 export default async function NotificationsPage() {
@@ -17,6 +18,7 @@ export default async function NotificationsPage() {
     accessToken: session.accessToken,
     workspaceId: session.currentWorkspace?.id,
   });
+  const dateLocale = getDateDisplayLocale();
   const unreadCount = items.filter((item) => !item.isRead).length;
 
   return (
@@ -94,9 +96,7 @@ export default async function NotificationsPage() {
                     </AppButtonLink>
                   ) : null}
                   <p className="text-xs text-slate-500">
-                    {new Date(item.createdAt).toLocaleString(
-                      session.user.locale === "ko-KR" ? "ko-KR" : "en-CA",
-                    )}
+                    {new Date(item.createdAt).toLocaleString(dateLocale)}
                   </p>
                 </div>
               </AppSurface>

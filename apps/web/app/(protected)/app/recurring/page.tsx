@@ -9,6 +9,7 @@ import { AppBadge } from "@/components/ui/app-badge";
 import { AppButton, AppButtonLink } from "@/components/ui/app-button";
 import { AppMetricSurface, AppSurface } from "@/components/ui/app-surface";
 import { getAppSession } from "@/lib/auth/session";
+import { getDateDisplayLocale } from "@/lib/display-locale";
 import { fetchWorkspaceMembers, type WorkspaceMemberSummary } from "@/lib/settings";
 import {
   fetchWorkspaceCategories,
@@ -26,10 +27,6 @@ import {
   type RecurringRepeatUnit,
   type RecurringTransaction,
 } from "@/lib/recurring";
-
-function getLocale(locale: string) {
-  return locale === "ko-KR" ? "ko-KR" : "en-CA";
-}
 
 function getRunStatusTone(status: RecurringExecutionRun["status"]) {
   switch (status) {
@@ -627,7 +624,7 @@ export default async function RecurringPage({
     redirect("/app/onboarding");
   }
 
-  const locale = getLocale(session.user.locale);
+  const locale = getDateDisplayLocale();
   const params = await searchParams;
   const [ops, executionRuns, recurringItems, members, categories] =
     await Promise.all([

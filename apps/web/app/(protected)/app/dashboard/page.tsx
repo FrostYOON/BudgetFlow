@@ -9,6 +9,7 @@ import { AppBadge } from "@/components/ui/app-badge";
 import { AppButtonLink } from "@/components/ui/app-button";
 import { AppMetricSurface, AppSurface } from "@/components/ui/app-surface";
 import { getAppSession } from "@/lib/auth/session";
+import { getDateDisplayLocale, getNumberDisplayLocale } from "@/lib/display-locale";
 import {
   fetchWorkspaceDashboard,
   formatCurrency,
@@ -71,7 +72,8 @@ export default async function DashboardPage({
   const prev = getPreviousMonth(dashboard.period.year, dashboard.period.month);
   const next = getNextMonth(dashboard.period.year, dashboard.period.month);
   const currency = session.currentWorkspace.baseCurrency;
-  const locale = session.user.locale === "ko-KR" ? "ko-KR" : "en-CA";
+  const numberLocale = getNumberDisplayLocale(session.user.locale);
+  const dateLocale = getDateDisplayLocale();
   const settlementsHref = `/app/settlements?year=${dashboard.period.year}&month=${dashboard.period.month}`;
   const reportsHref = `/app/reports?year=${dashboard.period.year}&month=${dashboard.period.month}`;
   const composeTransactionHref = `/app/transactions?year=${dashboard.period.year}&month=${dashboard.period.month}&type=EXPENSE&visibility=ALL&compose=1`;
@@ -190,7 +192,7 @@ export default async function DashboardPage({
             {formatCurrency(
               dashboard.summary.remainingBudget,
               currency,
-              locale,
+              numberLocale,
             )}
           </p>
           </AppMetricSurface>
@@ -200,14 +202,14 @@ export default async function DashboardPage({
           <AppMetricSurface>
           <p className="text-sm text-slate-500">Shared spend</p>
           <p className="mt-3 text-4xl font-semibold tracking-tight text-slate-950">
-            {formatCurrency(dashboard.summary.sharedExpense, currency, locale)}
+            {formatCurrency(dashboard.summary.sharedExpense, currency, numberLocale)}
           </p>
           <p className="mt-3 text-sm text-slate-500">
             Personal spend{" "}
             {formatCurrency(
               dashboard.summary.personalExpense,
               currency,
-              locale,
+              numberLocale,
             )}
           </p>
           </AppMetricSurface>
@@ -217,14 +219,14 @@ export default async function DashboardPage({
           <AppMetricSurface className="hidden sm:block">
           <p className="text-sm text-slate-500">Monthly budget</p>
           <p className="mt-3 text-4xl font-semibold tracking-tight text-slate-950">
-            {formatCurrency(dashboard.summary.monthlyBudget, currency, locale)}
+            {formatCurrency(dashboard.summary.monthlyBudget, currency, numberLocale)}
           </p>
           <p className="mt-3 text-sm text-slate-500">
             Allocated{" "}
             {formatCurrency(
               dashboard.summary.allocatedBudget,
               currency,
-              locale,
+              numberLocale,
             )}
           </p>
           </AppMetricSurface>
@@ -238,7 +240,7 @@ export default async function DashboardPage({
           </p>
           <p className="mt-3 text-sm text-slate-500">
             Top expense{" "}
-            {formatCurrency(dashboard.summary.totalExpense, currency, locale)}
+            {formatCurrency(dashboard.summary.totalExpense, currency, numberLocale)}
           </p>
           </AppMetricSurface>
         </StaggerItem>
@@ -264,7 +266,7 @@ export default async function DashboardPage({
                 Monthly budget
               </p>
               <p className="mt-2 text-lg font-semibold text-slate-950">
-                {formatCurrency(dashboard.summary.monthlyBudget, currency, locale)}
+                {formatCurrency(dashboard.summary.monthlyBudget, currency, numberLocale)}
               </p>
             </div>
             <div className="rounded-2xl bg-white px-4 py-4">
@@ -294,7 +296,7 @@ export default async function DashboardPage({
               {formatCurrency(
                 dashboard.settlement.totalSharedExpense,
                 currency,
-                locale,
+                numberLocale,
               )}
             </AppBadge>
           </div>
@@ -339,7 +341,7 @@ export default async function DashboardPage({
               {formatCurrency(
                 dashboard.settlement.totalSharedExpense,
                 currency,
-                locale,
+                numberLocale,
               )}
             </AppBadge>
           </div>
@@ -365,7 +367,7 @@ export default async function DashboardPage({
                       }`}
                     >
                       {isPositive ? "+" : ""}
-                      {formatCurrency(balance.netAmount, currency, locale)}
+                      {formatCurrency(balance.netAmount, currency, numberLocale)}
                     </p>
                   </div>
                 );
@@ -390,7 +392,7 @@ export default async function DashboardPage({
                       {transfer.fromName} → {transfer.toName}
                     </p>
                     <p className="mt-1 text-sm text-slate-500">
-                      {formatCurrency(transfer.amount, currency, locale)}
+                      {formatCurrency(transfer.amount, currency, numberLocale)}
                     </p>
                   </div>
                 ))
@@ -405,7 +407,7 @@ export default async function DashboardPage({
           <Reveal delay={0.04}>
             <DashboardTransactionCalendar
               currency={currency}
-              locale={locale}
+              locale={dateLocale}
               month={dashboard.period.month}
               nextHref={`/app/dashboard?year=${next.year}&month=${next.month}`}
               previousHref={`/app/dashboard?year=${prev.year}&month=${prev.month}`}
@@ -444,7 +446,7 @@ export default async function DashboardPage({
                       </p>
                     </div>
                     <p className="text-sm font-semibold text-slate-950">
-                      {formatCurrency(category.amount, currency, locale)}
+                      {formatCurrency(category.amount, currency, numberLocale)}
                     </p>
                   </div>
                 ))
@@ -481,7 +483,7 @@ export default async function DashboardPage({
                       </p>
                     </div>
                     <p className="text-sm font-semibold text-slate-950">
-                      {formatCurrency(transaction.amount, currency, locale)}
+                      {formatCurrency(transaction.amount, currency, numberLocale)}
                     </p>
                   </div>
                 ))
@@ -541,7 +543,7 @@ export default async function DashboardPage({
                   {formatCurrency(
                     dashboard.summary.totalIncome,
                     currency,
-                    locale,
+                    numberLocale,
                   )}
                 </span>
               </div>
@@ -551,7 +553,7 @@ export default async function DashboardPage({
                   {formatCurrency(
                     dashboard.summary.totalExpense,
                     currency,
-                    locale,
+                    numberLocale,
                   )}
                 </span>
               </div>
@@ -561,7 +563,7 @@ export default async function DashboardPage({
                   {formatCurrency(
                     dashboard.summary.allocatedBudget,
                     currency,
-                    locale,
+                    numberLocale,
                   )}
                 </span>
               </div>
@@ -571,7 +573,7 @@ export default async function DashboardPage({
                   {formatCurrency(
                     dashboard.summary.unallocatedBudget,
                     currency,
-                    locale,
+                    numberLocale,
                   )}
                 </span>
               </div>

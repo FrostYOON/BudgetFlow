@@ -11,6 +11,7 @@ import { AppButton, AppButtonLink } from "@/components/ui/app-button";
 import { AppMetricSurface, AppSurface } from "@/components/ui/app-surface";
 import { fetchFinancialAccounts, type FinancialAccount } from "@/lib/accounts";
 import { getAppSession } from "@/lib/auth/session";
+import { getDateDisplayLocale, getNumberDisplayLocale } from "@/lib/display-locale";
 import { fetchWorkspaceMembers, type WorkspaceMemberSummary } from "@/lib/settings";
 import {
   fetchWorkspaceCategories,
@@ -745,7 +746,8 @@ export default async function TransactionsPage({
     }),
   ]);
 
-  const locale = session.user.locale === "ko-KR" ? "ko-KR" : "en-CA";
+  const locale = getNumberDisplayLocale(session.user.locale);
+  const dateLocale = getDateDisplayLocale();
   const prev = getPreviousMonth(requestedPeriod.year, requestedPeriod.month);
   const next = getNextMonth(requestedPeriod.year, requestedPeriod.month);
   const baseHref = buildTransactionsHref({
@@ -1307,7 +1309,7 @@ export default async function TransactionsPage({
             <section key={date} className="space-y-3">
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
-                  {formatDateLabel(date, locale)}
+                  {formatDateLabel(date, dateLocale)}
                 </h2>
                 <span className="text-xs text-slate-400">{items.length}</span>
               </div>
