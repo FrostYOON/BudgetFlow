@@ -955,8 +955,8 @@ export default async function TransactionsPage({
           </AppButtonLink>
         </div>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:hidden">
-          <AppButtonLink href={composeHref} tone="primary" className="w-full">
+        <div className="mt-5 grid grid-cols-2 gap-3 xl:hidden">
+          <AppButtonLink href={composeHref} tone="primary" className="col-span-2 w-full">
             Add entry
           </AppButtonLink>
           <AppButtonLink href={filtersHref} tone="secondary" className="w-full">
@@ -966,7 +966,7 @@ export default async function TransactionsPage({
             Import CSV
           </AppButtonLink>
           {showMobileBackToList ? (
-            <AppButtonLink href={baseHref} tone="secondary" className="w-full">
+            <AppButtonLink href={baseHref} tone="secondary" className="col-span-2 w-full">
               Back to list
             </AppButtonLink>
           ) : null}
@@ -1061,9 +1061,9 @@ export default async function TransactionsPage({
         </Reveal>
       ) : null}
 
-      <StaggerReveal className="grid gap-3 sm:grid-cols-2">
+      <StaggerReveal className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         <StaggerItem>
-          <AppMetricSurface>
+          <AppMetricSurface className="min-h-[124px]">
           <p className="text-sm text-slate-500">Income</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
             {formatCurrency(
@@ -1075,7 +1075,7 @@ export default async function TransactionsPage({
           </AppMetricSurface>
         </StaggerItem>
         <StaggerItem>
-          <AppMetricSurface>
+          <AppMetricSurface className="min-h-[124px]">
           <p className="text-sm text-slate-500">Expense</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
             {formatCurrency(
@@ -1087,7 +1087,7 @@ export default async function TransactionsPage({
           </AppMetricSurface>
         </StaggerItem>
         <StaggerItem>
-          <AppMetricSurface>
+          <AppMetricSurface className="min-h-[124px]">
           <p className="text-sm text-slate-500">Shared</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
             {formatCurrency(
@@ -1099,7 +1099,7 @@ export default async function TransactionsPage({
           </AppMetricSurface>
         </StaggerItem>
         <StaggerItem>
-          <AppMetricSurface>
+          <AppMetricSurface className="min-h-[124px]">
           <p className="text-sm text-slate-500">Personal</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
             {formatCurrency(
