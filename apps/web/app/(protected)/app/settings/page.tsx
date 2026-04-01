@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { Reveal } from "@/components/motion/reveal";
 import { InviteShareActions } from "@/components/settings/invite-share-actions";
+import { AppThemeSetting } from "@/components/theme/app-theme-toggle";
 import { AppBadge } from "@/components/ui/app-badge";
 import { AppButton, AppButtonLink } from "@/components/ui/app-button";
 import { AppSurface } from "@/components/ui/app-surface";
@@ -174,6 +175,21 @@ export default async function SettingsPage() {
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <Reveal delay={0.04}>
           <AppSurface padding="md">
+            <div className="border-b border-slate-900/8 pb-4">
+              <h2 className="text-lg font-semibold text-slate-950">Appearance</h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Keep theme choice in one place so the app feels predictable across screens.
+              </p>
+            </div>
+
+            <div className="mt-5">
+              <AppThemeSetting />
+            </div>
+          </AppSurface>
+        </Reveal>
+
+        <Reveal delay={0.06}>
+          <AppSurface padding="md">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-slate-950">Workspace snapshot</h2>
@@ -211,7 +227,7 @@ export default async function SettingsPage() {
           </AppSurface>
         </Reveal>
 
-        <Reveal delay={0.06}>
+        <Reveal delay={0.08}>
           <AppSurface padding="md">
           <div className="border-b border-slate-900/8 pb-4">
             <h2 className="text-lg font-semibold text-slate-950">Account</h2>

@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { Reveal } from "@/components/motion/reveal";
+import { AppButton, AppButtonLink } from "@/components/ui/app-button";
 
 type AppErrorStateProps = {
   title: string;
@@ -32,21 +32,20 @@ export function AppErrorState({
         <p className="mt-3 text-sm leading-6 text-slate-600">{message}</p>
         <div className="mt-5 flex flex-wrap gap-3">
           {onRetry ? (
-            <button
+            <AppButton
               type="button"
               onClick={onRetry}
-              className="inline-flex items-center justify-center rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 active:scale-[0.98]"
             >
               Retry
-            </button>
+            </AppButton>
           ) : null}
           {secondaryHref && secondaryLabel ? (
-            <Link
+            <AppButtonLink
               href={secondaryHref}
-              className="inline-flex items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950 active:scale-[0.98]"
+              tone="secondary"
             >
               {secondaryLabel}
-            </Link>
+            </AppButtonLink>
           ) : null}
         </div>
       </section>

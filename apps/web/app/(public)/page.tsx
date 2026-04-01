@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppButtonLink } from "@/components/ui/app-button";
 
 const SAMPLE_HOUSEHOLDS = [
   {
@@ -37,18 +37,20 @@ export default function HomePage() {
             </h1>
           </div>
           <nav className="flex items-center gap-3 text-sm">
-            <Link
+            <AppButtonLink
               href="/sign-in"
-              className="rounded-full border border-[color:var(--button-secondary-border)] bg-[color:var(--button-secondary-bg)] px-4 py-2 text-[color:var(--button-secondary-fg)] transition hover:border-[color:var(--button-secondary-hover-border)] hover:bg-[color:var(--button-secondary-hover-bg)] hover:text-[color:var(--button-secondary-hover-fg)]"
+              tone="secondary"
+              size="sm"
             >
               Sign in
-            </Link>
-            <Link
+            </AppButtonLink>
+            <AppButtonLink
               href="/sign-up"
-              className="rounded-full border border-[color:var(--button-primary-border)] bg-[color:var(--button-primary-bg)] px-4 py-2 font-medium text-[color:var(--button-primary-fg)] transition hover:bg-[color:var(--button-primary-hover-bg)]"
+              tone="primary"
+              size="sm"
             >
               Create account
-            </Link>
+            </AppButtonLink>
           </nav>
         </header>
 
@@ -66,18 +68,18 @@ export default function HomePage() {
             </p>
 
             <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-              <Link
+              <AppButtonLink
                 href="/sign-up"
-                className="inline-flex items-center justify-center rounded-full border border-[color:var(--button-success-border)] bg-[color:var(--button-success-bg)] px-6 py-3 text-sm font-semibold text-[color:var(--button-success-fg)] transition hover:bg-[color:var(--button-success-hover-bg)]"
+                tone="success"
               >
                 Create your account
-              </Link>
-              <Link
+              </AppButtonLink>
+              <AppButtonLink
                 href="/sign-in"
-                className="inline-flex items-center justify-center rounded-full border border-[color:var(--button-secondary-border)] bg-[color:var(--button-secondary-bg)] px-6 py-3 text-sm font-semibold text-[color:var(--button-secondary-fg)] transition hover:border-[color:var(--button-secondary-hover-border)] hover:bg-[color:var(--button-secondary-hover-bg)] hover:text-[color:var(--button-secondary-hover-fg)]"
+                tone="secondary"
               >
                 Go to auth entry
-              </Link>
+              </AppButtonLink>
             </div>
           </div>
 

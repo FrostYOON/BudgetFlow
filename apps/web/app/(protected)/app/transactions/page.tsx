@@ -163,6 +163,22 @@ function formatDateInputValue(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
+function getFilterChipClassName(
+  active: boolean,
+  tone: "primary" | "success" = "primary",
+) {
+  const activeClassName =
+    tone === "success"
+      ? "border-[color:var(--button-success-border)] bg-[color:var(--button-success-bg)] text-[color:var(--button-success-fg)] shadow-[var(--button-success-shadow)]"
+      : "border-[color:var(--button-primary-border)] bg-[color:var(--button-primary-bg)] text-[color:var(--button-primary-fg)] shadow-[var(--button-primary-shadow)]";
+
+  return `inline-flex items-center justify-center rounded-full border px-4 py-2 text-sm font-semibold transition active:scale-[0.98] ${
+    active
+      ? activeClassName
+      : "border-[color:var(--button-secondary-border)] bg-[color:var(--button-secondary-bg)] text-[color:var(--button-secondary-fg)] shadow-[var(--button-secondary-shadow)] hover:border-[color:var(--button-secondary-hover-border)] hover:bg-[color:var(--button-secondary-hover-bg)] hover:text-[color:var(--button-secondary-hover-fg)]"
+  }`;
+}
+
 function getDefaultTransactionDate(
   requestedPeriod: { year: number; month: number },
   monthRange: { from: string; to: string },
@@ -1246,11 +1262,7 @@ export default async function TransactionsPage({
                   type: item.value as "INCOME" | "EXPENSE" | "ALL",
                   visibility,
                 })}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  active
-                    ? "bg-emerald-500 text-slate-950"
-                    : "border border-slate-300 bg-white text-slate-700 hover:border-slate-950 hover:text-slate-950"
-                }`}
+                className={getFilterChipClassName(active, "success")}
               >
                 {item.label}
               </Link>
@@ -1280,11 +1292,7 @@ export default async function TransactionsPage({
                   type,
                   visibility: item.value as "SHARED" | "PERSONAL" | "ALL",
                 })}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  active
-                    ? "bg-slate-950 text-white"
-                    : "border border-slate-300 bg-white text-slate-700 hover:border-slate-950 hover:text-slate-950"
-                }`}
+                className={getFilterChipClassName(active)}
               >
                 {item.label}
               </Link>
@@ -1362,12 +1370,9 @@ export default async function TransactionsPage({
                             value={transaction.id}
                           />
                           <input type="hidden" name="returnTo" value={baseHref} />
-                          <button
-                            type="submit"
-                            className="rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:border-rose-400 hover:text-rose-800 active:scale-[0.98]"
-                          >
+                          <AppButton type="submit" tone="danger" size="sm">
                             Delete
-                          </button>
+                          </AppButton>
                         </form>
                         <AppButtonLink
                           href={buildViewHref(baseHref, transaction.id)}
@@ -1376,12 +1381,13 @@ export default async function TransactionsPage({
                         >
                           View
                         </AppButtonLink>
-                        <Link
+                        <AppButtonLink
                           href={buildEditHref(baseHref, transaction.id)}
-                          className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950 active:scale-[0.98]"
+                          tone="secondary"
+                          size="sm"
                         >
                           Edit
-                        </Link>
+                        </AppButtonLink>
                       </div>
                     </div>
                   </article>

@@ -4,7 +4,6 @@ import { AppBottomNav } from "@/components/app-shell/app-bottom-nav";
 import { PageTransitionShell } from "@/components/app-shell/page-transition-shell";
 import { AppSidebarNav } from "@/components/app-shell/app-sidebar-nav";
 import { WorkspaceSwitcher } from "@/components/app-shell/workspace-switcher";
-import { AppThemeToggle } from "@/components/theme/app-theme-toggle";
 
 interface AppShellFrameProps {
   children: React.ReactNode;
@@ -26,7 +25,6 @@ export function AppShellFrame({ children, session }: AppShellFrameProps) {
               </h1>
             </div>
             <div className="flex items-center gap-2">
-              <AppThemeToggle />
               <form action="/auth/sign-out" method="post">
                 <input type="hidden" name="redirectTo" value="/sign-in" />
                 <AppButton type="submit" tone="secondary" size="sm">
@@ -74,7 +72,6 @@ export function AppShellFrame({ children, session }: AppShellFrameProps) {
               </div>
 
               <div className="flex items-center gap-2">
-                <AppThemeToggle />
                 <form action="/auth/sign-out" method="post">
                   <input type="hidden" name="redirectTo" value="/sign-in" />
                   <AppButton type="submit" tone="secondary" size="sm">
@@ -104,7 +101,6 @@ export function AppShellFrame({ children, session }: AppShellFrameProps) {
                   ) : null}
                 </div>
                 <div className="flex items-center gap-3 text-sm">
-                  <AppThemeToggle />
                   <AppButtonLink
                     href="/app/dashboard"
                     tone="secondary"

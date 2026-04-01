@@ -95,7 +95,7 @@ export default async function SignInPage({
               href={`/sign-up?next=${encodeURIComponent(next)}`}
               tone="secondary"
               size="sm"
-              className="ml-2 border-white/20 text-white hover:border-white hover:text-white"
+              className="ml-2 border-white/20 bg-white/8 text-white shadow-none hover:border-white/35 hover:bg-white/14 hover:text-white"
             >
               Create account
             </AppButtonLink>
