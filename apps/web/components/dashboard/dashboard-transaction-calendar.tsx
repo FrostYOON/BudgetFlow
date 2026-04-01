@@ -344,8 +344,8 @@ export function DashboardTransactionCalendar({
 
   return (
     <LazyMotion features={domAnimation}>
-      <section className="overflow-hidden rounded-[2rem] border border-slate-900/8 bg-[linear-gradient(180deg,#fffdf8_0%,#ffffff_34%,#f8fafc_100%)] px-4 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
-      <div className="flex flex-col gap-4 border-b border-slate-900/8 pb-5">
+      <section className="overflow-hidden rounded-[2rem] border border-[color:var(--surface-border)] bg-[color:var(--surface)] px-4 py-5 shadow-[var(--surface-shadow)] sm:px-6">
+      <div className="flex flex-col gap-4 border-b border-[color:var(--surface-border)] pb-5">
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
@@ -356,13 +356,13 @@ export function DashboardTransactionCalendar({
             </h2>
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 rounded-full border border-slate-200 bg-white/90 p-1 shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
+            <div className="flex items-center gap-1 rounded-full border border-[color:var(--surface-border)] bg-[color:var(--surface-soft)] p-1 shadow-[var(--surface-shadow)]">
               <button
                 type="button"
                 aria-label="Go to previous month"
                 onClick={() => navigateToMonth(previousHref)}
                 disabled={isPending}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full text-base font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 disabled:cursor-wait disabled:opacity-50"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full text-base font-semibold text-[color:var(--text-soft)] transition hover:bg-[color:var(--surface-muted)] hover:text-[color:var(--foreground)] disabled:cursor-wait disabled:opacity-50"
               >
                 ←
               </button>
@@ -371,7 +371,7 @@ export function DashboardTransactionCalendar({
                 aria-label="Go to next month"
                 onClick={() => navigateToMonth(nextHref)}
                 disabled={isPending}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full text-base font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 disabled:cursor-wait disabled:opacity-50"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full text-base font-semibold text-[color:var(--text-soft)] transition hover:bg-[color:var(--surface-muted)] hover:text-[color:var(--foreground)] disabled:cursor-wait disabled:opacity-50"
               >
                 →
               </button>
@@ -573,7 +573,7 @@ export function DashboardTransactionCalendar({
             damping: 24,
             mass: 0.92,
           }}
-          className="mt-5 rounded-[1.6rem] border border-slate-900/8 bg-white/90 px-4 py-4 shadow-[0_12px_32px_rgba(15,23,42,0.06)]"
+          className="mt-5 rounded-[1.6rem] border border-[color:var(--surface-border)] bg-[color:var(--surface-soft)] px-4 py-4 shadow-[var(--surface-shadow)]"
         >
           <div className="flex items-start justify-between gap-3">
             <div>
@@ -590,7 +590,7 @@ export function DashboardTransactionCalendar({
                   </AppBadge>
                 ) : null}
                 {holidayContext.timeZone ? (
-                  <span className="rounded-full bg-sky-100 px-2.5 py-1 text-[11px] font-semibold text-sky-800">
+                <span className="rounded-full bg-[color:var(--surface-muted)] px-2.5 py-1 text-[11px] font-semibold text-[color:var(--text-soft)]">
                     {holidayContext.timeZone}
                   </span>
                 ) : null}
@@ -618,7 +618,7 @@ export function DashboardTransactionCalendar({
           </div>
 
           <div className="mt-4 grid gap-2 sm:grid-cols-3">
-            <div className="rounded-[1.1rem] bg-slate-50 px-3 py-3">
+            <div className="rounded-[1.1rem] bg-[color:var(--surface-muted)] px-3 py-3">
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
                 Expense
               </p>
@@ -626,7 +626,7 @@ export function DashboardTransactionCalendar({
                 {formatCurrency(selectedSummary.expense, currency, locale)}
               </p>
             </div>
-            <div className="rounded-[1.1rem] bg-slate-50 px-3 py-3">
+            <div className="rounded-[1.1rem] bg-[color:var(--surface-muted)] px-3 py-3">
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
                 Income
               </p>
@@ -634,7 +634,7 @@ export function DashboardTransactionCalendar({
                 {formatCurrency(selectedSummary.income, currency, locale)}
               </p>
             </div>
-            <div className="rounded-[1.1rem] bg-slate-50 px-3 py-3">
+            <div className="rounded-[1.1rem] bg-[color:var(--surface-muted)] px-3 py-3">
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
                 Activity
               </p>
@@ -652,7 +652,7 @@ export function DashboardTransactionCalendar({
               selectedSummary.transactions.map((transaction) => (
                 <article
                   key={transaction.id}
-                  className="rounded-[1.2rem] border border-slate-900/8 bg-slate-50 px-4 py-3"
+                  className="rounded-[1.2rem] border border-[color:var(--surface-border)] bg-[color:var(--surface-muted)] px-4 py-3"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -669,10 +669,10 @@ export function DashboardTransactionCalendar({
                   </div>
 
                   <div className="mt-3 flex flex-wrap gap-2">
-                    <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700">
+                    <span className="rounded-full bg-[color:var(--surface)] px-2.5 py-1 text-[11px] font-semibold text-[color:var(--text-soft)]">
                       {transaction.type}
                     </span>
-                    <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700">
+                    <span className="rounded-full bg-[color:var(--surface)] px-2.5 py-1 text-[11px] font-semibold text-[color:var(--text-soft)]">
                       {transaction.visibility}
                     </span>
                   </div>
