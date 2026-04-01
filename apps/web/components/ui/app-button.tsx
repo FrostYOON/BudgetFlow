@@ -11,13 +11,13 @@ function joinClasses(...values: Array<string | false | null | undefined>) {
 function getToneClassName(tone: ButtonTone) {
   switch (tone) {
     case "secondary":
-      return "border border-slate-300 text-slate-700 hover:border-slate-950 hover:text-slate-950";
+      return "border border-slate-200 bg-slate-100 text-slate-800 shadow-[0_8px_20px_rgba(15,23,42,0.06)] hover:border-slate-300 hover:bg-slate-200 hover:text-slate-950";
     case "success":
-      return "bg-emerald-400 text-slate-950 hover:bg-emerald-300";
+      return "border border-emerald-700 bg-emerald-600 text-white shadow-[0_12px_28px_rgba(5,150,105,0.28)] hover:bg-emerald-700";
     case "danger":
-      return "border border-rose-200 text-rose-700 hover:border-rose-400 hover:text-rose-800";
+      return "border border-rose-200 bg-rose-50 text-rose-700 shadow-[0_8px_20px_rgba(244,63,94,0.08)] hover:border-rose-300 hover:bg-rose-100 hover:text-rose-800";
     default:
-      return "bg-slate-950 text-white hover:bg-slate-800";
+      return "border border-slate-950 bg-slate-950 text-white shadow-[0_12px_30px_rgba(15,23,42,0.22)] hover:bg-slate-800";
   }
 }
 
@@ -29,7 +29,7 @@ function getSizeClassName(size: ButtonSize) {
 
 function getBaseClassName(tone: ButtonTone, size: ButtonSize, className?: string) {
   return joinClasses(
-    "inline-flex items-center justify-center rounded-full font-semibold transition active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white",
+    "inline-flex items-center justify-center gap-2 rounded-full font-semibold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-55 disabled:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white",
     getToneClassName(tone),
     getSizeClassName(size),
     className,
