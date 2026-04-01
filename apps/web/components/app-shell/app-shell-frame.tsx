@@ -12,9 +12,12 @@ interface AppShellFrameProps {
 
 export function AppShellFrame({ children, session }: AppShellFrameProps) {
   return (
-    <div className="min-h-screen bg-[color:var(--shell-bg)] text-[color:var(--foreground)]">
-      <div className="mx-auto grid min-h-screen max-w-[1600px] gap-0 xl:grid-cols-[280px_minmax(0,1fr)]">
-        <aside className="hidden border-b border-[color:var(--surface-border)] bg-[color:var(--surface-soft)] px-6 py-8 backdrop-blur xl:block xl:border-r xl:border-b-0 xl:px-8">
+    <div
+      className="min-h-screen bg-[color:var(--shell-bg)] text-[color:var(--foreground)]"
+      style={{ backgroundImage: "var(--app-shell-bg)" }}
+    >
+      <div className="mx-auto grid min-h-screen max-w-[1600px] gap-0 xl:grid-cols-[296px_minmax(0,1fr)] xl:gap-4 xl:px-6 xl:py-6">
+        <aside className="hidden border-b border-[color:var(--surface-border)] bg-[color:var(--surface-soft)] px-6 py-8 backdrop-blur xl:flex xl:h-[calc(100svh-3rem)] xl:flex-col xl:rounded-[2rem] xl:border xl:border-b xl:bg-[color:var(--app-panel)] xl:px-8 xl:py-8 xl:shadow-[var(--surface-shadow)] xl:backdrop-blur-xl">
           <div className="flex items-end justify-between gap-4 border-b border-[color:var(--surface-border)] pb-6">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
@@ -54,8 +57,8 @@ export function AppShellFrame({ children, session }: AppShellFrameProps) {
           </div>
         </aside>
 
-        <div className="flex min-h-screen flex-col pb-20 xl:pb-0">
-          <header className="border-b border-[color:var(--surface-border)] bg-[color:var(--shell-header-bg)] px-4 py-4 backdrop-blur sm:px-6 xl:px-10 xl:py-5">
+        <div className="flex min-h-screen flex-col pb-28 xl:min-h-[calc(100svh-3rem)] xl:overflow-hidden xl:rounded-[2rem] xl:border xl:border-[color:var(--surface-border)] xl:bg-[color:var(--app-panel)] xl:shadow-[var(--surface-shadow)] xl:backdrop-blur-xl">
+          <header className="sticky top-0 z-30 border-b border-[color:var(--surface-border)] bg-[color:var(--shell-header-bg)] px-4 py-4 backdrop-blur-xl sm:px-6 xl:px-8 xl:py-5">
             <div className="flex items-start justify-between gap-4 xl:hidden">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-emerald-700">
@@ -91,7 +94,10 @@ export function AppShellFrame({ children, session }: AppShellFrameProps) {
             <div className="hidden xl:flex xl:flex-col xl:gap-3">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
                 <div>
-                  <p className="text-sm font-medium text-[color:var(--text-muted)]">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[color:var(--text-muted)]">
+                    Active workspace
+                  </p>
+                  <p className="mt-2 text-lg font-semibold tracking-tight text-[color:var(--foreground)]">
                     {session.currentWorkspace?.name ?? "No workspace selected"}
                   </p>
                   {session.currentWorkspace ? (
@@ -120,7 +126,7 @@ export function AppShellFrame({ children, session }: AppShellFrameProps) {
             </div>
           </header>
 
-          <main className="flex-1 px-4 py-6 sm:px-6 xl:px-10 xl:py-10">
+          <main className="mx-auto flex w-full max-w-[1240px] flex-1 px-4 py-6 sm:px-6 xl:px-8 xl:py-8">
             <PageTransitionShell>{children}</PageTransitionShell>
           </main>
         </div>

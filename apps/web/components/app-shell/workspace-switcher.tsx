@@ -68,7 +68,7 @@ export function WorkspaceSwitcher({
               )}`}
               className={`rounded-xl px-3 py-3 text-sm transition ${
                 isCurrent
-                  ? "bg-[color:var(--surface)] text-[color:var(--foreground)] ring-1 ring-[color:var(--surface-border)]"
+                  ? "border border-[color:var(--selection-bg)] bg-[color:var(--selection-muted)] text-[color:var(--foreground)] shadow-[0_12px_26px_rgba(15,23,42,0.08)]"
                   : "text-[color:var(--text-soft)] hover:bg-[color:var(--surface)] hover:text-[color:var(--foreground)]"
               }`}
             >

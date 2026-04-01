@@ -89,7 +89,7 @@ export function AppThemeSetting() {
               }}
               className={`rounded-[1.35rem] border px-4 py-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--background)] ${
                 isActive
-                  ? "border-[color:var(--button-primary-border)] bg-[color:var(--button-primary-bg)] text-[color:var(--button-primary-fg)] shadow-[var(--button-primary-shadow)]"
+                  ? "border-[color:var(--selection-bg)] bg-[color:var(--selection-bg)] text-[color:var(--selection-fg)] shadow-[var(--selection-shadow)]"
                   : "border-[color:var(--surface-border)] bg-[color:var(--surface-soft)] text-[color:var(--foreground)] shadow-[var(--surface-shadow)] hover:bg-[color:var(--surface-muted)]"
               }`}
               aria-pressed={isActive}
@@ -101,7 +101,7 @@ export function AppThemeSetting() {
                 <span
                   className={`rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${
                     isActive
-                      ? "bg-white/14 text-current"
+                      ? "bg-black/10 text-current"
                       : "bg-[color:var(--surface-muted)] text-[color:var(--text-soft)]"
                   }`}
                 >

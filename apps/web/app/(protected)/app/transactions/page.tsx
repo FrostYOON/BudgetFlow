@@ -163,18 +163,10 @@ function formatDateInputValue(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
-function getFilterChipClassName(
-  active: boolean,
-  tone: "primary" | "success" = "primary",
-) {
-  const activeClassName =
-    tone === "success"
-      ? "border-[color:var(--button-success-border)] bg-[color:var(--button-success-bg)] text-[color:var(--button-success-fg)] shadow-[var(--button-success-shadow)]"
-      : "border-[color:var(--button-primary-border)] bg-[color:var(--button-primary-bg)] text-[color:var(--button-primary-fg)] shadow-[var(--button-primary-shadow)]";
-
+function getFilterChipClassName(active: boolean) {
   return `inline-flex items-center justify-center rounded-full border px-4 py-2 text-sm font-semibold transition active:scale-[0.98] ${
     active
-      ? activeClassName
+      ? "border-[color:var(--selection-bg)] bg-[color:var(--selection-bg)] text-[color:var(--selection-fg)] shadow-[var(--selection-shadow)]"
       : "border-[color:var(--button-secondary-border)] bg-[color:var(--button-secondary-bg)] text-[color:var(--button-secondary-fg)] shadow-[var(--button-secondary-shadow)] hover:border-[color:var(--button-secondary-hover-border)] hover:bg-[color:var(--button-secondary-hover-bg)] hover:text-[color:var(--button-secondary-hover-fg)]"
   }`;
 }
@@ -1262,7 +1254,7 @@ export default async function TransactionsPage({
                   type: item.value as "INCOME" | "EXPENSE" | "ALL",
                   visibility,
                 })}
-                className={getFilterChipClassName(active, "success")}
+                className={getFilterChipClassName(active)}
               >
                 {item.label}
               </Link>
