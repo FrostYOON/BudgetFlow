@@ -1,5 +1,20 @@
 import { redirect } from "next/navigation";
 import {
+  ArrowDownUp,
+  ChevronLeft,
+  ChevronRight,
+  CircleDollarSign,
+  Copy,
+  FolderClock,
+  PencilLine,
+  PiggyBank,
+  Receipt,
+  Sparkles,
+  Target,
+  Wallet,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import {
   Reveal,
   StaggerItem,
   StaggerReveal,
@@ -43,6 +58,77 @@ function formatInputAmount(value: string) {
 function parseAmount(value?: string | null) {
   const amount = Number(value ?? 0);
   return Number.isFinite(amount) ? amount : 0;
+}
+
+type QuickStatTone = "slate" | "emerald" | "white";
+
+function getQuickStatClassName(tone: QuickStatTone) {
+  switch (tone) {
+    case "emerald":
+      return "border-emerald-100 bg-emerald-50/90 text-emerald-950";
+    case "white":
+      return "border-white/70 bg-white/90 text-slate-950";
+    default:
+      return "border-slate-200 bg-slate-950 text-white";
+  }
+}
+
+function BudgetQuickStat({
+  icon: Icon,
+  label,
+  value,
+  hint,
+  tone = "white",
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: string | number;
+  hint?: string;
+  tone?: QuickStatTone;
+}) {
+  return (
+    <article
+      className={`rounded-[1.25rem] border px-4 py-4 ${getQuickStatClassName(tone)}`}
+    >
+      <div className="flex items-center gap-2">
+        <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/8">
+          <Icon className="h-4 w-4" strokeWidth={2.2} />
+        </span>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] opacity-70">
+          {label}
+        </p>
+      </div>
+      <p className="mt-3 text-xl font-semibold tracking-tight">{value}</p>
+      {hint ? <p className="mt-1 text-sm opacity-75">{hint}</p> : null}
+    </article>
+  );
+}
+
+function BudgetMobileSectionSummary({
+  icon: Icon,
+  title,
+  meta,
+  badge,
+}: {
+  icon: LucideIcon;
+  title: string;
+  meta: string;
+  badge: string;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <div className="flex min-w-0 items-center gap-3">
+        <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-950 text-white">
+          <Icon className="h-4 w-4" strokeWidth={2.2} />
+        </span>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-slate-950">{title}</p>
+          <p className="mt-1 text-sm text-slate-500">{meta}</p>
+        </div>
+      </div>
+      <AppBadge tone="subtle">{badge}</AppBadge>
+    </div>
+  );
 }
 
 export default async function BudgetsPage({
@@ -123,6 +209,9 @@ export default async function BudgetsPage({
         >
           <div className="flex items-start justify-between gap-4">
             <div>
+              <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-slate-950 text-white shadow-[0_12px_30px_rgba(15,23,42,0.16)]">
+                <PiggyBank className="h-5 w-5" strokeWidth={2.2} />
+              </span>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
                 Budgets
               </p>
@@ -144,6 +233,7 @@ export default async function BudgetsPage({
               size="sm"
               tone="secondary"
             >
+              <ChevronLeft className="mr-1 h-4 w-4" strokeWidth={2.2} />
               Prev
             </AppButtonLink>
             <AppButtonLink
@@ -151,6 +241,7 @@ export default async function BudgetsPage({
               size="sm"
               tone="secondary"
             >
+              <ChevronRight className="mr-1 h-4 w-4" strokeWidth={2.2} />
               Next
             </AppButtonLink>
           </div>
@@ -195,9 +286,11 @@ export default async function BudgetsPage({
 
               <div className="hidden flex-wrap gap-3 sm:flex">
                 <AppButtonLink href="#budget-total" size="sm" tone="success">
+                  <PencilLine className="mr-2 h-4 w-4" strokeWidth={2.2} />
                   Edit total
                 </AppButtonLink>
                 <AppButtonLink href="#budget-categories" size="sm" tone="secondary">
+                  <Target className="mr-2 h-4 w-4" strokeWidth={2.2} />
                   Plan categories
                 </AppButtonLink>
               </div>
@@ -242,44 +335,74 @@ export default async function BudgetsPage({
             </div>
           </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-3 lg:hidden">
-            <article className="rounded-[1.25rem] border border-slate-200 bg-white/85 px-4 py-4">
-              <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
-                Allocated
-              </p>
-              <p className="mt-2 text-xl font-semibold tracking-tight text-slate-950">
-                {allocationProgress}%
-              </p>
-              <p className="mt-1 text-sm text-slate-500">
-                {formatCurrency(budget?.allocatedAmount ?? "0.00", currency, locale)}
-              </p>
-            </article>
+          <div className="mt-4 space-y-3 lg:hidden">
+            <div className="grid gap-3 sm:grid-cols-3">
+              <BudgetQuickStat
+                icon={Wallet}
+                label="Remaining"
+                value={formatCurrency(budget?.unallocatedAmount ?? "0.00", currency, locale)}
+                hint={`${allocationProgress}% allocated`}
+                tone="slate"
+              />
+              <BudgetQuickStat
+                icon={Target}
+                label="Planned"
+                value={plannedCategoryCount}
+                hint={`${openCategoryCount} still open`}
+                tone="white"
+              />
+              <BudgetQuickStat
+                icon={Receipt}
+                label="Spent"
+                value={formatCurrency(budget?.actualAmount ?? "0.00", currency, locale)}
+                hint={`${spendProgress}% of total`}
+                tone="emerald"
+              />
+            </div>
 
-            <article className="rounded-[1.25rem] border border-emerald-100 bg-emerald-50/80 px-4 py-4">
-              <p className="text-xs uppercase tracking-[0.18em] text-emerald-700">
-                Spent
-              </p>
-              <p className="mt-2 text-xl font-semibold tracking-tight text-slate-950">
-                {spendProgress}%
-              </p>
-              <p className="mt-1 text-sm text-slate-600">
-                {formatCurrency(budget?.actualAmount ?? "0.00", currency, locale)}
-              </p>
-            </article>
+            <div className="grid grid-cols-3 gap-2">
+              <AppButtonLink
+                href="#budget-total-mobile"
+                size="sm"
+                tone="success"
+                className="gap-2 px-3"
+              >
+                <PencilLine className="h-4 w-4" strokeWidth={2.2} />
+                Total
+              </AppButtonLink>
+              <AppButtonLink
+                href="#budget-categories-mobile"
+                size="sm"
+                tone="secondary"
+                className="gap-2 px-3"
+              >
+                <Target className="h-4 w-4" strokeWidth={2.2} />
+                Plan
+              </AppButtonLink>
+              <AppButtonLink
+                href="#budget-tools"
+                size="sm"
+                tone="secondary"
+                className="gap-2 px-3"
+              >
+                <Sparkles className="h-4 w-4" strokeWidth={2.2} />
+                Tools
+              </AppButtonLink>
+            </div>
           </div>
 
           <div className="mt-5 space-y-3 sm:hidden">
-            <details className="rounded-[1.5rem] border border-slate-200 bg-white/80 p-4">
+            <details
+              id="budget-total-mobile"
+              className="rounded-[1.5rem] border border-slate-200 bg-white/80 p-4"
+            >
               <summary className="cursor-pointer list-none">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-semibold text-slate-950">Edit monthly total</p>
-                    <p className="mt-1 text-sm text-slate-500">
-                      {formatCurrency(budget?.totalBudgetAmount ?? "0.00", currency, locale)}
-                    </p>
-                  </div>
-                  <AppBadge tone="success">Quick edit</AppBadge>
-                </div>
+                <BudgetMobileSectionSummary
+                  icon={CircleDollarSign}
+                  title="Edit monthly total"
+                  meta={formatCurrency(budget?.totalBudgetAmount ?? "0.00", currency, locale)}
+                  badge="Quick edit"
+                />
               </summary>
 
               <form action="/app/budgets/monthly" method="post" className="mt-4 space-y-4">
@@ -301,22 +424,23 @@ export default async function BudgetsPage({
                 </label>
 
                 <AppButton type="submit" tone="success" size="sm" className="w-full">
+                  <PencilLine className="mr-2 h-4 w-4" strokeWidth={2.2} />
                   Save total
                 </AppButton>
               </form>
             </details>
 
-            <details className="rounded-[1.5rem] border border-slate-200 bg-white/80 p-4">
+            <details
+              id="budget-categories-mobile"
+              className="rounded-[1.5rem] border border-slate-200 bg-white/80 p-4"
+            >
               <summary className="cursor-pointer list-none">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-semibold text-slate-950">Plan categories</p>
-                    <p className="mt-1 text-sm text-slate-500">
-                      {plannedCategoryCount} planned, {openCategoryCount} open
-                    </p>
-                  </div>
-                  <AppBadge tone="subtle">{categories.length} items</AppBadge>
-                </div>
+                <BudgetMobileSectionSummary
+                  icon={Target}
+                  title="Plan categories"
+                  meta={`${plannedCategoryCount} planned, ${openCategoryCount} open`}
+                  badge={`${categories.length} items`}
+                />
               </summary>
 
               <form action="/app/budgets/categories" method="post" className="mt-4 space-y-3">
@@ -346,6 +470,9 @@ export default async function BudgetsPage({
                         <div className="space-y-3">
                           <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-2">
+                              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-emerald-800">
+                                <Target className="h-4 w-4" strokeWidth={2.2} />
+                              </span>
                               <p className="font-semibold text-slate-950">{category.name}</p>
                               <AppBadge tone="success">Planned</AppBadge>
                             </div>
@@ -409,6 +536,9 @@ export default async function BudgetsPage({
                               <div className="space-y-3">
                                 <div className="min-w-0">
                                   <div className="flex flex-wrap items-center gap-2">
+                                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-emerald-800">
+                                      <Target className="h-4 w-4" strokeWidth={2.2} />
+                                    </span>
                                     <p className="font-semibold text-slate-950">{category.name}</p>
                                     <AppBadge tone="success">Planned</AppBadge>
                                   </div>
@@ -481,6 +611,9 @@ export default async function BudgetsPage({
                         <div className="space-y-3">
                           <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-2">
+                              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-700">
+                                <FolderClock className="h-4 w-4" strokeWidth={2.2} />
+                              </span>
                               <p className="font-semibold text-slate-950">{category.name}</p>
                               <AppBadge tone="subtle">Open</AppBadge>
                             </div>
@@ -507,15 +640,24 @@ export default async function BudgetsPage({
                 </details>
 
                 <AppButton type="submit" tone="primary" size="sm" className="w-full">
+                  <ArrowDownUp className="mr-2 h-4 w-4" strokeWidth={2.2} />
                   Save plan
                 </AppButton>
               </form>
             </details>
           </div>
 
-          <details className="mt-5 rounded-[1.5rem] border border-slate-200 bg-white/80 p-4 sm:hidden">
-            <summary className="cursor-pointer list-none text-sm font-semibold text-slate-950">
-              Template and copy tools
+          <details
+            id="budget-tools"
+            className="mt-5 rounded-[1.5rem] border border-slate-200 bg-white/80 p-4 sm:hidden"
+          >
+            <summary className="cursor-pointer list-none">
+              <BudgetMobileSectionSummary
+                icon={Sparkles}
+                title="Template and copy tools"
+                meta="Keep setup work behind lighter controls"
+                badge={budgetTemplate?.id ? "Template ready" : "3 actions"}
+              />
             </summary>
             <div className="mt-4 grid gap-3">
               <form action="/app/budgets/copy-previous" method="post">
@@ -523,6 +665,7 @@ export default async function BudgetsPage({
                 <input type="hidden" name="year" value={requestedPeriod.year} />
                 <input type="hidden" name="month" value={requestedPeriod.month} />
                 <AppButton type="submit" tone="secondary" size="sm" className="w-full">
+                  <Copy className="mr-2 h-4 w-4" strokeWidth={2.2} />
                   Copy previous month
                 </AppButton>
               </form>
@@ -531,6 +674,7 @@ export default async function BudgetsPage({
                 <input type="hidden" name="year" value={requestedPeriod.year} />
                 <input type="hidden" name="month" value={requestedPeriod.month} />
                 <AppButton type="submit" tone="secondary" size="sm" className="w-full">
+                  <Sparkles className="mr-2 h-4 w-4" strokeWidth={2.2} />
                   Save as template
                 </AppButton>
               </form>
@@ -539,6 +683,7 @@ export default async function BudgetsPage({
                 <input type="hidden" name="year" value={requestedPeriod.year} />
                 <input type="hidden" name="month" value={requestedPeriod.month} />
                 <AppButton type="submit" tone="secondary" size="sm" className="w-full">
+                  <FolderClock className="mr-2 h-4 w-4" strokeWidth={2.2} />
                   Apply template
                 </AppButton>
               </form>
@@ -556,6 +701,7 @@ export default async function BudgetsPage({
               <input type="hidden" name="year" value={requestedPeriod.year} />
               <input type="hidden" name="month" value={requestedPeriod.month} />
               <AppButton type="submit" tone="secondary" size="sm">
+                <Copy className="mr-2 h-4 w-4" strokeWidth={2.2} />
                 Copy previous month
               </AppButton>
             </form>
@@ -564,6 +710,7 @@ export default async function BudgetsPage({
               <input type="hidden" name="year" value={requestedPeriod.year} />
               <input type="hidden" name="month" value={requestedPeriod.month} />
               <AppButton type="submit" tone="secondary" size="sm">
+                <Sparkles className="mr-2 h-4 w-4" strokeWidth={2.2} />
                 Save as template
               </AppButton>
             </form>
@@ -572,6 +719,7 @@ export default async function BudgetsPage({
               <input type="hidden" name="year" value={requestedPeriod.year} />
               <input type="hidden" name="month" value={requestedPeriod.month} />
               <AppButton type="submit" tone="secondary" size="sm">
+                <FolderClock className="mr-2 h-4 w-4" strokeWidth={2.2} />
                 Apply template
               </AppButton>
             </form>
@@ -647,6 +795,7 @@ export default async function BudgetsPage({
                 </p>
               </div>
               <AppButton type="submit" tone="success" size="sm" className="w-full sm:w-auto">
+                <PencilLine className="mr-2 h-4 w-4" strokeWidth={2.2} />
                 Save total
               </AppButton>
             </div>
@@ -708,6 +857,7 @@ export default async function BudgetsPage({
 
             <div className="mt-4">
               <AppButton type="submit" tone="primary" size="sm" className="w-full sm:w-auto">
+                <ArrowDownUp className="mr-2 h-4 w-4" strokeWidth={2.2} />
                 Save plan
               </AppButton>
             </div>
@@ -733,6 +883,13 @@ export default async function BudgetsPage({
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
+                          <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-slate-700 ring-1 ring-slate-200">
+                            {hasAllocation ? (
+                              <Target className="h-4 w-4" strokeWidth={2.2} />
+                            ) : (
+                              <FolderClock className="h-4 w-4" strokeWidth={2.2} />
+                            )}
+                          </span>
                           <p className="font-semibold text-slate-950">{category.name}</p>
                           <AppBadge tone={hasAllocation ? "success" : "subtle"}>
                             {hasAllocation ? "Planned" : "Open"}
