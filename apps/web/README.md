@@ -40,4 +40,5 @@ See the repo-level execution plan:
 
 - [docs/DELIVERY_EXECUTION_PLAN.md](/Users/yoon-yongseol/WorkSpace/BudgetFlow/docs/DELIVERY_EXECUTION_PLAN.md)
 - [docs/USER_ONBOARDING_GUIDE.md](/Users/yoon-yongseol/WorkSpace/BudgetFlow/docs/USER_ONBOARDING_GUIDE.md)
+- [docs/USER_ONBOARDING_GUIDE.ko.md](/Users/yoon-yongseol/WorkSpace/BudgetFlow/docs/USER_ONBOARDING_GUIDE.ko.md)
 - [docs/FEATURE_VERIFICATION_2026_03_31.md](/Users/yoon-yongseol/WorkSpace/BudgetFlow/docs/FEATURE_VERIFICATION_2026_03_31.md)
