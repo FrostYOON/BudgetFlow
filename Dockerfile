@@ -11,16 +11,9 @@ RUN apt-get update \
 
 RUN corepack enable
 
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
-COPY apps/api/package.json apps/api/package.json
-COPY packages/database/package.json packages/database/package.json
-COPY packages/shared/package.json packages/shared/package.json
-COPY packages/ui/package.json packages/ui/package.json
-
-RUN pnpm install --frozen-lockfile
-
 COPY . .
 
+RUN pnpm install --frozen-lockfile
 RUN pnpm prisma:generate && pnpm --filter @budgetflow/api build
 RUN pnpm --filter @budgetflow/api deploy --prod /prod/api
 
