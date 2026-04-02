@@ -21,6 +21,14 @@ const TOAST_MESSAGES: Record<string, { type: "success" | "error"; text: string }
     type: "success",
     text: "Signed in.",
   },
+  social_auth_failed: {
+    type: "error",
+    text: "Google sign-in failed.",
+  },
+  social_auth_unavailable: {
+    type: "error",
+    text: "Google sign-in is not configured yet.",
+  },
   signed_out: {
     type: "success",
     text: "Signed out.",

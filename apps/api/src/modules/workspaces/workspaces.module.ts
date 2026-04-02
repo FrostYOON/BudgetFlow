@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { WorkspaceInvitesController } from './controllers/workspace-invites.controller';
 import { WorkspaceMembersController } from './controllers/workspace-members.controller';
 import { WorkspacesController } from './controllers/workspaces.controller';
+import { WorkspaceInviteEmailService } from './services/workspace-invite-email.service';
 import { WorkspaceInvitesService } from './services/workspace-invites.service';
 import { WorkspaceMembersService } from './services/workspace-members.service';
 import { WorkspacesService } from './services/workspaces.service';
@@ -14,6 +15,7 @@ import { WorkspacesService } from './services/workspaces.service';
   ],
   providers: [
     WorkspacesService,
+    WorkspaceInviteEmailService,
     WorkspaceInvitesService,
     WorkspaceMembersService,
   ],
