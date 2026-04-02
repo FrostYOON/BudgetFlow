@@ -131,6 +131,26 @@ export async function signUpWithApi(input: {
   return parseAuthResponse(response, input.refreshCookieName);
 }
 
+export async function signInWithGoogleCodeApi(input: {
+  code: string;
+  redirectUri: string;
+  refreshCookieName: string;
+}) {
+  const response = await fetch(`${getApiBaseUrl()}/auth/google`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    cache: "no-store",
+    body: JSON.stringify({
+      code: input.code,
+      redirectUri: input.redirectUri,
+    }),
+  });
+
+  return parseAuthResponse(response, input.refreshCookieName);
+}
+
 export async function refreshWithApi(input: {
   refreshToken: string;
   refreshCookieName: string;

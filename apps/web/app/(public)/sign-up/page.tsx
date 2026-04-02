@@ -8,6 +8,7 @@ export default async function SignUpPage({
 }) {
   const params = await searchParams;
   const next = params.next ?? "/app/dashboard";
+  const isGoogleEnabled = Boolean(process.env.GOOGLE_CLIENT_ID);
 
   return (
     <main className="min-h-screen bg-[#f4f6f2] text-slate-950">
@@ -86,6 +87,17 @@ export default async function SignUpPage({
               </AppButtonLink>
             </div>
           </form>
+
+          {isGoogleEnabled ? (
+            <div className="mt-6 border-t border-slate-900/8 pt-6">
+              <AppButtonLink
+                href={`/auth/google/start?redirectTo=${encodeURIComponent(next)}`}
+                className="px-6 py-3"
+              >
+                Continue with Google
+              </AppButtonLink>
+            </div>
+          ) : null}
         </div>
       </div>
     </main>

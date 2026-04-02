@@ -5,6 +5,7 @@ import { UsersService } from '../../users/users.service';
 import { WorkspacesService } from '../../workspaces/services/workspaces.service';
 import { AuthService } from './auth.service';
 import { AuthSessionsService } from './auth-sessions.service';
+import { GoogleOAuthService } from './google-oauth.service';
 import { PasswordService } from './password.service';
 import { TokenService } from './token.service';
 
@@ -13,7 +14,9 @@ describe('AuthService', () => {
   let usersService: {
     create: jest.Mock;
     findByEmail: jest.Mock;
+    findByAuthIdentity: jest.Mock;
     findById: jest.Mock;
+    linkAuthIdentity: jest.Mock;
     toResponse: jest.Mock;
   };
   let authSessionsService: {
@@ -35,12 +38,17 @@ describe('AuthService', () => {
   let workspacesService: {
     createPersonalWorkspace: jest.Mock;
   };
+  let googleOAuthService: {
+    exchangeCodeForProfile: jest.Mock;
+  };
 
   beforeEach(async () => {
     usersService = {
       create: jest.fn(),
       findByEmail: jest.fn(),
+      findByAuthIdentity: jest.fn(),
       findById: jest.fn(),
+      linkAuthIdentity: jest.fn(),
       toResponse: jest.fn(),
     };
 
@@ -67,6 +75,10 @@ describe('AuthService', () => {
 
     workspacesService = {
       createPersonalWorkspace: jest.fn(),
+    };
+
+    googleOAuthService = {
+      exchangeCodeForProfile: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -97,6 +109,10 @@ describe('AuthService', () => {
           useValue: {
             log: jest.fn(),
           },
+        },
+        {
+          provide: GoogleOAuthService,
+          useValue: googleOAuthService,
         },
       ],
     }).compile();
@@ -251,5 +267,63 @@ describe('AuthService', () => {
       'session-1',
       'user-1',
     );
+  });
+
+  it('signInWithGoogle should create a linked social user when one does not exist', async () => {
+    const createdUser = {
+      id: 'user-2',
+      email: 'google@example.com',
+      name: 'Google User',
+      profileImageUrl: 'https://example.com/avatar.png',
+      locale: 'ko-KR',
+      timezone: 'Asia/Seoul',
+      createdAt: new Date('2026-04-02T00:00:00.000Z'),
+    };
+
+    googleOAuthService.exchangeCodeForProfile.mockResolvedValue({
+      email: 'google@example.com',
+      emailVerified: true,
+      name: 'Google User',
+      picture: 'https://example.com/avatar.png',
+      subject: 'google-subject-1',
+    });
+    usersService.findByAuthIdentity.mockResolvedValue(null);
+    usersService.findByEmail.mockResolvedValue(null);
+    usersService.create.mockResolvedValue(createdUser);
+    usersService.findById.mockResolvedValue(createdUser);
+    usersService.toResponse.mockReturnValue(createdUser);
+    tokenService.createAuthTokens.mockResolvedValue({
+      accessToken: 'google-access-token',
+      refreshToken: 'google-refresh-token',
+    });
+    passwordService.hashRefreshToken.mockResolvedValue(
+      'google-refresh-token-hash',
+    );
+
+    const result = await authService.signInWithGoogle(
+      {
+        code: 'google-code',
+        redirectUri: 'http://localhost:3001/auth/google/callback',
+      },
+      {
+        ipAddress: '127.0.0.1',
+        userAgent: 'jest',
+      },
+    );
+
+    expect(googleOAuthService.exchangeCodeForProfile).toHaveBeenCalled();
+    expect(usersService.linkAuthIdentity).toHaveBeenCalledWith({
+      userId: 'user-2',
+      provider: 'GOOGLE',
+      providerSubject: 'google-subject-1',
+      email: 'google@example.com',
+    });
+    expect(workspacesService.createPersonalWorkspace).toHaveBeenCalledWith({
+      ownerUserId: 'user-2',
+      ownerName: 'Google User',
+      locale: 'ko-KR',
+      timezone: 'Asia/Seoul',
+    });
+    expect(result.tokens.accessToken).toBe('google-access-token');
   });
 });

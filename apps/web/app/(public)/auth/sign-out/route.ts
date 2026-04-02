@@ -4,6 +4,7 @@ import {
   AUTH_ACCESS_COOKIE_NAME,
   AUTH_REFRESH_COOKIE_NAME,
 } from "@/lib/auth/constants";
+import { clearCookie } from "@/lib/auth/response-cookies";
 
 const POST_REDIRECT_STATUS = 303;
 
@@ -21,19 +22,7 @@ export async function POST(request: NextRequest) {
   redirectUrl.searchParams.set("toast", "signed_out");
   const response = NextResponse.redirect(redirectUrl, POST_REDIRECT_STATUS);
 
-  response.cookies.set(AUTH_ACCESS_COOKIE_NAME, "", {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 0,
-  });
-  response.cookies.set(AUTH_REFRESH_COOKIE_NAME, "", {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 0,
-  });
+  clearCookie(response, AUTH_ACCESS_COOKIE_NAME);
+  clearCookie(response, AUTH_REFRESH_COOKIE_NAME);
   return response;
 }

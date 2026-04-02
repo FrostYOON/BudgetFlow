@@ -1,36 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { decodeJwtExp, signUpWithApi } from "@/lib/auth/api";
+import { signUpWithApi } from "@/lib/auth/api";
 import { resolvePostAuthRedirect } from "@/lib/auth/post-auth-redirect";
 import {
-  AUTH_ACCESS_COOKIE_NAME,
-  AUTH_REFRESH_COOKIE_NAME,
-  CURRENT_WORKSPACE_COOKIE_NAME,
-} from "@/lib/auth/constants";
+  setAccessCookie,
+  setCurrentWorkspaceCookie,
+  setRefreshCookie,
+} from "@/lib/auth/response-cookies";
 
 const POST_REDIRECT_STATUS = 303;
-
-function setAccessCookie(response: NextResponse, accessToken: string) {
-  const exp = decodeJwtExp(accessToken);
-  const maxAge = exp ? Math.max(exp - Math.floor(Date.now() / 1000), 60) : 3600;
-
-  response.cookies.set(AUTH_ACCESS_COOKIE_NAME, accessToken, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge,
-  });
-}
-
-function setRefreshCookie(response: NextResponse, refreshToken: string) {
-  response.cookies.set(AUTH_REFRESH_COOKIE_NAME, refreshToken, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 30,
-  });
-}
 
 export async function POST(request: NextRequest) {
   const formData = await request.formData();
@@ -72,13 +49,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (selectedWorkspace) {
-      response.cookies.set(CURRENT_WORKSPACE_COOKIE_NAME, selectedWorkspace.id, {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-        path: "/",
-        maxAge: 60 * 60 * 24 * 30,
-      });
+      setCurrentWorkspaceCookie(response, selectedWorkspace.id);
     }
 
     return response;

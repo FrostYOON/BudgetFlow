@@ -37,6 +37,10 @@ export class AppConfigService {
     return this.configService.get<string>('SWAGGER_PATH') ?? 'docs';
   }
 
+  get appWebUrl(): string | undefined {
+    return this.configService.get<string>('APP_WEB_URL') || undefined;
+  }
+
   get databaseUrl(): string {
     return this.configService.get<string>('DATABASE_URL') ?? '';
   }
@@ -156,5 +160,21 @@ export class AppConfigService {
         'RECURRING_FAILURE_NOTIFICATION_THROTTLE_MINUTES',
       ) ?? 60,
     );
+  }
+
+  get resendApiKey(): string | undefined {
+    return this.configService.get<string>('RESEND_API_KEY') || undefined;
+  }
+
+  get inviteEmailFrom(): string | undefined {
+    return this.configService.get<string>('INVITE_EMAIL_FROM') || undefined;
+  }
+
+  get googleClientId(): string | undefined {
+    return this.configService.get<string>('GOOGLE_CLIENT_ID') || undefined;
+  }
+
+  get googleClientSecret(): string | undefined {
+    return this.configService.get<string>('GOOGLE_CLIENT_SECRET') || undefined;
   }
 }

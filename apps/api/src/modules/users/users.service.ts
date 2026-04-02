@@ -3,7 +3,11 @@ import {
   ConflictException,
   Injectable,
 } from '@nestjs/common';
-import { User } from '@budgetflow/database';
+import {
+  AuthIdentityProvider,
+  Prisma,
+  User,
+} from '@budgetflow/database';
 import { PrismaService } from '../../core/database/prisma.service';
 import { UserResponseDto } from './dto/user-response.dto';
 import { UpdateUserProfileRequestDto } from './dto/update-user-profile-request.dto';
@@ -24,12 +28,32 @@ export class UsersService {
     });
   }
 
+  async findByAuthIdentity(
+    provider: AuthIdentityProvider,
+    providerSubject: string,
+  ): Promise<User | null> {
+    const identity = await this.prisma.authIdentity.findUnique({
+      where: {
+        provider_providerSubject: {
+          provider,
+          providerSubject,
+        },
+      },
+      include: {
+        user: true,
+      },
+    });
+
+    return identity?.user ?? null;
+  }
+
   async create(input: {
     email: string;
-    passwordHash: string;
+    passwordHash?: string | null;
     name: string;
     locale?: string;
     timezone?: string;
+    profileImageUrl?: string | null;
   }): Promise<User> {
     const existingUser = await this.findByEmail(input.email);
 
@@ -40,12 +64,52 @@ export class UsersService {
     return this.prisma.user.create({
       data: {
         email: input.email,
-        passwordHash: input.passwordHash,
+        passwordHash: input.passwordHash ?? null,
         name: input.name,
+        ...(input.profileImageUrl !== undefined
+          ? { profileImageUrl: input.profileImageUrl }
+          : {}),
         ...(input.locale ? { locale: input.locale } : {}),
         ...(input.timezone ? { timezone: input.timezone } : {}),
       },
     });
+  }
+
+  async linkAuthIdentity(input: {
+    userId: string;
+    provider: AuthIdentityProvider;
+    providerSubject: string;
+    email?: string | null;
+  }): Promise<void> {
+    try {
+      await this.prisma.authIdentity.upsert({
+        where: {
+          provider_providerSubject: {
+            provider: input.provider,
+            providerSubject: input.providerSubject,
+          },
+        },
+        update: {
+          userId: input.userId,
+          email: input.email ?? null,
+        },
+        create: {
+          userId: input.userId,
+          provider: input.provider,
+          providerSubject: input.providerSubject,
+          email: input.email ?? null,
+        },
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException('Authentication identity is already linked.');
+      }
+
+      throw error;
+    }
   }
 
   async updateProfile(

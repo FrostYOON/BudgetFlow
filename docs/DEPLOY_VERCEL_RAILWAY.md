@@ -32,6 +32,9 @@ Prepare these production values first:
 - production web origin
 - production API origin
 - cookie domain
+- invite email sender address
+- Resend API key
+- Google OAuth client ID and client secret
 - recurring scheduler decision
 
 Recommended domain pattern:
@@ -79,6 +82,11 @@ Set these required API environment variables:
 - `AUTH_REFRESH_COOKIE_SECURE=true`
 - `TRUST_PROXY=true`
 - `PASSWORD_HASH_SALT_ROUNDS=10`
+- `APP_WEB_URL=https://app.example.com`
+- `RESEND_API_KEY=<resend api key>`
+- `INVITE_EMAIL_FROM=BudgetFlow <invites@example.com>`
+- `GOOGLE_CLIENT_ID=<google oauth client id>`
+- `GOOGLE_CLIENT_SECRET=<google oauth client secret>`
 
 Recurring execution variables:
 
@@ -113,6 +121,7 @@ Use these project settings:
 Set this required web environment variable:
 
 - `BUDGETFLOW_API_URL=https://api.example.com/api/v1`
+- `GOOGLE_CLIENT_ID=<google oauth client id>`
 
 Notes:
 
@@ -131,6 +140,7 @@ Then confirm:
 - API CORS allows only `https://app.example.com`
 - cookie domain is `.example.com`
 - cookie secure is enabled
+- Google OAuth redirect URI includes `https://app.example.com/auth/google/callback`
 
 ## 6. Pre-Release Validation
 
