@@ -106,6 +106,8 @@ export function AppShellFrame({ children, session }: AppShellFrameProps) {
 
             <div className="mt-4 xl:hidden">
               <WorkspaceSwitcher
+                compact
+                collapsible
                 currentWorkspace={session.currentWorkspace}
                 workspaces={session.workspaces}
               />
