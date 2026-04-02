@@ -11,6 +11,16 @@ interface AuthApiResponse {
   tokens: AuthTokens;
 }
 
+class AuthApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
+    this.name = "AuthApiError";
+  }
+}
+
 function getApiBaseUrl() {
   return process.env.BUDGETFLOW_API_URL ?? "http://localhost:3000/api/v1";
 }
@@ -44,12 +54,15 @@ async function parseAuthResponse(
   refreshCookieName: string,
 ) {
   const body = (await response.json()) as AuthApiResponse & {
-    message?: string;
+    message?: string | string[];
     code?: string;
   };
 
   if (!response.ok) {
-    throw new Error(body.message ?? "Authentication request failed.");
+    const message = Array.isArray(body.message)
+      ? body.message.join(" ")
+      : body.message ?? "Authentication request failed.";
+    throw new AuthApiError(message, response.status);
   }
 
   const refreshToken =

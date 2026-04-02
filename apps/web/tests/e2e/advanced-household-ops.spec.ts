@@ -9,6 +9,8 @@ test("owner can manage invite, notifications, report export, and recurring runs"
   const ownerPassword = `BudgetFlow!${unique}`;
   const inviteeEmail = `budgetflow-invitee-${unique}@example.com`;
   const inviteePassword = `BudgetFlow!invitee-${unique}`;
+  const ownerName = `Playwright Owner ${unique}`;
+  const inviteeName = `Playwright Invitee ${unique}`;
   const workspaceName = "Playwright Shared Home";
   const overBudgetMemo = "Over budget groceries";
   const recurringMemo = `Recurring audit ${unique}`;
@@ -17,9 +19,10 @@ test("owner can manage invite, notifications, report export, and recurring runs"
 
   await page.goto("/sign-up");
 
-  await page.getByLabel("Name").fill("Playwright Owner");
+  await page.getByLabel("Name").fill(ownerName);
   await page.getByLabel("Email").fill(ownerEmail);
-  await page.getByLabel("Password").fill(ownerPassword);
+  await page.locator('input[name="password"]').fill(ownerPassword);
+  await page.locator('input[name="confirmPassword"]').fill(ownerPassword);
   await page.getByRole("button", { name: "Create account" }).click();
 
   await expect(page).toHaveURL(/\/app\/dashboard/);
@@ -65,12 +68,12 @@ test("owner can manage invite, notifications, report export, and recurring runs"
     });
   const ownerParticipantId = await page
     .locator('select[name="paidByUserId"] option')
-    .evaluateAll((options) => {
+    .evaluateAll((options, expectedOwnerName) => {
       const matched = options.find(
-        (option) => option.textContent?.trim() === "Playwright Owner",
+        (option) => option.textContent?.trim() === expectedOwnerName,
       );
       return matched instanceof HTMLOptionElement ? matched.value : "";
-    });
+    }, ownerName);
 
   expect(marketCategoryId).toBeTruthy();
   expect(ownerParticipantId).toBeTruthy();
@@ -228,9 +231,12 @@ test("owner can manage invite, notifications, report export, and recurring runs"
   try {
     await inviteePage.goto(inviteUrl);
     await inviteePage.getByRole("link", { name: "Create account" }).click();
-    await inviteePage.getByLabel("Name").fill("Playwright Invitee");
+    await inviteePage.getByLabel("Name").fill(inviteeName);
     await inviteePage.getByLabel("Email").fill(inviteeEmail);
-    await inviteePage.getByLabel("Password").fill(inviteePassword);
+    await inviteePage.locator('input[name="password"]').fill(inviteePassword);
+    await inviteePage
+      .locator('input[name="confirmPassword"]')
+      .fill(inviteePassword);
     await inviteePage.getByRole("button", { name: "Create account" }).click();
 
     await expect(inviteePage).toHaveURL(/\/app\/dashboard\?toast=invite_accepted/);
