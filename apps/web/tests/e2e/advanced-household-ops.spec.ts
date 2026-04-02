@@ -233,7 +233,7 @@ test("owner can manage invite, notifications, report export, and recurring runs"
     await inviteePage.getByLabel("Password").fill(inviteePassword);
     await inviteePage.getByRole("button", { name: "Create account" }).click();
 
-    await expect(inviteePage).toHaveURL(/\/app\/dashboard/);
+    await expect(inviteePage).toHaveURL(/\/app\/dashboard\?toast=invite_accepted/);
     await expect(
       inviteePage.getByRole("main").getByRole("heading", { name: workspaceName, level: 1 }),
     ).toBeVisible();

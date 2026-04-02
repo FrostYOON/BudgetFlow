@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { decodeJwtExp, fetchWorkspaces, signInWithApi } from "@/lib/auth/api";
+import { decodeJwtExp, signInWithApi } from "@/lib/auth/api";
+import { resolvePostAuthRedirect } from "@/lib/auth/post-auth-redirect";
 import {
   AUTH_ACCESS_COOKIE_NAME,
   AUTH_REFRESH_COOKIE_NAME,
@@ -52,20 +53,13 @@ export async function POST(request: NextRequest) {
       password,
       refreshCookieName: "budgetflow_refresh_token",
     });
-
-    const workspaces = await fetchWorkspaces(auth.accessToken);
-    const selectedWorkspace =
-      workspaces.find((workspace) => workspace.id === existingWorkspaceId) ??
-      workspaces[0] ??
-      null;
-    const destination =
-      redirectTo !== "/app/dashboard"
-        ? redirectTo
-        : workspaces[0]
-          ? "/app/dashboard"
-          : "/app/onboarding";
-    const redirectUrl = new URL(destination, request.url);
-    redirectUrl.searchParams.set("toast", "signed_in");
+    const { redirectUrl, selectedWorkspace } = await resolvePostAuthRedirect({
+      accessToken: auth.accessToken,
+      redirectTo,
+      requestUrl: request.url,
+      defaultToast: "signed_in",
+      preferredWorkspaceId: existingWorkspaceId,
+    });
     const response = NextResponse.redirect(redirectUrl, POST_REDIRECT_STATUS);
 
     setAccessCookie(response, auth.accessToken);
