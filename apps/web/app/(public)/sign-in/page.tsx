@@ -8,6 +8,7 @@ export default async function SignInPage({
 }) {
   const params = await searchParams;
   const next = params.next ?? "/app/dashboard";
+  const isGoogleEnabled = Boolean(process.env.GOOGLE_CLIENT_ID);
 
   return (
     <main className="min-h-screen bg-slate-950 text-white">
@@ -88,6 +89,18 @@ export default async function SignInPage({
               Sign in
             </AppButton>
           </form>
+
+          {isGoogleEnabled ? (
+            <div className="mt-4 border-t border-white/10 pt-4">
+              <AppButtonLink
+                href={`/auth/google/start?redirectTo=${encodeURIComponent(next)}`}
+                tone="secondary"
+                className="w-full border-white/20 bg-white/8 text-white shadow-none hover:border-white/35 hover:bg-white/14 hover:text-white"
+              >
+                Continue with Google
+              </AppButtonLink>
+            </div>
+          ) : null}
 
           <p className="mt-6 text-sm text-slate-400">
             Need a new account?{" "}

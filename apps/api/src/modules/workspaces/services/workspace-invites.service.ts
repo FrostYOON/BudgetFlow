@@ -8,9 +8,11 @@ import { randomUUID } from 'node:crypto';
 import { WorkspaceInvite, WorkspaceMemberStatus } from '@budgetflow/database';
 import type { AuthenticatedUser } from '../../../common/interfaces/authenticated-request.interface';
 import { PrismaService } from '../../../core/database/prisma.service';
+import { AppLoggerService } from '../../../core/logger/app-logger.service';
 import { CreateWorkspaceInviteRequestDto } from '../dto/create-workspace-invite-request.dto';
 import { AcceptWorkspaceInviteResponseDto } from '../dto/accept-workspace-invite-response.dto';
 import { WorkspaceInviteResponseDto } from '../dto/workspace-invite-response.dto';
+import { WorkspaceInviteEmailService } from './workspace-invite-email.service';
 import { WorkspacesService } from './workspaces.service';
 
 @Injectable()
@@ -18,6 +20,8 @@ export class WorkspaceInvitesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly workspacesService: WorkspacesService,
+    private readonly workspaceInviteEmailService: WorkspaceInviteEmailService,
+    private readonly logger: AppLoggerService,
   ) {}
 
   async createInvite(
@@ -73,6 +77,8 @@ export class WorkspaceInvitesService {
         createdByUserId: actorUserId,
       },
     });
+
+    await this.sendInviteEmail(invite, actorUserId);
 
     return this.toInviteResponse(invite);
   }
@@ -138,6 +144,8 @@ export class WorkspaceInvitesService {
         expiresAt: this.buildExpirationDate(),
       },
     });
+
+    await this.sendInviteEmail(updatedInvite, actorUserId);
 
     return this.toInviteResponse(updatedInvite);
   }
@@ -270,5 +278,40 @@ export class WorkspaceInvitesService {
     const expiration = new Date();
     expiration.setDate(expiration.getDate() + 7);
     return expiration;
+  }
+
+  private async sendInviteEmail(
+    invite: WorkspaceInvite,
+    actorUserId: string,
+  ): Promise<void> {
+    try {
+      const [workspace, actor] = await Promise.all([
+        this.prisma.workspace.findUnique({
+          where: { id: invite.workspaceId },
+          select: { name: true },
+        }),
+        this.prisma.user.findUnique({
+          where: { id: actorUserId },
+          select: { name: true },
+        }),
+      ]);
+
+      await this.workspaceInviteEmailService.sendInviteEmail({
+        recipientEmail: invite.email,
+        workspaceName: workspace?.name ?? 'BudgetFlow shared space',
+        inviteToken: invite.token,
+        inviterName: actor?.name ?? null,
+      });
+    } catch (error) {
+      this.logger.warn(
+        'Workspace invite email send attempt failed',
+        WorkspaceInvitesService.name,
+        {
+          actorUserId,
+          inviteId: invite.id,
+          message: error instanceof Error ? error.message : 'unknown',
+        },
+      );
+    }
   }
 }

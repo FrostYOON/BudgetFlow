@@ -9,6 +9,8 @@ import {
   WorkspaceMemberStatus,
 } from '@budgetflow/database';
 import { PrismaService } from '../../../core/database/prisma.service';
+import { AppLoggerService } from '../../../core/logger/app-logger.service';
+import { WorkspaceInviteEmailService } from './workspace-invite-email.service';
 import { WorkspacesService } from './workspaces.service';
 import { WorkspaceInvitesService } from './workspace-invites.service';
 
@@ -16,6 +18,7 @@ describe('WorkspaceInvitesService', () => {
   let service: WorkspaceInvitesService;
   let prisma: {
     user: { findUnique: jest.Mock };
+    workspace: { findUnique: jest.Mock };
     workspaceMember: { findUnique: jest.Mock };
     workspaceInvite: {
       create: jest.Mock;
@@ -29,10 +32,14 @@ describe('WorkspaceInvitesService', () => {
   let workspacesService: {
     assertOwner: jest.Mock;
   };
+  let workspaceInviteEmailService: {
+    sendInviteEmail: jest.Mock;
+  };
 
   beforeEach(async () => {
     prisma = {
       user: { findUnique: jest.fn() },
+      workspace: { findUnique: jest.fn() },
       workspaceMember: { findUnique: jest.fn() },
       workspaceInvite: {
         create: jest.fn(),
@@ -48,6 +55,10 @@ describe('WorkspaceInvitesService', () => {
       assertOwner: jest.fn(),
     };
 
+    workspaceInviteEmailService = {
+      sendInviteEmail: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         WorkspaceInvitesService,
@@ -58,6 +69,16 @@ describe('WorkspaceInvitesService', () => {
         {
           provide: WorkspacesService,
           useValue: workspacesService,
+        },
+        {
+          provide: WorkspaceInviteEmailService,
+          useValue: workspaceInviteEmailService,
+        },
+        {
+          provide: AppLoggerService,
+          useValue: {
+            warn: jest.fn(),
+          },
         },
       ],
     }).compile();
@@ -77,6 +98,12 @@ describe('WorkspaceInvitesService', () => {
       token: 'token-1',
       expiresAt: new Date('2026-04-01T00:00:00.000Z'),
     });
+    prisma.workspace.findUnique.mockResolvedValue({
+      name: 'Shared Home',
+    });
+    prisma.user.findUnique
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ name: 'Minji' });
 
     const result = await service.createInvite('workspace-1', 'owner-1', {
       email: 'jisu@example.com',
@@ -88,6 +115,12 @@ describe('WorkspaceInvitesService', () => {
       'owner-1',
     );
     expect(prisma.workspaceMember.findUnique).not.toHaveBeenCalled();
+    expect(workspaceInviteEmailService.sendInviteEmail).toHaveBeenCalledWith({
+      recipientEmail: 'jisu@example.com',
+      workspaceName: 'Shared Home',
+      inviteToken: 'token-1',
+      inviterName: 'Minji',
+    });
     expect(result.email).toBe('jisu@example.com');
   });
 
@@ -235,6 +268,12 @@ describe('WorkspaceInvitesService', () => {
       token: 'token-2',
       expiresAt: new Date('2026-04-08T00:00:00.000Z'),
     });
+    prisma.workspace.findUnique.mockResolvedValue({
+      name: 'Shared Home',
+    });
+    prisma.user.findUnique.mockResolvedValue({
+      name: 'Minji',
+    });
 
     const result = await service.resendInvite(
       'workspace-1',
@@ -244,5 +283,11 @@ describe('WorkspaceInvitesService', () => {
 
     expect(result.token).toBe('token-2');
     expect(result.status).toBe(WorkspaceMemberStatus.INVITED);
+    expect(workspaceInviteEmailService.sendInviteEmail).toHaveBeenCalledWith({
+      recipientEmail: 'jisu@example.com',
+      workspaceName: 'Shared Home',
+      inviteToken: 'token-2',
+      inviterName: 'Minji',
+    });
   });
 });

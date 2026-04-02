@@ -24,6 +24,7 @@ import { AuthResponseDto } from './dto/auth-response.dto';
 import { AuthSessionResponseDto } from './dto/auth-session-response.dto';
 import { ChangePasswordRequestDto } from './dto/change-password-request.dto';
 import { ChangePasswordResponseDto } from './dto/change-password-response.dto';
+import { GoogleAuthRequestDto } from './dto/google-auth-request.dto';
 import { RefreshTokenRequestDto } from './dto/refresh-token-request.dto';
 import { RevokeAuthSessionResponseDto } from './dto/revoke-auth-session-response.dto';
 import { SignInRequestDto } from './dto/sign-in-request.dto';
@@ -77,6 +78,30 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ): Promise<AuthResponseDto> {
     const authResponse = await this.authService.signIn(
+      input,
+      getAuthRequestContext(request),
+    );
+
+    if (authResponse.tokens.refreshToken) {
+      this.authCookieService.setRefreshTokenCookie(
+        response,
+        authResponse.tokens.refreshToken,
+      );
+    }
+
+    return this.authCookieService.toClientResponse(authResponse);
+  }
+
+  @Post('google')
+  @ApiOperation({ summary: 'Sign in with Google authorization code' })
+  @ApiBody({ type: GoogleAuthRequestDto })
+  @ApiOkResponse({ type: AuthResponseDto })
+  async signInWithGoogle(
+    @Body() input: GoogleAuthRequestDto,
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<AuthResponseDto> {
+    const authResponse = await this.authService.signInWithGoogle(
       input,
       getAuthRequestContext(request),
     );

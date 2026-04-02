@@ -13,6 +13,7 @@ import { AuthCookieService } from './services/auth-cookie.service';
 import { AuthSessionsService } from './services/auth-sessions.service';
 import { AuthService } from './services/auth.service';
 import { PasswordService } from './services/password.service';
+import { GoogleOAuthService } from './services/google-oauth.service';
 import { TokenService } from './services/token.service';
 
 @Module({
@@ -37,6 +38,7 @@ import { TokenService } from './services/token.service';
     AuthSessionsService,
     PasswordService,
     TokenService,
+    GoogleOAuthService,
     JwtAuthGuard,
     RefreshTokenGuard,
     AccessTokenStrategy,
