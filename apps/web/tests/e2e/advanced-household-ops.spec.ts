@@ -240,4 +240,14 @@ test("owner can manage invite, notifications, report export, and recurring runs"
   } finally {
     await inviteeContext.close();
   }
+
+  await page.goto("/app/settings");
+  await expect(page.getByText("Playwright Invitee").first()).toBeVisible();
+  await page
+    .locator('form[action="/app/settings/members/remove"]')
+    .filter({ has: page.locator('input[name="memberUserId"]') })
+    .first()
+    .evaluate((form: HTMLFormElement) => form.requestSubmit());
+  await expect(page).toHaveURL(/\/app\/settings\?toast=member_removed/);
+  await expect(page.getByText("Playwright Invitee")).toHaveCount(0);
 });

@@ -24,6 +24,7 @@ import {
   fetchWorkspaceMembers,
   getWorkspaceInviteDisplayMeta,
   type WorkspaceInviteSummary,
+  type WorkspaceMemberSummary,
 } from "@/lib/settings";
 import { ALL_WORKSPACE_TYPE_OPTIONS } from "@/lib/workspace-options";
 
@@ -583,6 +584,33 @@ export default async function SettingsPage() {
               </div>
             ) : isOwner ? (
               <div className="mt-5 space-y-5">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
+                      Members
+                    </h3>
+                    <AppBadge tone="subtle">{members.length}</AppBadge>
+                  </div>
+                  {members.map((member) => (
+                    <MemberCard
+                      key={member.userId}
+                      member={member}
+                      workspaceId={session.currentWorkspace!.id}
+                      canRemove={
+                        member.userId !== session.user.id && member.role !== "OWNER"
+                      }
+                      isCurrentUser={member.userId === session.user.id}
+                    />
+                  ))}
+                </div>
+
+                <div className="border-t border-slate-900/8 pt-5">
+                  <div className="mb-4 flex items-center justify-between gap-3">
+                    <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
+                      Invite someone
+                    </h3>
+                    <AppBadge tone="subtle">{pendingInvites.length} pending</AppBadge>
+                  </div>
                 <form
                   action="/app/settings/invites/create"
                   method="post"
@@ -625,6 +653,7 @@ export default async function SettingsPage() {
                     </AppButton>
                   </div>
                 </form>
+                </div>
 
                 {pendingInvites.length > 0 ? (
                   <div className="space-y-3">
@@ -644,8 +673,28 @@ export default async function SettingsPage() {
                 )}
               </div>
             ) : (
-              <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm text-slate-500">
-                Owner only.
+              <div className="mt-5 space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
+                      Members
+                    </h3>
+                    <AppBadge tone="subtle">{members.length}</AppBadge>
+                  </div>
+                  {members.map((member) => (
+                    <MemberCard
+                      key={member.userId}
+                      member={member}
+                      workspaceId={session.currentWorkspace!.id}
+                      canRemove={false}
+                      isCurrentUser={member.userId === session.user.id}
+                    />
+                  ))}
+                </div>
+
+                <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm text-slate-500">
+                  Owner only for invite and member removal.
+                </div>
               </div>
             )
           ) : (
@@ -822,6 +871,49 @@ export default async function SettingsPage() {
         </Reveal>
       </div>
     </div>
+  );
+}
+
+function MemberCard({
+  member,
+  workspaceId,
+  canRemove,
+  isCurrentUser,
+}: {
+  member: WorkspaceMemberSummary;
+  workspaceId: string;
+  canRemove: boolean;
+  isCurrentUser: boolean;
+}) {
+  const displayName = member.nickname?.trim() || member.name;
+
+  return (
+    <article className="rounded-[1.35rem] border border-slate-900/8 bg-slate-50 px-4 py-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-sm font-semibold text-slate-950">{displayName}</p>
+            <AppBadge tone={member.role === "OWNER" ? "success" : "subtle"}>
+              {member.role}
+            </AppBadge>
+            {isCurrentUser ? <AppBadge tone="subtle">You</AppBadge> : null}
+          </div>
+          {member.nickname?.trim() ? (
+            <p className="mt-1 text-xs text-slate-500">{member.name}</p>
+          ) : null}
+        </div>
+
+        {canRemove ? (
+          <form action="/app/settings/members/remove" method="post">
+            <input type="hidden" name="workspaceId" value={workspaceId} />
+            <input type="hidden" name="memberUserId" value={member.userId} />
+            <AppButton type="submit" tone="danger" size="sm">
+              Remove
+            </AppButton>
+          </form>
+        ) : null}
+      </div>
+    </article>
   );
 }
 

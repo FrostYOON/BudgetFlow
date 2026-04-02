@@ -234,6 +234,31 @@ export async function updateCurrentWorkspaceMember(input: {
   return response.json();
 }
 
+export async function removeWorkspaceMember(input: {
+  accessToken: string;
+  workspaceId: string;
+  memberUserId: string;
+}) {
+  const response = await fetch(
+    `${getApiBaseUrl()}/workspaces/${input.workspaceId}/members/${input.memberUserId}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${input.accessToken}`,
+      },
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(response, "Failed to remove workspace member."),
+    );
+  }
+
+  return response.json();
+}
+
 export async function updateWorkspaceSettings(input: WorkspaceSettingsInput) {
   const response = await fetch(
     `${getApiBaseUrl()}/workspaces/${input.workspaceId}`,
