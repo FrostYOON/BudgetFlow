@@ -6,6 +6,8 @@ import {
   CURRENT_WORKSPACE_COOKIE_NAME,
 } from "@/lib/auth/constants";
 
+const POST_REDIRECT_STATUS = 303;
+
 function setAccessCookie(response: NextResponse, accessToken: string) {
   const exp = decodeJwtExp(accessToken);
   const maxAge = exp ? Math.max(exp - Math.floor(Date.now() / 1000), 60) : 3600;
@@ -41,6 +43,7 @@ export async function POST(request: NextRequest) {
   if (!name || !email || !password) {
     return NextResponse.redirect(
       new URL("/sign-up?error=missing_fields", request.url),
+      POST_REDIRECT_STATUS,
     );
   }
 
@@ -63,7 +66,7 @@ export async function POST(request: NextRequest) {
           : "/app/onboarding";
     const redirectUrl = new URL(destination, request.url);
     redirectUrl.searchParams.set("toast", "account_created");
-    const response = NextResponse.redirect(redirectUrl);
+    const response = NextResponse.redirect(redirectUrl, POST_REDIRECT_STATUS);
 
     setAccessCookie(response, auth.accessToken);
 
@@ -85,6 +88,7 @@ export async function POST(request: NextRequest) {
   } catch {
     return NextResponse.redirect(
       new URL("/sign-up?error=sign_up_failed", request.url),
+      POST_REDIRECT_STATUS,
     );
   }
 }

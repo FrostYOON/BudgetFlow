@@ -72,13 +72,16 @@ export default async function DashboardPage({
   const prev = getPreviousMonth(dashboard.period.year, dashboard.period.month);
   const next = getNextMonth(dashboard.period.year, dashboard.period.month);
   const currency = session.currentWorkspace.baseCurrency;
+  const isPersonalWorkspace = session.currentWorkspace.type === "PERSONAL";
   const numberLocale = getNumberDisplayLocale(session.user.locale);
   const dateLocale = getDateDisplayLocale();
   const settlementsHref = `/app/settlements?year=${dashboard.period.year}&month=${dashboard.period.month}`;
   const reportsHref = `/app/reports?year=${dashboard.period.year}&month=${dashboard.period.month}`;
+  const budgetsHref = `/app/budgets?year=${dashboard.period.year}&month=${dashboard.period.month}`;
   const composeTransactionHref = `/app/transactions?year=${dashboard.period.year}&month=${dashboard.period.month}&type=EXPENSE&visibility=ALL&compose=1`;
   const visibleInsights = dashboard.insights.slice(0, 3);
   const hiddenInsightsCount = Math.max(dashboard.insights.length - visibleInsights.length, 0);
+  const monthTransactionCount = monthlyTransactions.items.length;
 
   const budgetUsedPct =
     Number(dashboard.summary.monthlyBudget) > 0
@@ -109,11 +112,18 @@ export default async function DashboardPage({
 
             <div className="hidden items-center gap-3 text-sm lg:flex">
               <AppButtonLink
-                href={settlementsHref}
-                tone="success"
+                href={composeTransactionHref}
+                tone="primary"
                 size="sm"
               >
-                Settlements
+                Add transaction
+              </AppButtonLink>
+              <AppButtonLink
+                href={isPersonalWorkspace ? budgetsHref : settlementsHref}
+                tone={isPersonalWorkspace ? "success" : "secondary"}
+                size="sm"
+              >
+                {isPersonalWorkspace ? "Budgets" : "Settlements"}
               </AppButtonLink>
               <AppButtonLink
                 href={reportsHref}
@@ -150,8 +160,12 @@ export default async function DashboardPage({
           >
             Add transaction
           </AppButtonLink>
-          <AppButtonLink href={settlementsHref} tone="secondary" className="w-full">
-            View settlements
+          <AppButtonLink
+            href={isPersonalWorkspace ? budgetsHref : settlementsHref}
+            tone="secondary"
+            className="w-full"
+          >
+            {isPersonalWorkspace ? "Adjust budget" : "View settlements"}
           </AppButtonLink>
           <AppButtonLink href={reportsHref} tone="secondary" className="w-full">
             Monthly report
@@ -200,14 +214,24 @@ export default async function DashboardPage({
 
         <StaggerItem>
           <AppMetricSurface>
-          <p className="text-sm text-slate-500">Shared spend</p>
+          <p className="text-sm text-slate-500">
+            {isPersonalWorkspace ? "Total expense" : "Shared spend"}
+          </p>
           <p className="mt-3 text-4xl font-semibold tracking-tight text-slate-950">
-            {formatCurrency(dashboard.summary.sharedExpense, currency, numberLocale)}
+            {formatCurrency(
+              isPersonalWorkspace
+                ? dashboard.summary.totalExpense
+                : dashboard.summary.sharedExpense,
+              currency,
+              numberLocale,
+            )}
           </p>
           <p className="mt-3 text-sm text-slate-500">
-            Personal spend{" "}
+            {isPersonalWorkspace ? "Income " : "Personal spend "}
             {formatCurrency(
-              dashboard.summary.personalExpense,
+              isPersonalWorkspace
+                ? dashboard.summary.totalIncome
+                : dashboard.summary.personalExpense,
               currency,
               numberLocale,
             )}
@@ -234,12 +258,14 @@ export default async function DashboardPage({
 
         <StaggerItem>
           <AppMetricSurface className="hidden sm:block">
-          <p className="text-sm text-slate-500">Open insights</p>
+          <p className="text-sm text-slate-500">
+            {isPersonalWorkspace ? "Transactions this month" : "Open insights"}
+          </p>
           <p className="mt-3 text-4xl font-semibold tracking-tight text-slate-950">
-            {dashboard.insights.length}
+            {isPersonalWorkspace ? monthTransactionCount : dashboard.insights.length}
           </p>
           <p className="mt-3 text-sm text-slate-500">
-            Top expense{" "}
+            {isPersonalWorkspace ? "Recent activity " : "Top expense "}
             {formatCurrency(dashboard.summary.totalExpense, currency, numberLocale)}
           </p>
           </AppMetricSurface>
@@ -281,126 +307,199 @@ export default async function DashboardPage({
         </AppSurface>
       </Reveal>
 
-      <Reveal delay={0.12}>
-        <AppSurface padding="lg" className="lg:hidden">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h2 className="text-lg font-semibold text-slate-950">
-                Shared settlement
-              </h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Check balances and suggested transfers from the settlements page.
-              </p>
-            </div>
-            <AppBadge tone="success">
-              {formatCurrency(
-                dashboard.settlement.totalSharedExpense,
-                currency,
-                numberLocale,
-              )}
-            </AppBadge>
-          </div>
-
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <div className="rounded-2xl bg-slate-50 px-4 py-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-                People involved
-              </p>
-              <p className="mt-2 text-lg font-semibold text-slate-950">
-                {dashboard.settlement.balances.length}
-              </p>
-            </div>
-            <div className="rounded-2xl bg-slate-50 px-4 py-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-                Suggested transfers
-              </p>
-              <p className="mt-2 text-lg font-semibold text-slate-950">
-                {dashboard.settlement.suggestedTransfers.length}
-              </p>
-            </div>
-          </div>
-
-          <AppButtonLink href={settlementsHref} tone="secondary" className="mt-4 w-full">
-            Open settlements
-          </AppButtonLink>
-        </AppSurface>
-      </Reveal>
-
-      <Reveal delay={0.14}>
-        <AppSurface padding="lg" className="hidden lg:block">
-          <div className="flex items-center justify-between gap-3 border-b border-slate-900/8 pb-4">
-            <div>
-              <h2 className="text-lg font-semibold text-slate-950">
-                Shared settlement
-              </h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Based on shared expense splits this month.
-              </p>
-            </div>
-            <AppBadge tone="success">
-              {formatCurrency(
-                dashboard.settlement.totalSharedExpense,
-                currency,
-                numberLocale,
-              )}
-            </AppBadge>
-          </div>
-
-          <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-            <div className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                Balances
-              </p>
-              {dashboard.settlement.balances.map((balance) => {
-                const isPositive = Number(balance.netAmount) >= 0;
-                return (
-                  <div
-                    key={balance.userId}
-                    className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-4"
-                  >
-                    <p className="text-sm font-semibold text-slate-950">
-                      {balance.name}
-                    </p>
-                    <p
-                      className={`text-sm font-semibold ${
-                        isPositive ? "text-emerald-700" : "text-rose-600"
-                      }`}
-                    >
-                      {isPositive ? "+" : ""}
-                      {formatCurrency(balance.netAmount, currency, numberLocale)}
-                    </p>
-                  </div>
-                );
-              })}
+      {isPersonalWorkspace ? (
+        <Reveal delay={0.12}>
+          <AppSurface padding="lg">
+            <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-900/8 pb-4">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-950">
+                  Personal focus
+                </h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  Keep daily entry, monthly budget, and report review close together.
+                </p>
+              </div>
+              <AppBadge tone="success">
+                {monthTransactionCount} transaction{monthTransactionCount === 1 ? "" : "s"}
+              </AppBadge>
             </div>
 
-            <div className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                Suggested transfers
-              </p>
-              {dashboard.settlement.suggestedTransfers.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm text-slate-500">
-                  Everyone is settled for this month.
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-2xl bg-slate-50 px-4 py-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                  Budget remaining
+                </p>
+                <p className="mt-2 text-lg font-semibold text-slate-950">
+                  {formatCurrency(
+                    dashboard.summary.remainingBudget,
+                    currency,
+                    numberLocale,
+                  )}
+                </p>
+              </div>
+              <div className="rounded-2xl bg-slate-50 px-4 py-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                  Income logged
+                </p>
+                <p className="mt-2 text-lg font-semibold text-slate-950">
+                  {formatCurrency(
+                    dashboard.summary.totalIncome,
+                    currency,
+                    numberLocale,
+                  )}
+                </p>
+              </div>
+              <div className="rounded-2xl bg-slate-50 px-4 py-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                  Expense logged
+                </p>
+                <p className="mt-2 text-lg font-semibold text-slate-950">
+                  {formatCurrency(
+                    dashboard.summary.totalExpense,
+                    currency,
+                    numberLocale,
+                  )}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-5 flex flex-wrap gap-3">
+              <AppButtonLink href={composeTransactionHref} tone="primary" size="sm">
+                Add transaction
+              </AppButtonLink>
+              <AppButtonLink href={budgetsHref} tone="secondary" size="sm">
+                Adjust budget
+              </AppButtonLink>
+              <AppButtonLink href={reportsHref} tone="secondary" size="sm">
+                Review report
+              </AppButtonLink>
+            </div>
+          </AppSurface>
+        </Reveal>
+      ) : (
+        <>
+          <Reveal delay={0.12}>
+            <AppSurface padding="lg" className="lg:hidden">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-950">
+                    Shared settlement
+                  </h2>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Check balances and suggested transfers from the settlements page.
+                  </p>
                 </div>
-              ) : (
-                dashboard.settlement.suggestedTransfers.map((transfer) => (
-                  <div
-                    key={`${transfer.fromUserId}-${transfer.toUserId}`}
-                    className="rounded-2xl border border-slate-900/8 px-4 py-4"
-                  >
-                    <p className="text-sm font-semibold text-slate-950">
-                      {transfer.fromName} → {transfer.toName}
-                    </p>
-                    <p className="mt-1 text-sm text-slate-500">
-                      {formatCurrency(transfer.amount, currency, numberLocale)}
-                    </p>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </AppSurface>
-      </Reveal>
+                <AppBadge tone="success">
+                  {formatCurrency(
+                    dashboard.settlement.totalSharedExpense,
+                    currency,
+                    numberLocale,
+                  )}
+                </AppBadge>
+              </div>
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <div className="rounded-2xl bg-slate-50 px-4 py-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                    People involved
+                  </p>
+                  <p className="mt-2 text-lg font-semibold text-slate-950">
+                    {dashboard.settlement.balances.length}
+                  </p>
+                </div>
+                <div className="rounded-2xl bg-slate-50 px-4 py-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                    Suggested transfers
+                  </p>
+                  <p className="mt-2 text-lg font-semibold text-slate-950">
+                    {dashboard.settlement.suggestedTransfers.length}
+                  </p>
+                </div>
+              </div>
+
+              <AppButtonLink href={settlementsHref} tone="secondary" className="mt-4 w-full">
+                Open settlements
+              </AppButtonLink>
+            </AppSurface>
+          </Reveal>
+
+          <Reveal delay={0.14}>
+            <AppSurface padding="lg" className="hidden lg:block">
+              <div className="flex items-center justify-between gap-3 border-b border-slate-900/8 pb-4">
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-950">
+                    Shared settlement
+                  </h2>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Based on shared expense splits this month.
+                  </p>
+                </div>
+                <AppBadge tone="success">
+                  {formatCurrency(
+                    dashboard.settlement.totalSharedExpense,
+                    currency,
+                    numberLocale,
+                  )}
+                </AppBadge>
+              </div>
+
+              <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                    Balances
+                  </p>
+                  {dashboard.settlement.balances.map((balance) => {
+                    const isPositive = Number(balance.netAmount) >= 0;
+                    return (
+                      <div
+                        key={balance.userId}
+                        className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-4"
+                      >
+                        <p className="text-sm font-semibold text-slate-950">
+                          {balance.name}
+                        </p>
+                        <p
+                          className={`text-sm font-semibold ${
+                            isPositive ? "text-emerald-700" : "text-rose-600"
+                          }`}
+                        >
+                          {isPositive ? "+" : ""}
+                          {formatCurrency(balance.netAmount, currency, numberLocale)}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                    Suggested transfers
+                  </p>
+                  {dashboard.settlement.suggestedTransfers.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm text-slate-500">
+                      Everyone is settled for this month.
+                    </div>
+                  ) : (
+                    dashboard.settlement.suggestedTransfers.map((transfer) => (
+                      <div
+                        key={`${transfer.fromUserId}-${transfer.toUserId}`}
+                        className="rounded-2xl border border-slate-900/8 px-4 py-4"
+                      >
+                        <p className="text-sm font-semibold text-slate-950">
+                          {transfer.fromName} → {transfer.toName}
+                        </p>
+                        <p className="mt-1 text-sm text-slate-500">
+                          {formatCurrency(transfer.amount, currency, numberLocale)}
+                        </p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </AppSurface>
+          </Reveal>
+        </>
+      )}
 
       <section className="grid gap-8 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
         <div className="space-y-8">

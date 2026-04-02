@@ -27,20 +27,21 @@ export class WorkspaceInvitesService {
   ): Promise<WorkspaceInviteResponseDto> {
     await this.workspacesService.assertOwner(workspaceId, actorUserId);
 
-    const existingMembership = await this.prisma.workspaceMember.findUnique({
-      where: {
-        workspaceId_userId: {
-          workspaceId,
-          userId:
-            (
-              await this.prisma.user.findUnique({
-                where: { email: input.email },
-                select: { id: true },
-              })
-            )?.id ?? '',
-        },
-      },
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: input.email },
+      select: { id: true },
     });
+
+    const existingMembership = existingUser
+      ? await this.prisma.workspaceMember.findUnique({
+          where: {
+            workspaceId_userId: {
+              workspaceId,
+              userId: existingUser.id,
+            },
+          },
+        })
+      : null;
 
     if (existingMembership?.status === WorkspaceMemberStatus.ACTIVE) {
       throw new ConflictException(

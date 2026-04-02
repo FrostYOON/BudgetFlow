@@ -121,9 +121,16 @@ export default async function SettingsPage() {
           </div>
           <div>
             <h1 className="text-3xl font-semibold tracking-tight text-slate-950">
-              {session.user.name}
+              Settings
             </h1>
-            <p className="mt-1 text-sm text-slate-500">{session.user.email}</p>
+            <p className="mt-1 text-sm text-slate-500">
+              {session.user.name} · {session.user.email}
+            </p>
+            {session.currentWorkspace ? (
+              <p className="mt-2 text-sm font-medium text-slate-600">
+                Current workspace: {session.currentWorkspace.name}
+              </p>
+            ) : null}
           </div>
         </div>
         </section>
@@ -133,13 +140,13 @@ export default async function SettingsPage() {
         <AppSurface padding="md" tone="muted">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="text-sm font-medium text-slate-500">Manage in stages</p>
+              <p className="text-sm font-medium text-slate-500">Daily controls first</p>
               <h2 className="mt-2 text-xl font-semibold text-slate-950">
-                Profile first, workspace second, sharing when needed
+                Keep account edits simple and move deeper admin work out of the way
               </h2>
               <p className="mt-2 max-w-2xl text-sm text-slate-600">
-                Keep high-frequency account tasks here and use dedicated management pages for
-                accounts, categories, notifications, and recurring operations.
+                Use this page for profile, password, and workspace basics. Open the dedicated
+                pages when you need account lists, categories, notifications, or recurring rules.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">

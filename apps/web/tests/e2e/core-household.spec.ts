@@ -1,11 +1,36 @@
 import { expect, test } from "@playwright/test";
 
+function escapeRegex(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function buildMonthHeadingRegex(year: number, month: number) {
+  const date = new Date(Date.UTC(year, month - 1, 1));
+  const longLabel = new Intl.DateTimeFormat("en-CA", {
+    month: "long",
+    timeZone: "UTC",
+    year: "numeric",
+  }).format(date);
+  const shortLabel = new Intl.DateTimeFormat("en-CA", {
+    month: "short",
+    timeZone: "UTC",
+    year: "numeric",
+  }).format(date);
+
+  return new RegExp(`${escapeRegex(longLabel)}|${escapeRegex(shortLabel)}`, "i");
+}
+
 test("sign up, use personal workspace, then add shared workspace", async ({ page }) => {
   const unique = Date.now();
   const email = `budgetflow-e2e-${unique}@example.com`;
   const password = `BudgetFlow!${unique}`;
   const householdName = "Playwright Home";
   const transactionMemo = "Weekly groceries";
+  const now = new Date();
+  const currentMonthHeading = buildMonthHeadingRegex(
+    now.getFullYear(),
+    now.getMonth() + 1,
+  );
 
   await page.goto("/sign-up");
 
@@ -38,7 +63,7 @@ test("sign up, use personal workspace, then add shared workspace", async ({ page
 
   await page.goto("/app/transactions");
   await expect(
-    page.getByRole("main").getByRole("heading", { name: /March 2026|Mar 2026/i }),
+    page.getByRole("main").getByRole("heading", { name: currentMonthHeading }),
   ).toBeVisible();
 
   await page.locator('input[name="amount"]').fill("48");
@@ -56,13 +81,14 @@ test("sign up, use personal workspace, then add shared workspace", async ({ page
   await expect(page.getByText(transactionMemo).first()).toBeVisible();
 
   await page.goto("/app/budgets");
-  await expect(page.getByRole("heading", { name: /March 2026|Mar 2026/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: currentMonthHeading })).toBeVisible();
   const monthlyBudgetForm = page.locator('form[action="/app/budgets/monthly"]').first();
   const workspaceId = await monthlyBudgetForm
     .locator('input[name="workspaceId"]')
     .inputValue();
   const budgetYear = await monthlyBudgetForm.locator('input[name="year"]').inputValue();
   const budgetMonth = await monthlyBudgetForm.locator('input[name="month"]').inputValue();
+  const budgetHeading = buildMonthHeadingRegex(Number(budgetYear), Number(budgetMonth));
   const budgetSaveResponse = await page.request.post("/app/budgets/monthly", {
     form: {
       workspaceId,
@@ -74,10 +100,11 @@ test("sign up, use personal workspace, then add shared workspace", async ({ page
 
   expect(budgetSaveResponse.ok()).toBeTruthy();
   await page.goto(`/app/budgets?year=${budgetYear}&month=${budgetMonth}`);
+  await expect(page.getByRole("heading", { name: budgetHeading })).toBeVisible();
   await expect(page.locator('input[name="totalBudgetAmount"]').first()).toHaveValue("1500");
 
   await page.goto("/app/reports");
-  await expect(page.getByRole("heading", { name: /March 2026|Mar 2026/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: budgetHeading })).toBeVisible();
   await expect(page.getByRole("link", { name: "Export CSV" })).toBeVisible();
 
   await page.goto("/app/settings");

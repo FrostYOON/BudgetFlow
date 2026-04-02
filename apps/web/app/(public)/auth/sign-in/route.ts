@@ -6,6 +6,8 @@ import {
   CURRENT_WORKSPACE_COOKIE_NAME,
 } from "@/lib/auth/constants";
 
+const POST_REDIRECT_STATUS = 303;
+
 function setAccessCookie(response: NextResponse, accessToken: string) {
   const exp = decodeJwtExp(accessToken);
   const maxAge = exp ? Math.max(exp - Math.floor(Date.now() / 1000), 60) : 3600;
@@ -40,6 +42,7 @@ export async function POST(request: NextRequest) {
   if (!email || !password) {
     return NextResponse.redirect(
       new URL(`/sign-in?error=missing_fields&next=${encodeURIComponent(redirectTo)}`, request.url),
+      POST_REDIRECT_STATUS,
     );
   }
 
@@ -63,7 +66,7 @@ export async function POST(request: NextRequest) {
           : "/app/onboarding";
     const redirectUrl = new URL(destination, request.url);
     redirectUrl.searchParams.set("toast", "signed_in");
-    const response = NextResponse.redirect(redirectUrl);
+    const response = NextResponse.redirect(redirectUrl, POST_REDIRECT_STATUS);
 
     setAccessCookie(response, auth.accessToken);
 
@@ -85,6 +88,7 @@ export async function POST(request: NextRequest) {
   } catch {
     return NextResponse.redirect(
       new URL(`/sign-in?error=invalid_credentials&next=${encodeURIComponent(redirectTo)}`, request.url),
+      POST_REDIRECT_STATUS,
     );
   }
 }
