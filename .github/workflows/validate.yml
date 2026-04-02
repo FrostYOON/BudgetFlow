@@ -1,0 +1,76 @@
+name: Validate
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+  push:
+    branches:
+      - develop
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: budgetflow
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d budgetflow"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/budgetflow?schema=public
+      NODE_ENV: test
+      RECURRING_EXECUTION_SCHEDULER_ENABLED: "false"
+      BUDGETFLOW_API_URL: http://localhost:3000/api/v1
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.7.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm prisma:generate
+
+      - name: Apply database migrations
+        run: pnpm prisma:migrate:deploy
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Build
+        run: pnpm build
+
+      - name: API unit tests
+        run: pnpm test:api
+
+      - name: API e2e tests
+        run: pnpm --filter @budgetflow/api test:e2e
+
+      - name: Install Playwright browsers
+        run: pnpm --filter @budgetflow/web exec playwright install --with-deps chromium
+
+      - name: Web e2e tests
+        run: pnpm test:web:e2e

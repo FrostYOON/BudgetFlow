@@ -1,0 +1,75 @@
+"use client";
+
+import { LazyMotion, domAnimation, m } from "framer-motion";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  APP_SIDEBAR_NAVIGATION,
+  isNavigationItemActive,
+} from "@/lib/navigation";
+
+export function AppSidebarNav() {
+  const pathname = usePathname();
+
+  return (
+    <LazyMotion features={domAnimation}>
+      <nav className="space-y-2">
+        {APP_SIDEBAR_NAVIGATION.map((item) => {
+          const isActive = isNavigationItemActive(pathname, item);
+          const Icon = item.icon;
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`relative block rounded-2xl px-4 py-3 ${
+                isActive
+                  ? "text-[color:var(--selection-fg)]"
+                  : "text-[color:var(--text-soft)] hover:text-[color:var(--foreground)]"
+              }`}
+            >
+              {isActive ? (
+                <m.span
+                  layoutId="sidebar-nav-active"
+                  transition={{
+                    type: "spring",
+                    stiffness: 360,
+                    damping: 30,
+                    mass: 0.85,
+                  }}
+                  className="absolute inset-0 rounded-2xl bg-[color:var(--selection-bg)] shadow-[var(--selection-shadow)]"
+                />
+              ) : null}
+
+              <m.span
+                whileHover={!isActive ? { x: 6 } : undefined}
+                transition={{ type: "spring", stiffness: 420, damping: 28 }}
+                className="relative z-10 flex items-center gap-3"
+              >
+                <span
+                  className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${
+                    isActive
+                      ? "bg-black/10 text-[color:var(--selection-fg)]"
+                      : "bg-[color:var(--surface-muted)] text-[color:var(--text-soft)]"
+                  }`}
+                >
+                  <Icon className="h-4 w-4" strokeWidth={2.2} />
+                </span>
+                <span className="block min-w-0">
+                  <p className="text-sm font-semibold">{item.label}</p>
+                  <p
+                    className={`mt-1 text-xs ${
+                      isActive ? "opacity-70" : "text-[color:var(--text-muted)]"
+                    }`}
+                  >
+                    {item.description}
+                  </p>
+                </span>
+              </m.span>
+            </Link>
+          );
+        })}
+      </nav>
+    </LazyMotion>
+  );
+}

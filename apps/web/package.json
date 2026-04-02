@@ -1,12 +1,35 @@
 {
   "name": "@budgetflow/web",
-  "private": true,
   "version": "0.1.0",
+  "private": true,
   "scripts": {
-    "build": "echo 'web build placeholder'",
-    "dev": "echo 'web dev placeholder'",
-    "lint": "echo 'web lint placeholder'",
-    "test": "echo 'web test placeholder'",
-    "format": "echo 'web format placeholder'"
+    "dev": "next dev --port 3001",
+    "build": "next build --webpack",
+    "start": "next start --port 3001",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "test:e2e": "playwright test",
+    "test:e2e:list": "playwright test --list"
+  },
+  "dependencies": {
+    "date-holidays": "^3.26.12",
+    "framer-motion": "^12.38.0",
+    "lucide-react": "^1.7.0",
+    "next": "16.2.1",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-hot-toast": "^2.6.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.1",
+    "prettier": "^3.6.2",
+    "tailwindcss": "^4",
+    "typescript": "^5"
   }
 }
