@@ -1,4 +1,4 @@
-FROM node:22-alpine AS builder
+FROM node:22-bookworm-slim AS builder
 
 WORKDIR /app
 
@@ -20,14 +20,18 @@ COPY . .
 RUN pnpm prisma:generate && pnpm --filter @budgetflow/api build
 RUN pnpm --filter @budgetflow/api deploy --prod /prod/api
 
-FROM node:22-alpine AS runner
+FROM node:22-bookworm-slim AS runner
 
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV PORT=3000
 
-RUN addgroup -S budgetflow && adduser -S budgetflow -G budgetflow
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends openssl ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN groupadd --system budgetflow && useradd --system --gid budgetflow budgetflow
 
 COPY --from=builder /prod/api ./
 
