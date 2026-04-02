@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { CURRENT_WORKSPACE_COOKIE_NAME } from "@/lib/auth/constants";
 
+export const dynamic = "force-dynamic";
+
 export function GET(request: NextRequest) {
   const workspaceId = request.nextUrl.searchParams.get("workspaceId");
   const redirectTo =
@@ -11,6 +13,7 @@ export function GET(request: NextRequest) {
   }
 
   const response = NextResponse.redirect(new URL(redirectTo, request.url));
+  response.headers.set("Cache-Control", "no-store");
   response.cookies.set(CURRENT_WORKSPACE_COOKIE_NAME, workspaceId, {
     httpOnly: true,
     sameSite: "lax",
