@@ -7,12 +7,14 @@ describe('WorkspaceMembersController', () => {
   let workspaceMembersService: {
     listMembers: jest.Mock;
     updateMyNickname: jest.Mock;
+    removeMember: jest.Mock;
   };
 
   beforeEach(async () => {
     workspaceMembersService = {
       listMembers: jest.fn(),
       updateMyNickname: jest.fn(),
+      removeMember: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -57,5 +59,32 @@ describe('WorkspaceMembersController', () => {
       },
     );
     expect(result.nickname).toBe('Jisu');
+  });
+
+  it('removeMember should delegate to WorkspaceMembersService', async () => {
+    workspaceMembersService.removeMember.mockResolvedValue({
+      userId: 'user-2',
+      name: 'Jisu',
+      nickname: 'Jisu',
+      role: 'MEMBER',
+      status: 'LEFT',
+    });
+
+    const result = await controller.removeMember(
+      {
+        userId: 'owner-1',
+        email: 'owner@example.com',
+        sessionId: 'session-1',
+      },
+      'workspace-1',
+      'user-2',
+    );
+
+    expect(workspaceMembersService.removeMember).toHaveBeenCalledWith(
+      'workspace-1',
+      'owner-1',
+      'user-2',
+    );
+    expect(result.status).toBe('LEFT');
   });
 });

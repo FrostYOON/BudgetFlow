@@ -49,6 +49,10 @@ const TOAST_MESSAGES: Record<string, { type: "success" | "error"; text: string }
     type: "success",
     text: "Workspace profile saved.",
   },
+  member_removed: {
+    type: "success",
+    text: "Member removed from shared space.",
+  },
   settings_save_failed: {
     type: "error",
     text: "Failed to save settings.",
@@ -56,6 +60,10 @@ const TOAST_MESSAGES: Record<string, { type: "success" | "error"; text: string }
   member_save_failed: {
     type: "error",
     text: "Failed to save workspace profile.",
+  },
+  member_remove_failed: {
+    type: "error",
+    text: "Failed to remove member.",
   },
   password_changed: {
     type: "success",

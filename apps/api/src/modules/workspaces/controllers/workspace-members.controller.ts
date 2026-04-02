@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseUUIDPipe,
@@ -53,6 +54,21 @@ export class WorkspaceMembersController {
       workspaceId,
       user.userId,
       input,
+    );
+  }
+
+  @Delete(':memberUserId')
+  @ApiOperation({ summary: 'Remove an active workspace member' })
+  @ApiOkResponse({ type: WorkspaceMemberResponseDto })
+  removeMember(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('workspaceId', new ParseUUIDPipe()) workspaceId: string,
+    @Param('memberUserId', new ParseUUIDPipe()) memberUserId: string,
+  ): Promise<WorkspaceMemberResponseDto> {
+    return this.workspaceMembersService.removeMember(
+      workspaceId,
+      user.userId,
+      memberUserId,
     );
   }
 }
