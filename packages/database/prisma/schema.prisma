@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "../generated/client"
 }
 
 datasource db {
@@ -8,6 +9,7 @@ datasource db {
 }
 
 enum WorkspaceType {
+  PERSONAL
   COUPLE
   FAMILY
   ROOMMATE
@@ -45,6 +47,14 @@ enum ShareType {
   PERCENTAGE
 }
 
+enum FinancialAccountType {
+  CASH
+  CHECKING
+  SAVINGS
+  CREDIT_CARD
+  E_WALLET
+}
+
 enum RecurringRepeatUnit {
   WEEKLY
   MONTHLY
@@ -54,6 +64,17 @@ enum RecurringRepeatUnit {
 enum InsightStatus {
   ACTIVE
   DISMISSED
+}
+
+enum RecurringExecutionTriggerType {
+  MANUAL
+  SCHEDULED
+}
+
+enum RecurringExecutionRunStatus {
+  RUNNING
+  SUCCESS
+  FAILED
 }
 
 model User {
@@ -66,17 +87,43 @@ model User {
   timezone                String                   @default("Asia/Seoul")
   createdAt               DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt               DateTime                 @updatedAt @map("updated_at") @db.Timestamptz(6)
+  authSessions            AuthSession[]
   ownedWorkspaces         Workspace[]              @relation("WorkspaceOwner")
   workspaceMemberships    WorkspaceMember[]
   createdTransactions     Transaction[]            @relation("TransactionCreatedBy")
   paidTransactions        Transaction[]            @relation("TransactionPaidBy")
   transactionParticipants TransactionParticipant[]
   createdBudgetMonths     BudgetMonth[]
+  createdBudgetTemplates  BudgetTemplate[]
   recurringPaidBy         RecurringTransaction[]   @relation("RecurringTransactionPaidBy")
   recurringCreatedBy      RecurringTransaction[]   @relation("RecurringTransactionCreatedBy")
+  recurringExecutionRuns  RecurringExecutionRun[]  @relation("RecurringExecutionRunInitiatedBy")
   createdInvites          WorkspaceInvite[]        @relation("WorkspaceInviteCreatedBy")
+  createdAccounts         FinancialAccount[]       @relation("FinancialAccountCreatedBy")
+  sentSettlementTransfers SettlementTransfer[]     @relation("SettlementTransferFromUser")
+  receivedSettlementTransfers SettlementTransfer[] @relation("SettlementTransferToUser")
+  createdSettlementTransfers  SettlementTransfer[] @relation("SettlementTransferCreatedBy")
+  notificationReads       NotificationRead[]
 
   @@map("users")
+}
+
+model AuthSession {
+  id               String    @id @default(uuid()) @db.Uuid
+  userId           String    @map("user_id") @db.Uuid
+  refreshTokenHash String    @map("refresh_token_hash")
+  userAgent        String?   @map("user_agent")
+  ipAddress        String?   @map("ip_address")
+  expiresAt        DateTime  @map("expires_at") @db.Timestamptz(6)
+  lastUsedAt       DateTime? @map("last_used_at") @db.Timestamptz(6)
+  revokedAt        DateTime? @map("revoked_at") @db.Timestamptz(6)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, revokedAt])
+  @@index([userId, expiresAt])
+  @@map("auth_sessions")
 }
 
 model Workspace {
@@ -96,7 +143,11 @@ model Workspace {
   transactions          Transaction[]
   budgetMonths          BudgetMonth[]
   recurringTransactions RecurringTransaction[]
+  recurringExecutionRuns RecurringExecutionRun[]
   insights              Insight[]
+  financialAccounts     FinancialAccount[]
+  settlementTransfers   SettlementTransfer[]
+  budgetTemplate        BudgetTemplate?
 
   @@index([ownerUserId])
   @@map("workspaces")
@@ -156,6 +207,7 @@ model Category {
   workspace             Workspace              @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   transactions          Transaction[]
   budgetCategories      BudgetCategory[]
+  budgetTemplateCategories BudgetTemplateCategory[]
   recurringTransactions RecurringTransaction[]
 
   @@unique([workspaceId, type, name])
@@ -175,6 +227,7 @@ model Transaction {
   memo                   String?
   createdByUserId        String                   @map("created_by_user_id") @db.Uuid
   paidByUserId           String?                  @map("paid_by_user_id") @db.Uuid
+  accountId              String?                  @map("account_id") @db.Uuid
   recurringTransactionId String?                  @map("recurring_transaction_id") @db.Uuid
   isDeleted              Boolean                  @default(false) @map("is_deleted")
   createdAt              DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -183,12 +236,15 @@ model Transaction {
   category               Category?                @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   createdBy              User                     @relation("TransactionCreatedBy", fields: [createdByUserId], references: [id])
   paidBy                 User?                    @relation("TransactionPaidBy", fields: [paidByUserId], references: [id])
+  account                FinancialAccount?        @relation(fields: [accountId], references: [id], onDelete: SetNull)
   recurringTransaction   RecurringTransaction?    @relation(fields: [recurringTransactionId], references: [id], onDelete: SetNull)
   participants           TransactionParticipant[]
 
+  @@unique([recurringTransactionId, transactionDate])
   @@index([workspaceId, transactionDate(sort: Desc)])
   @@index([workspaceId, visibility, transactionDate(sort: Desc)])
   @@index([workspaceId, categoryId, transactionDate(sort: Desc)])
+  @@index([workspaceId, accountId, transactionDate(sort: Desc)])
   @@index([paidByUserId, transactionDate(sort: Desc)])
   @@index([workspaceId, isDeleted, transactionDate(sort: Desc)])
   @@map("transactions")
@@ -243,6 +299,58 @@ model BudgetCategory {
   @@map("budget_categories")
 }
 
+model BudgetTemplate {
+  id              String                 @id @default(uuid()) @db.Uuid
+  workspaceId     String                 @unique @map("workspace_id") @db.Uuid
+  name            String                 @default("Default template")
+  totalBudgetAmount Decimal?             @map("total_budget_amount") @db.Decimal(14, 2)
+  createdByUserId String                 @map("created_by_user_id") @db.Uuid
+  createdAt       DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
+  workspace       Workspace              @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdBy       User                   @relation(fields: [createdByUserId], references: [id])
+  categoryPlans   BudgetTemplateCategory[]
+
+  @@map("budget_templates")
+}
+
+model BudgetTemplateCategory {
+  id                String         @id @default(uuid()) @db.Uuid
+  budgetTemplateId  String         @map("budget_template_id") @db.Uuid
+  categoryId        String         @map("category_id") @db.Uuid
+  plannedAmount     Decimal        @map("planned_amount") @db.Decimal(14, 2)
+  alertThresholdPct Int?           @map("alert_threshold_pct")
+  createdAt         DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+  budgetTemplate    BudgetTemplate @relation(fields: [budgetTemplateId], references: [id], onDelete: Cascade)
+  category          Category       @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([budgetTemplateId, categoryId])
+  @@index([categoryId])
+  @@map("budget_template_categories")
+}
+
+model FinancialAccount {
+  id              String               @id @default(uuid()) @db.Uuid
+  workspaceId     String               @map("workspace_id") @db.Uuid
+  createdByUserId String               @map("created_by_user_id") @db.Uuid
+  name            String
+  type            FinancialAccountType
+  currency        String               @db.Char(3)
+  institutionName String?              @map("institution_name")
+  lastFour        String?              @map("last_four")
+  sortOrder       Int                  @default(0) @map("sort_order")
+  isArchived      Boolean              @default(false) @map("is_archived")
+  createdAt       DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
+  workspace       Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdBy       User                 @relation("FinancialAccountCreatedBy", fields: [createdByUserId], references: [id])
+  transactions    Transaction[]
+
+  @@index([workspaceId, isArchived, sortOrder])
+  @@map("financial_accounts")
+}
+
 model RecurringTransaction {
   id                    String                @id @default(uuid()) @db.Uuid
   workspaceId           String                @map("workspace_id") @db.Uuid
@@ -274,6 +382,29 @@ model RecurringTransaction {
   @@map("recurring_transactions")
 }
 
+model RecurringExecutionRun {
+  id                String                      @id @default(uuid()) @db.Uuid
+  workspaceId       String                      @map("workspace_id") @db.Uuid
+  triggerType       RecurringExecutionTriggerType @map("trigger_type")
+  targetDate        DateTime                    @map("target_date") @db.Date
+  status            RecurringExecutionRunStatus
+  initiatedByUserId String?                     @map("initiated_by_user_id") @db.Uuid
+  candidateCount    Int?                        @map("candidate_count")
+  createdCount      Int?                        @map("created_count")
+  skippedCount      Int?                        @map("skipped_count")
+  errorMessage      String?                     @map("error_message")
+  startedAt         DateTime                    @default(now()) @map("started_at") @db.Timestamptz(6)
+  finishedAt        DateTime?                   @map("finished_at") @db.Timestamptz(6)
+  createdAt         DateTime                    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime                    @updatedAt @map("updated_at") @db.Timestamptz(6)
+  workspace         Workspace                   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  initiatedBy       User?                       @relation("RecurringExecutionRunInitiatedBy", fields: [initiatedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, targetDate(sort: Desc), startedAt(sort: Desc)])
+  @@index([workspaceId, status, startedAt(sort: Desc)])
+  @@map("recurring_execution_runs")
+}
+
 model Insight {
   id            String        @id @default(uuid()) @db.Uuid
   workspaceId   String        @map("workspace_id") @db.Uuid
@@ -289,4 +420,41 @@ model Insight {
 
   @@index([workspaceId, status, generatedAt(sort: Desc)])
   @@map("insights")
+}
+
+model SettlementTransfer {
+  id              String    @id @default(uuid()) @db.Uuid
+  workspaceId     String    @map("workspace_id") @db.Uuid
+  year            Int
+  month           Int
+  fromUserId      String    @map("from_user_id") @db.Uuid
+  toUserId        String    @map("to_user_id") @db.Uuid
+  amount          Decimal   @db.Decimal(14, 2)
+  currency        String    @db.Char(3)
+  memo            String?
+  settledAt       DateTime  @map("settled_at") @db.Timestamptz(6)
+  createdByUserId String    @map("created_by_user_id") @db.Uuid
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  fromUser        User      @relation("SettlementTransferFromUser", fields: [fromUserId], references: [id])
+  toUser          User      @relation("SettlementTransferToUser", fields: [toUserId], references: [id])
+  createdBy       User      @relation("SettlementTransferCreatedBy", fields: [createdByUserId], references: [id])
+
+  @@index([workspaceId, year, month, settledAt(sort: Desc)])
+  @@index([workspaceId, fromUserId, toUserId, year, month])
+  @@map("settlement_transfers")
+}
+
+model NotificationRead {
+  id              String   @id @default(uuid()) @db.Uuid
+  userId          String   @map("user_id") @db.Uuid
+  notificationKey String   @map("notification_key")
+  readAt          DateTime @default(now()) @map("read_at") @db.Timestamptz(6)
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, notificationKey])
+  @@index([userId, readAt(sort: Desc)])
+  @@map("notification_reads")
 }
