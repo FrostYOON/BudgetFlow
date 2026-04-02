@@ -25,21 +25,89 @@ const TOAST_MESSAGES: Record<string, { type: "success" | "error"; text: string }
     type: "error",
     text: "Google sign-in failed.",
   },
+  social_auth_invalid_state: {
+    type: "error",
+    text: "Google sign-in session expired. Start again.",
+  },
+  social_auth_missing_code: {
+    type: "error",
+    text: "Google did not return a sign-in code.",
+  },
   social_auth_unavailable: {
     type: "error",
     text: "Google sign-in is not configured yet.",
+  },
+  social_auth_email_unverified: {
+    type: "error",
+    text: "Your Google account email must be verified first.",
+  },
+  social_auth_invalid_grant: {
+    type: "error",
+    text: "That Google sign-in attempt expired. Try again.",
+  },
+  social_auth_exchange_failed: {
+    type: "error",
+    text: "Google sign-in could not be completed.",
   },
   signed_out: {
     type: "success",
     text: "Signed out.",
   },
+  sign_in_missing_email_and_password: {
+    type: "error",
+    text: "Enter your email and password.",
+  },
+  sign_in_missing_email: {
+    type: "error",
+    text: "Enter your email address.",
+  },
+  sign_in_missing_password: {
+    type: "error",
+    text: "Enter your password.",
+  },
   invalid_credentials: {
     type: "error",
     text: "Email or password is incorrect.",
   },
+  invalid_email: {
+    type: "error",
+    text: "Use a valid email address.",
+  },
+  invalid_name: {
+    type: "error",
+    text: "Enter a name with at least 2 characters.",
+  },
+  name_in_use: {
+    type: "error",
+    text: "That name is already in use.",
+  },
   missing_fields: {
     type: "error",
     text: "Required fields are missing.",
+  },
+  sign_up_missing_all_fields: {
+    type: "error",
+    text: "Fill in your name, email, password, and confirmation.",
+  },
+  sign_up_missing_name: {
+    type: "error",
+    text: "Enter your profile name.",
+  },
+  sign_up_missing_email: {
+    type: "error",
+    text: "Enter your email address.",
+  },
+  sign_up_missing_password: {
+    type: "error",
+    text: "Enter a password.",
+  },
+  sign_up_missing_password_confirmation: {
+    type: "error",
+    text: "Confirm your password.",
+  },
+  email_in_use: {
+    type: "error",
+    text: "That email is already in use.",
   },
   session_expired: {
     type: "error",
@@ -48,6 +116,30 @@ const TOAST_MESSAGES: Record<string, { type: "success" | "error"; text: string }
   sign_up_failed: {
     type: "error",
     text: "Sign-up failed. Try another email.",
+  },
+  weak_password: {
+    type: "error",
+    text: "Use 8+ characters with uppercase, lowercase, a number, and a special character.",
+  },
+  password_too_short: {
+    type: "error",
+    text: "Password must be at least 8 characters long.",
+  },
+  password_missing_uppercase: {
+    type: "error",
+    text: "Password needs at least one uppercase letter.",
+  },
+  password_missing_lowercase: {
+    type: "error",
+    text: "Password needs at least one lowercase letter.",
+  },
+  password_missing_number: {
+    type: "error",
+    text: "Password needs at least one number.",
+  },
+  password_missing_special: {
+    type: "error",
+    text: "Password needs at least one special character.",
   },
   settings_saved: {
     type: "success",

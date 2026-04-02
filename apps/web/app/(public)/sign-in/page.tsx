@@ -1,13 +1,16 @@
 import Link from "next/link";
-import { AppButton, AppButtonLink } from "@/components/ui/app-button";
+import { GoogleMark } from "@/components/auth/google-mark";
+import { SignInForm } from "@/components/auth/sign-in-form";
+import { AppButtonLink } from "@/components/ui/app-button";
 
 export default async function SignInPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; next?: string }>;
+  searchParams: Promise<{ email?: string; error?: string; next?: string }>;
 }) {
   const params = await searchParams;
   const next = params.next ?? "/app/dashboard";
+  const draftEmail = params.email ?? "";
   const isGoogleEnabled = Boolean(process.env.GOOGLE_CLIENT_ID);
 
   return (
@@ -49,46 +52,7 @@ export default async function SignInPage({
             </p>
           </div>
 
-          <form action="/auth/sign-in" method="post" className="space-y-4">
-            <input type="hidden" name="redirectTo" value={next} />
-
-            <label className="block">
-              <span className="mb-2 block text-sm font-medium text-slate-200">
-                Email
-              </span>
-              <input
-                name="email"
-                type="email"
-                required
-                autoComplete="email"
-                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-400 focus-visible:ring-2 focus-visible:ring-emerald-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
-                placeholder="minji@example.com"
-              />
-            </label>
-
-            <label className="block">
-              <span className="mb-2 block text-sm font-medium text-slate-200">
-                Password
-              </span>
-              <input
-                name="password"
-                type="password"
-                required
-                minLength={8}
-                autoComplete="current-password"
-                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-400 focus-visible:ring-2 focus-visible:ring-emerald-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
-                placeholder="StrongPassword123!"
-              />
-            </label>
-
-            <AppButton
-              type="submit"
-              tone="success"
-              className="mt-2 w-full px-5 py-3"
-            >
-              Sign in
-            </AppButton>
-          </form>
+          <SignInForm draftEmail={draftEmail} next={next} />
 
           {isGoogleEnabled ? (
             <div className="mt-4 border-t border-white/10 pt-4">
@@ -97,6 +61,7 @@ export default async function SignInPage({
                 tone="secondary"
                 className="w-full border-white/20 bg-white/8 text-white shadow-none hover:border-white/35 hover:bg-white/14 hover:text-white"
               >
+                <GoogleMark className="h-4 w-4" />
                 Continue with Google
               </AppButtonLink>
             </div>

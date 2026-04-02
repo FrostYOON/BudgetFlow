@@ -24,7 +24,10 @@ export async function GET(request: NextRequest) {
   signInUrl.searchParams.set("next", redirectTo);
 
   if (!code || !state || !storedState || state !== storedState) {
-    signInUrl.searchParams.set("error", "social_auth_failed");
+    signInUrl.searchParams.set(
+      "error",
+      !code ? "social_auth_missing_code" : "social_auth_invalid_state",
+    );
 
     const response = NextResponse.redirect(signInUrl, POST_REDIRECT_STATUS);
     clearCookie(response, GOOGLE_AUTH_STATE_COOKIE);
@@ -61,8 +64,18 @@ export async function GET(request: NextRequest) {
     clearCookie(response, GOOGLE_AUTH_REDIRECT_COOKIE);
 
     return response;
-  } catch {
-    signInUrl.searchParams.set("error", "social_auth_failed");
+  } catch (error) {
+    const message = error instanceof Error ? error.message.toLowerCase() : "";
+
+    if (message.includes("not configured")) {
+      signInUrl.searchParams.set("error", "social_auth_unavailable");
+    } else if (message.includes("could not be verified")) {
+      signInUrl.searchParams.set("error", "social_auth_email_unverified");
+    } else if (message.includes("invalid_grant")) {
+      signInUrl.searchParams.set("error", "social_auth_invalid_grant");
+    } else {
+      signInUrl.searchParams.set("error", "social_auth_exchange_failed");
+    }
     const response = NextResponse.redirect(signInUrl, POST_REDIRECT_STATUS);
 
     clearCookie(response, GOOGLE_AUTH_STATE_COOKIE);
