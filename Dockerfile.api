@@ -4,6 +4,7 @@ WORKDIR /app
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
+ENV PRISMA_CLI_BINARY_TARGETS="debian-openssl-3.0.x"
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends openssl ca-certificates \
@@ -16,6 +17,11 @@ COPY . .
 RUN pnpm install --frozen-lockfile
 RUN pnpm prisma:generate && pnpm --filter @budgetflow/api build
 RUN pnpm --filter @budgetflow/api deploy --prod /prod/api
+RUN target="$(find /prod/api/node_modules -type d -path '*/node_modules/@budgetflow/database' | head -n1)" \
+  && test -n "$target" \
+  && rm -rf "$target/generated" \
+  && mkdir -p "$target/generated" \
+  && cp -R /app/packages/database/generated/. "$target/generated/"
 
 FROM node:22-bookworm-slim AS runner
 
