@@ -1,4 +1,15 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
+import {
+  Bell,
+  CreditCard,
+  Repeat2,
+  Settings2,
+  Tags,
+  UsersRound,
+  WalletCards,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { Reveal } from "@/components/motion/reveal";
 import { InviteShareActions } from "@/components/settings/invite-share-actions";
 import { AppThemeSetting } from "@/components/theme/app-theme-toggle";
@@ -15,6 +26,38 @@ import {
   type WorkspaceInviteSummary,
 } from "@/lib/settings";
 import { ALL_WORKSPACE_TYPE_OPTIONS } from "@/lib/workspace-options";
+
+const QUICK_ACTION_LINKS: Array<{
+  description: string;
+  href: string;
+  icon: LucideIcon;
+  label: string;
+}> = [
+  {
+    href: "/app/settings/accounts",
+    label: "Accounts",
+    description: "Money sources",
+    icon: CreditCard,
+  },
+  {
+    href: "/app/settings/categories",
+    label: "Categories",
+    description: "Labels and order",
+    icon: Tags,
+  },
+  {
+    href: "/app/notifications",
+    label: "Alerts",
+    description: "Unread updates",
+    icon: Bell,
+  },
+  {
+    href: "/app/recurring",
+    label: "Recurring",
+    description: "Scheduled entries",
+    icon: Repeat2,
+  },
+];
 
 function getLocaleOptions() {
   return [
@@ -97,58 +140,44 @@ export default async function SettingsPage() {
   return (
     <div className="space-y-8">
       <Reveal delay={0.02}>
-        <section className="border-b border-slate-900/8 pb-6">
-        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
-          Settings
-        </p>
-        <div className="mt-4 flex items-center gap-4">
-          <div className="flex h-15 w-15 items-center justify-center overflow-hidden rounded-[1.35rem] bg-emerald-100 text-base font-semibold text-emerald-900">
-            {session.user.profileImageUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={session.user.profileImageUrl}
-                alt={session.user.name}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              session.user.name
-                .split(" ")
-                .filter(Boolean)
-                .slice(0, 2)
-                .map((part) => part[0]?.toUpperCase() ?? "")
-                .join("")
-            )}
-          </div>
-          <div>
-            <h1 className="text-3xl font-semibold tracking-tight text-slate-950">
-              Settings
-            </h1>
-            <p className="mt-1 text-sm text-slate-500">
-              {session.user.name} · {session.user.email}
-            </p>
-            {session.currentWorkspace ? (
-              <p className="mt-2 text-sm font-medium text-slate-600">
-                Current workspace: {session.currentWorkspace.name}
-              </p>
-            ) : null}
-          </div>
-        </div>
-        </section>
-      </Reveal>
-
-      <Reveal delay={0.03}>
-        <AppSurface padding="md" tone="muted">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <p className="text-sm font-medium text-slate-500">Daily controls first</p>
-              <h2 className="mt-2 text-xl font-semibold text-slate-950">
-                Keep account edits simple and move deeper admin work out of the way
-              </h2>
-              <p className="mt-2 max-w-2xl text-sm text-slate-600">
-                Use this page for profile, password, and workspace basics. Open the dedicated
-                pages when you need account lists, categories, notifications, or recurring rules.
-              </p>
+        <AppSurface padding="md">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
+            Settings
+          </p>
+          <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex h-15 w-15 items-center justify-center overflow-hidden rounded-[1.35rem] bg-emerald-100 text-base font-semibold text-emerald-900">
+                {session.user.profileImageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={session.user.profileImageUrl}
+                    alt={session.user.name}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  session.user.name
+                    .split(" ")
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .map((part) => part[0]?.toUpperCase() ?? "")
+                    .join("")
+                )}
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-3xl font-semibold tracking-tight text-slate-950">
+                  Settings
+                </h1>
+                <p className="mt-1 truncate text-sm text-slate-500">
+                  {session.user.name} · {session.user.email}
+                </p>
+                {session.currentWorkspace ? (
+                  <p className="mt-2 truncate text-sm font-medium text-slate-600">
+                    Current workspace: {session.currentWorkspace.name}
+                  </p>
+                ) : null}
+              </div>
             </div>
+
             <div className="flex flex-wrap gap-2">
               <AppBadge tone="subtle">
                 {session.currentWorkspace?.memberRole ?? "No role"}
@@ -161,20 +190,33 @@ export default async function SettingsPage() {
               </AppBadge>
             </div>
           </div>
+        </AppSurface>
+      </Reveal>
 
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <AppButtonLink href="/app/settings/accounts" tone="secondary" className="w-full">
-              Manage accounts
-            </AppButtonLink>
-            <AppButtonLink href="/app/settings/categories" tone="secondary" className="w-full">
-              Manage categories
-            </AppButtonLink>
-            <AppButtonLink href="/app/notifications" tone="secondary" className="w-full">
-              Open notifications
-            </AppButtonLink>
-            <AppButtonLink href="/app/recurring" tone="secondary" className="w-full">
-              Open recurring
-            </AppButtonLink>
+      <Reveal delay={0.03}>
+        <AppSurface padding="md" tone="muted">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-sm font-medium text-slate-500">Quick actions</p>
+              <h2 className="mt-2 text-xl font-semibold text-slate-950">
+                Open the controls you use most
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm text-slate-600">
+                Keep account, category, alert, and recurring tools close without stretching the page.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-5 grid grid-cols-2 gap-3 xl:grid-cols-4">
+            {QUICK_ACTION_LINKS.map((item) => (
+              <SettingsShortcutCard
+                key={item.href}
+                href={item.href}
+                label={item.label}
+                description={item.description}
+                icon={item.icon}
+              />
+            ))}
           </div>
         </AppSurface>
       </Reveal>
@@ -201,34 +243,25 @@ export default async function SettingsPage() {
               <div>
                 <h2 className="text-lg font-semibold text-slate-950">Workspace snapshot</h2>
                 <p className="mt-1 text-sm text-slate-500">
-                  Keep the current role, currency, and workspace context visible while editing.
+                  Keep the active space readable while you edit.
                 </p>
               </div>
-              <div className="grid gap-3 sm:grid-cols-3 sm:text-right">
-                <div className="rounded-2xl bg-slate-50 px-4 py-3">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                    Workspace
-                  </p>
-                  <p className="mt-2 text-sm font-semibold text-slate-950">
-                    {session.currentWorkspace?.name ?? "None"}
-                  </p>
-                </div>
-                <div className="rounded-2xl bg-slate-50 px-4 py-3">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                    Type
-                  </p>
-                  <p className="mt-2 text-sm font-semibold text-slate-950">
-                    {session.currentWorkspace?.type ?? "No workspace"}
-                  </p>
-                </div>
-                <div className="rounded-2xl bg-slate-50 px-4 py-3">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                    Currency
-                  </p>
-                  <p className="mt-2 text-sm font-semibold text-slate-950">
-                    {session.currentWorkspace?.baseCurrency ?? "-"}
-                  </p>
-                </div>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <SnapshotCard
+                  icon={UsersRound}
+                  label="Workspace"
+                  value={session.currentWorkspace?.name ?? "None"}
+                />
+                <SnapshotCard
+                  icon={Settings2}
+                  label="Type"
+                  value={session.currentWorkspace?.type ?? "No workspace"}
+                />
+                <SnapshotCard
+                  icon={WalletCards}
+                  label="Currency"
+                  value={session.currentWorkspace?.baseCurrency ?? "-"}
+                />
               </div>
             </div>
           </AppSurface>
@@ -861,5 +894,55 @@ function InviteCard({
         </AppButtonLink>
       </div>
     </article>
+  );
+}
+
+function SettingsShortcutCard({
+  href,
+  label,
+  description,
+  icon: Icon,
+}: {
+  href: string;
+  label: string;
+  description: string;
+  icon: LucideIcon;
+}) {
+  return (
+    <Link
+      href={href}
+      className="block rounded-[1.35rem] border border-[color:var(--surface-border)] bg-[color:var(--surface)] px-4 py-4 shadow-[var(--surface-shadow)] transition hover:-translate-y-0.5"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[color:var(--selection-bg)] text-[color:var(--selection-fg)] shadow-[var(--selection-shadow)]">
+          <Icon className="h-4 w-4" strokeWidth={2.2} />
+        </span>
+        <AppBadge tone="subtle">Open</AppBadge>
+      </div>
+      <p className="mt-4 text-sm font-semibold text-slate-950">{label}</p>
+      <p className="mt-1 text-sm text-slate-500">{description}</p>
+    </Link>
+  );
+}
+
+function SnapshotCard({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-2xl bg-slate-50 px-4 py-3">
+      <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-white text-slate-600 shadow-sm">
+        <Icon className="h-4 w-4" strokeWidth={2.2} />
+      </span>
+      <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+        {label}
+      </p>
+      <p className="mt-2 text-sm font-semibold text-slate-950">{value}</p>
+    </div>
   );
 }

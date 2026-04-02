@@ -1,4 +1,13 @@
 import { redirect } from "next/navigation";
+import {
+  ArrowLeft,
+  ArrowRight,
+  ArrowLeftRight,
+  BarChart3,
+  PiggyBank,
+  Plus,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { DashboardTransactionCalendar } from "@/components/dashboard/dashboard-transaction-calendar";
 import {
   Reveal,
@@ -82,6 +91,52 @@ export default async function DashboardPage({
   const visibleInsights = dashboard.insights.slice(0, 3);
   const hiddenInsightsCount = Math.max(dashboard.insights.length - visibleInsights.length, 0);
   const monthTransactionCount = monthlyTransactions.items.length;
+  const primaryActions: Array<{
+    href: string;
+    icon: LucideIcon;
+    label: string;
+    tone: "primary" | "secondary" | "success";
+  }> = isPersonalWorkspace
+    ? [
+        {
+          href: composeTransactionHref,
+          icon: Plus,
+          label: "Add entry",
+          tone: "primary",
+        },
+        {
+          href: budgetsHref,
+          icon: PiggyBank,
+          label: "Budget",
+          tone: "success",
+        },
+        {
+          href: reportsHref,
+          icon: BarChart3,
+          label: "Report",
+          tone: "secondary",
+        },
+      ]
+    : [
+        {
+          href: composeTransactionHref,
+          icon: Plus,
+          label: "Add entry",
+          tone: "primary",
+        },
+        {
+          href: settlementsHref,
+          icon: ArrowLeftRight,
+          label: "Settle",
+          tone: "secondary",
+        },
+        {
+          href: reportsHref,
+          icon: BarChart3,
+          label: "Report",
+          tone: "secondary",
+        },
+      ];
 
   const budgetUsedPct =
     Number(dashboard.summary.monthlyBudget) > 0
@@ -97,47 +152,36 @@ export default async function DashboardPage({
     <div className="space-y-8">
       <Reveal delay={0.02}>
         <AppSurface padding="lg">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
                 Dashboard
               </p>
-              <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+              <h1 className="mt-3 hidden text-3xl font-semibold tracking-tight text-slate-950 lg:block">
                 {session.currentWorkspace.name}
               </h1>
-              <p className="mt-3 text-sm text-slate-500">
-                {formatMonthLabel(dashboard.period.year, dashboard.period.month)}
-              </p>
+              <h1 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950 lg:hidden">
+                Monthly overview
+              </h1>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <AppBadge tone="default" className="px-4 py-2 text-sm font-medium lg:hidden">
+                  {formatMonthLabel(dashboard.period.year, dashboard.period.month)}
+                </AppBadge>
+                <AppBadge tone="subtle">
+                  {isPersonalWorkspace ? "Personal" : "Shared"}
+                </AppBadge>
+              </div>
             </div>
 
             <div className="hidden items-center gap-3 text-sm lg:flex">
               <AppButtonLink
-                href={composeTransactionHref}
-                tone="primary"
-                size="sm"
-              >
-                Add transaction
-              </AppButtonLink>
-              <AppButtonLink
-                href={isPersonalWorkspace ? budgetsHref : settlementsHref}
-                tone={isPersonalWorkspace ? "success" : "secondary"}
-                size="sm"
-              >
-                {isPersonalWorkspace ? "Budgets" : "Settlements"}
-              </AppButtonLink>
-              <AppButtonLink
-                href={reportsHref}
-                tone="secondary"
-                size="sm"
-              >
-                Report
-              </AppButtonLink>
-              <AppButtonLink
                 href={`/app/dashboard?year=${prev.year}&month=${prev.month}`}
                 tone="secondary"
                 size="sm"
+                className="gap-2"
               >
-                Previous
+                <ArrowLeft className="h-4 w-4" strokeWidth={2.2} />
+                Prev
               </AppButtonLink>
               <AppBadge tone="default" className="px-4 py-2 text-sm font-medium">
                 {formatMonthLabel(dashboard.period.year, dashboard.period.month)}
@@ -146,45 +190,55 @@ export default async function DashboardPage({
                 href={`/app/dashboard?year=${next.year}&month=${next.month}`}
                 tone="secondary"
                 size="sm"
+                className="gap-2"
               >
                 Next
+                <ArrowRight className="h-4 w-4" strokeWidth={2.2} />
               </AppButtonLink>
             </div>
           </div>
 
-        <div className="mt-5 grid grid-cols-2 gap-3 lg:hidden">
-          <AppButtonLink
-            href={composeTransactionHref}
-            tone="primary"
-            className="col-span-2 w-full"
-          >
-            Add transaction
-          </AppButtonLink>
-          <AppButtonLink
-            href={isPersonalWorkspace ? budgetsHref : settlementsHref}
-            tone="secondary"
-            className="w-full"
-          >
-            {isPersonalWorkspace ? "Adjust budget" : "View settlements"}
-          </AppButtonLink>
-          <AppButtonLink href={reportsHref} tone="secondary" className="w-full">
-            Monthly report
-          </AppButtonLink>
-          <AppButtonLink
-            href={`/app/dashboard?year=${prev.year}&month=${prev.month}`}
-            tone="secondary"
-            className="w-full"
-          >
-            Prev
-          </AppButtonLink>
-          <AppButtonLink
-            href={`/app/dashboard?year=${next.year}&month=${next.month}`}
-            tone="secondary"
-            className="w-full"
-          >
-            Next
-          </AppButtonLink>
-        </div>
+          <div className="mt-5 grid grid-cols-3 gap-2.5 sm:gap-3">
+            {primaryActions.map((action) => {
+              const Icon = action.icon;
+
+              return (
+                <AppButtonLink
+                  key={action.href}
+                  href={action.href}
+                  tone={action.tone}
+                  className="w-full flex-col gap-2 rounded-[1.15rem] px-3 py-3 text-center sm:flex-row sm:justify-start sm:gap-3 sm:rounded-[1.35rem] sm:px-4 sm:py-4 sm:text-left"
+                >
+                  <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-black/10 sm:h-10 sm:w-10 sm:rounded-2xl">
+                    <Icon className="h-4 w-4" strokeWidth={2.2} />
+                  </span>
+                  <span className="text-xs font-semibold sm:text-sm">{action.label}</span>
+                </AppButtonLink>
+              );
+            })}
+          </div>
+
+          <div className="mt-4 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 lg:hidden">
+            <AppButtonLink
+              href={`/app/dashboard?year=${prev.year}&month=${prev.month}`}
+              tone="secondary"
+              className="w-full gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" strokeWidth={2.2} />
+              Prev
+            </AppButtonLink>
+            <AppBadge tone="default" className="justify-center px-4 py-2 text-sm font-medium">
+              {formatMonthLabel(dashboard.period.year, dashboard.period.month)}
+            </AppBadge>
+            <AppButtonLink
+              href={`/app/dashboard?year=${next.year}&month=${next.month}`}
+              tone="secondary"
+              className="w-full gap-2"
+            >
+              Next
+              <ArrowRight className="h-4 w-4" strokeWidth={2.2} />
+            </AppButtonLink>
+          </div>
         </AppSurface>
       </Reveal>
 
@@ -364,14 +418,17 @@ export default async function DashboardPage({
             </div>
 
             <div className="mt-5 flex flex-wrap gap-3">
-              <AppButtonLink href={composeTransactionHref} tone="primary" size="sm">
-                Add transaction
+              <AppButtonLink href={composeTransactionHref} tone="primary" size="sm" className="gap-2">
+                <Plus className="h-4 w-4" strokeWidth={2.2} />
+                Add entry
               </AppButtonLink>
-              <AppButtonLink href={budgetsHref} tone="secondary" size="sm">
-                Adjust budget
+              <AppButtonLink href={budgetsHref} tone="secondary" size="sm" className="gap-2">
+                <PiggyBank className="h-4 w-4" strokeWidth={2.2} />
+                Budget
               </AppButtonLink>
-              <AppButtonLink href={reportsHref} tone="secondary" size="sm">
-                Review report
+              <AppButtonLink href={reportsHref} tone="secondary" size="sm" className="gap-2">
+                <BarChart3 className="h-4 w-4" strokeWidth={2.2} />
+                Report
               </AppButtonLink>
             </div>
           </AppSurface>
@@ -417,7 +474,8 @@ export default async function DashboardPage({
                 </div>
               </div>
 
-              <AppButtonLink href={settlementsHref} tone="secondary" className="mt-4 w-full">
+              <AppButtonLink href={settlementsHref} tone="secondary" className="mt-4 w-full gap-2">
+                <ArrowLeftRight className="h-4 w-4" strokeWidth={2.2} />
                 Open settlements
               </AppButtonLink>
             </AppSurface>

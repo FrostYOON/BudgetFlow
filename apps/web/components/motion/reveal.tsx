@@ -30,11 +30,11 @@ export function Reveal({ children, className, delay = 0 }: RevealProps) {
     <LazyMotion features={domAnimation}>
       <m.div
         className={className}
-        initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 20, scale: 0.985 }}
-        animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
+        initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 12 }}
+        animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
         transition={{
           delay,
-          duration: reduceMotion ? 0.18 : 0.42,
+          duration: reduceMotion ? 0.14 : 0.24,
           ease: [0.22, 1, 0.36, 1],
         }}
       >
@@ -74,8 +74,8 @@ export function StaggerReveal({ children, className }: StaggerProps) {
                 visible: {
                   opacity: 1,
                   transition: {
-                    staggerChildren: 0.07,
-                    delayChildren: 0.05,
+                    staggerChildren: 0.04,
+                    delayChildren: 0.02,
                   },
                 },
               }
@@ -105,13 +105,12 @@ export function StaggerItem({ children, className }: StaggerProps) {
               visible: { opacity: 1 },
             }
           : {
-              hidden: { opacity: 0, y: 18, scale: 0.985 },
+              hidden: { opacity: 0, y: 10 },
               visible: {
                 opacity: 1,
                 y: 0,
-                scale: 1,
                 transition: {
-                  duration: 0.42,
+                  duration: 0.24,
                   ease: [0.22, 1, 0.36, 1],
                 },
               },

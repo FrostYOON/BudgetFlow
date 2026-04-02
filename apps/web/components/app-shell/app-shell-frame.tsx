@@ -1,11 +1,11 @@
-import { AppButton, AppButtonLink } from "@/components/ui/app-button";
+import { AppButton } from "@/components/ui/app-button";
+import { AppBadge } from "@/components/ui/app-badge";
 import type { AppSession } from "@/lib/auth/session";
 import { AppBottomNav } from "@/components/app-shell/app-bottom-nav";
 import { PageTransitionShell } from "@/components/app-shell/page-transition-shell";
 import { AppSidebarNav } from "@/components/app-shell/app-sidebar-nav";
 import { AppSwipeNavigator } from "@/components/app-shell/app-swipe-navigator";
 import { WorkspaceSwitcher } from "@/components/app-shell/workspace-switcher";
-import { AppThemeQuickToggle } from "@/components/theme/app-theme-toggle";
 
 interface AppShellFrameProps {
   children: React.ReactNode;
@@ -18,51 +18,77 @@ export function AppShellFrame({ children, session }: AppShellFrameProps) {
       className="min-h-screen bg-[color:var(--shell-bg)] text-[color:var(--foreground)]"
       style={{ backgroundImage: "var(--app-shell-bg)" }}
     >
-      <div className="mx-auto grid min-h-screen max-w-[1600px] gap-0 xl:grid-cols-[296px_minmax(0,1fr)] xl:gap-4 xl:px-6 xl:py-6">
-        <aside className="hidden border-b border-[color:var(--surface-border)] bg-[color:var(--surface-soft)] px-6 py-8 backdrop-blur xl:flex xl:h-[calc(100svh-3rem)] xl:flex-col xl:rounded-[2rem] xl:border xl:border-b xl:bg-[color:var(--app-panel)] xl:px-8 xl:py-8 xl:shadow-[var(--surface-shadow)] xl:backdrop-blur-xl">
-          <div className="flex items-end justify-between gap-4 border-b border-[color:var(--surface-border)] pb-6">
+      <div className="mx-auto grid min-h-screen max-w-[1600px] gap-0 xl:grid-cols-[304px_minmax(0,1fr)] xl:gap-5 xl:px-5 xl:py-5">
+        <aside className="hidden px-2 py-2 xl:flex xl:h-[calc(100svh-2.5rem)] xl:flex-col">
+          <div className="border-b border-[color:var(--surface-border)] px-2 pb-5">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
                 BudgetFlow
               </p>
-              <h1 className="mt-2 text-xl font-semibold tracking-tight text-[color:var(--foreground)]">
-                Personal-first budgeting
+              <h1 className="mt-2 text-lg font-semibold tracking-tight text-[color:var(--foreground)]">
+                Budget workspace
               </h1>
             </div>
-            <div className="flex items-center gap-2">
-              <AppThemeQuickToggle />
-              <form action="/auth/sign-out" method="post">
+
+            <div className="mt-5 flex items-center gap-3">
+              <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[color:var(--selection-bg)] text-sm font-semibold text-[color:var(--selection-fg)] shadow-[var(--selection-shadow)]">
+                {session.user.name
+                  .split(" ")
+                  .filter(Boolean)
+                  .slice(0, 2)
+                  .map((part) => part[0]?.toUpperCase() ?? "")
+                  .join("")}
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-[color:var(--foreground)]">
+                  {session.user.name}
+                </p>
+                <p className="truncate text-[11px] text-[color:var(--text-muted)]">
+                  {session.user.email}
+                </p>
+              </div>
+            </div>
+
+            {session.currentWorkspace ? (
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <AppBadge tone="subtle">{session.currentWorkspace.baseCurrency}</AppBadge>
+                <AppBadge tone="subtle">{session.currentWorkspace.memberRole}</AppBadge>
+                <AppBadge tone="subtle" className="truncate">
+                  {session.currentWorkspace.name}
+                </AppBadge>
+              </div>
+            ) : null}
+          </div>
+
+          <div className="mt-4 flex flex-1 flex-col rounded-[1.65rem] border border-[color:var(--surface-border)] bg-[color:var(--surface-muted)] p-3">
+            <div className="flex-1">
+              <AppSidebarNav />
+            </div>
+
+            <div className="mt-4 border-t border-[color:var(--surface-border)] px-2 pt-4">
+              <WorkspaceSwitcher
+                compact
+                currentWorkspace={session.currentWorkspace}
+                workspaces={session.workspaces}
+              />
+
+              <form action="/auth/sign-out" method="post" className="mt-3">
                 <input type="hidden" name="redirectTo" value="/sign-in" />
-                <AppButton type="submit" tone="secondary" size="sm">
+                <AppButton
+                  type="submit"
+                  tone="secondary"
+                  className="w-full rounded-[1rem] px-3.5 py-2.5 shadow-none"
+                >
                   Sign out
                 </AppButton>
               </form>
             </div>
           </div>
-
-          <div className="mt-6">
-            <p className="text-sm font-medium text-[color:var(--text-muted)]">Signed in as</p>
-            <p className="mt-2 text-base font-semibold text-[color:var(--foreground)]">
-              {session.user.name}
-            </p>
-            <p className="text-sm text-[color:var(--text-muted)]">{session.user.email}</p>
-          </div>
-
-          <div className="mt-8">
-            <AppSidebarNav />
-          </div>
-
-          <div className="mt-8">
-            <WorkspaceSwitcher
-              currentWorkspace={session.currentWorkspace}
-              workspaces={session.workspaces}
-            />
-          </div>
         </aside>
 
-        <div className="flex min-h-screen flex-col pb-28 xl:min-h-[calc(100svh-3rem)] xl:overflow-hidden xl:rounded-[2rem] xl:border xl:border-[color:var(--surface-border)] xl:bg-[color:var(--app-panel)] xl:shadow-[var(--surface-shadow)] xl:backdrop-blur-xl">
-          <header className="sticky top-0 z-30 border-b border-[color:var(--surface-border)] bg-[color:var(--shell-header-bg)] px-4 py-4 backdrop-blur-xl sm:px-6 xl:px-8 xl:py-5">
-            <div className="flex items-start justify-between gap-4 xl:hidden">
+        <div className="flex min-h-screen flex-col pb-28 xl:min-h-[calc(100svh-2.5rem)] xl:overflow-hidden xl:rounded-[2rem] xl:border xl:border-[color:var(--surface-border)] xl:bg-[color:var(--app-panel)] xl:shadow-[var(--surface-shadow)]">
+          <header className="sticky top-0 z-30 border-b border-[color:var(--surface-border)] bg-[color:var(--shell-header-bg)] px-4 py-4 sm:px-6 xl:px-8 xl:py-4">
+            <div className="xl:hidden">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-emerald-700">
                   BudgetFlow
@@ -76,16 +102,6 @@ export function AppShellFrame({ children, session }: AppShellFrameProps) {
                     : "Create a shared space when you need one"}
                 </p>
               </div>
-
-              <div className="flex items-center gap-2">
-                <AppThemeQuickToggle />
-                <form action="/auth/sign-out" method="post">
-                  <input type="hidden" name="redirectTo" value="/sign-in" />
-                  <AppButton type="submit" tone="secondary" size="sm">
-                    Sign out
-                  </AppButton>
-                </form>
-              </div>
             </div>
 
             <div className="mt-4 xl:hidden">
@@ -95,43 +111,25 @@ export function AppShellFrame({ children, session }: AppShellFrameProps) {
               />
             </div>
 
-            <div className="hidden xl:flex xl:flex-col xl:gap-3">
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[color:var(--text-muted)]">
-                    Active workspace
-                  </p>
-                  <p className="mt-2 text-lg font-semibold tracking-tight text-[color:var(--foreground)]">
-                    {session.currentWorkspace?.name ?? "No workspace selected"}
-                  </p>
-                  {session.currentWorkspace ? (
-                    <p className="mt-1 text-sm text-[color:var(--text-soft)]">
-                      {session.currentWorkspace.baseCurrency} · {session.currentWorkspace.memberRole}
-                    </p>
-                  ) : null}
-                </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <AppThemeQuickToggle />
-                  <AppButtonLink
-                    href="/app/dashboard"
-                    tone="secondary"
-                    size="sm"
-                  >
-                    Dashboard
-                  </AppButtonLink>
-                  <AppButtonLink
-                    href="/app/settings"
-                    tone="primary"
-                    size="sm"
-                  >
-                    Settings
-                  </AppButtonLink>
-                </div>
+            <div className="hidden xl:flex xl:items-center xl:justify-between xl:gap-4">
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[color:var(--text-muted)]">
+                  Current workspace
+                </p>
+                <p className="mt-2 truncate text-lg font-semibold tracking-tight text-[color:var(--foreground)]">
+                  {session.currentWorkspace?.name ?? "No workspace selected"}
+                </p>
               </div>
+              {session.currentWorkspace ? (
+                <div className="flex shrink-0 items-center gap-2">
+                  <AppBadge tone="subtle">{session.currentWorkspace.baseCurrency}</AppBadge>
+                  <AppBadge tone="subtle">{session.currentWorkspace.memberRole}</AppBadge>
+                </div>
+              ) : null}
             </div>
           </header>
 
-          <main className="mx-auto flex w-full max-w-[1240px] flex-1 px-4 py-6 sm:px-6 xl:px-8 xl:py-8">
+          <main className="mx-auto flex w-full max-w-[1280px] flex-1 px-4 py-6 sm:px-6 xl:px-8 xl:py-8">
             <AppSwipeNavigator>
               <PageTransitionShell>{children}</PageTransitionShell>
             </AppSwipeNavigator>

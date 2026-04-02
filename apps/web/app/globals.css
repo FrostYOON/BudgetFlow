@@ -10,7 +10,7 @@
   --surface-soft: rgba(255, 255, 255, 0.82);
   --surface-muted: #f8fafc;
   --surface-border: rgba(15, 23, 42, 0.1);
-  --surface-shadow: 0 18px 60px rgba(15, 23, 42, 0.06);
+  --surface-shadow: 0 12px 30px rgba(15, 23, 42, 0.045);
   --text-muted: #64748b;
   --text-soft: #475569;
   --hero-surface: linear-gradient(
@@ -37,7 +37,7 @@
   --selection-hover-bg: #059669;
   --selection-fg: #032016;
   --selection-muted: rgba(16, 185, 129, 0.14);
-  --selection-shadow: 0 16px 34px rgba(16, 185, 129, 0.24);
+  --selection-shadow: 0 10px 24px rgba(16, 185, 129, 0.18);
   --button-primary-bg: var(--selection-bg);
   --button-primary-hover-bg: var(--selection-hover-bg);
   --button-primary-border: var(--selection-bg);
@@ -49,12 +49,12 @@
   --button-secondary-hover-border: #94a3b8;
   --button-secondary-fg: #0f172a;
   --button-secondary-hover-fg: #0f172a;
-  --button-secondary-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
+  --button-secondary-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
   --button-success-bg: #059669;
   --button-success-hover-bg: #047857;
   --button-success-border: #047857;
   --button-success-fg: #ffffff;
-  --button-success-shadow: 0 12px 28px rgba(5, 150, 105, 0.28);
+  --button-success-shadow: 0 8px 20px rgba(5, 150, 105, 0.2);
   --button-danger-bg: #fff1f2;
   --button-danger-hover-bg: #ffe4e6;
   --button-danger-border: #fecdd3;
@@ -92,7 +92,7 @@
   --surface-soft: rgba(12, 22, 34, 0.86);
   --surface-muted: #122031;
   --surface-border: rgba(148, 163, 184, 0.18);
-  --surface-shadow: 0 18px 60px rgba(2, 6, 23, 0.45);
+  --surface-shadow: 0 12px 32px rgba(2, 6, 23, 0.32);
   --text-muted: #94a3b8;
   --text-soft: #cbd5e1;
   --hero-surface: linear-gradient(
@@ -119,7 +119,7 @@
   --selection-hover-bg: #6ee7b7;
   --selection-fg: #03130f;
   --selection-muted: rgba(52, 211, 153, 0.16);
-  --selection-shadow: 0 18px 40px rgba(16, 185, 129, 0.22);
+  --selection-shadow: 0 10px 24px rgba(16, 185, 129, 0.16);
   --button-primary-bg: var(--selection-bg);
   --button-primary-hover-bg: var(--selection-hover-bg);
   --button-primary-border: var(--selection-bg);
@@ -131,12 +131,12 @@
   --button-secondary-hover-border: #4f6a83;
   --button-secondary-fg: #f8fbff;
   --button-secondary-hover-fg: #f8fbff;
-  --button-secondary-shadow: 0 10px 24px rgba(2, 6, 23, 0.32);
+  --button-secondary-shadow: 0 6px 18px rgba(2, 6, 23, 0.24);
   --button-success-bg: #10b981;
   --button-success-hover-bg: #34d399;
   --button-success-border: #10b981;
   --button-success-fg: #03130f;
-  --button-success-shadow: 0 12px 28px rgba(16, 185, 129, 0.22);
+  --button-success-shadow: 0 8px 20px rgba(16, 185, 129, 0.16);
   --button-danger-bg: #34131d;
   --button-danger-hover-bg: #441927;
   --button-danger-border: #5b2230;
@@ -167,7 +167,7 @@
     --surface-soft: rgba(12, 22, 34, 0.86);
     --surface-muted: #122031;
     --surface-border: rgba(148, 163, 184, 0.18);
-    --surface-shadow: 0 18px 60px rgba(2, 6, 23, 0.45);
+    --surface-shadow: 0 12px 32px rgba(2, 6, 23, 0.32);
     --text-muted: #94a3b8;
     --text-soft: #cbd5e1;
     --app-shell-bg: radial-gradient(circle at top, rgba(52, 211, 153, 0.2), transparent 26%),
@@ -183,7 +183,7 @@
     --selection-hover-bg: #6ee7b7;
     --selection-fg: #03130f;
     --selection-muted: rgba(52, 211, 153, 0.16);
-    --selection-shadow: 0 18px 40px rgba(16, 185, 129, 0.22);
+    --selection-shadow: 0 10px 24px rgba(16, 185, 129, 0.16);
     --button-primary-bg: var(--selection-bg);
     --button-primary-hover-bg: var(--selection-hover-bg);
     --button-primary-border: var(--selection-bg);
@@ -195,12 +195,12 @@
     --button-secondary-hover-border: #4f6a83;
     --button-secondary-fg: #f8fbff;
     --button-secondary-hover-fg: #f8fbff;
-    --button-secondary-shadow: 0 10px 24px rgba(2, 6, 23, 0.32);
+    --button-secondary-shadow: 0 6px 18px rgba(2, 6, 23, 0.24);
     --button-success-bg: #10b981;
     --button-success-hover-bg: #34d399;
     --button-success-border: #10b981;
     --button-success-fg: #03130f;
-    --button-success-shadow: 0 12px 28px rgba(16, 185, 129, 0.22);
+    --button-success-shadow: 0 8px 20px rgba(16, 185, 129, 0.16);
     --button-danger-bg: #34131d;
     --button-danger-hover-bg: #441927;
     --button-danger-border: #5b2230;

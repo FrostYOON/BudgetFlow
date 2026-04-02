@@ -1,4 +1,9 @@
-import type { ComponentPropsWithoutRef, ElementType, ReactNode } from "react";
+import type {
+  ComponentPropsWithoutRef,
+  CSSProperties,
+  ElementType,
+  ReactNode,
+} from "react";
 
 type SurfaceTone = "default" | "muted" | "success" | "danger";
 type SurfacePadding = "md" | "lg";
@@ -38,13 +43,19 @@ export function AppSurface<T extends ElementType = "section">({
   className,
   padding = "md",
   tone = "default",
+  style,
   ...props
 }: AppSurfaceProps<T>) {
   const Component = as ?? "section";
+  const performanceStyle: CSSProperties = {
+    contentVisibility: "auto",
+    containIntrinsicSize: "320px",
+  };
 
   return (
     <Component
       {...props}
+      style={style ? { ...performanceStyle, ...style } : performanceStyle}
       className={joinClasses(
         "rounded-[1.75rem] border shadow-[var(--surface-shadow)]",
         getToneClassName(tone),

@@ -14,7 +14,7 @@ export function AppBottomNav() {
   return (
     <LazyMotion features={domAnimation}>
       <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 px-4 pb-[calc(env(safe-area-inset-bottom)+0.85rem)] xl:hidden">
-      <nav className="pointer-events-auto mx-auto max-w-md rounded-[2rem] border border-[color:var(--app-dock-border)] bg-[color:var(--app-dock-bg)] p-2 shadow-[0_24px_60px_rgba(15,23,42,0.18)] backdrop-blur-xl">
+      <nav className="pointer-events-auto mx-auto max-w-md rounded-[2rem] border border-[color:var(--app-dock-border)] bg-[color:var(--app-dock-bg)] p-2 shadow-[0_12px_30px_rgba(15,23,42,0.14)]">
         <div
           className="grid gap-1.5"
           style={{
@@ -56,7 +56,7 @@ export function AppBottomNav() {
                   <span
                     className={`inline-flex h-9 w-9 items-center justify-center rounded-full ${
                       isActive
-                        ? "bg-black/10 text-[color:var(--selection-fg)]"
+                        ? "border border-[color:var(--surface-border)] bg-[color:var(--surface-soft)] text-[color:var(--foreground)] shadow-sm"
                         : "bg-[color:var(--surface-muted)] text-[color:var(--text-soft)]"
                     }`}
                   >

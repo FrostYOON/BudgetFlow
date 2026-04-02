@@ -115,3 +115,5 @@ BudgetFlow tracks active engineering work with GitHub Issues and GitHub Projects
 - current execution plan: [docs/DELIVERY_EXECUTION_PLAN.md](/Users/yoon-yongseol/WorkSpace/BudgetFlow/docs/DELIVERY_EXECUTION_PLAN.md)
 - issue and PR templates: [.github](/Users/yoon-yongseol/WorkSpace/BudgetFlow/.github)
 - deployment checklist: [docs/DEPLOYMENT_RELEASE_CHECKLIST.md](/Users/yoon-yongseol/WorkSpace/BudgetFlow/docs/DEPLOYMENT_RELEASE_CHECKLIST.md)
+- Vercel + Railway guide: [docs/DEPLOY_VERCEL_RAILWAY.md](/Users/yoon-yongseol/WorkSpace/BudgetFlow/docs/DEPLOY_VERCEL_RAILWAY.md)
+- self-hosted Docker guide: [docs/DEPLOY_SELF_HOSTED_COMPOSE.md](/Users/yoon-yongseol/WorkSpace/BudgetFlow/docs/DEPLOY_SELF_HOSTED_COMPOSE.md)

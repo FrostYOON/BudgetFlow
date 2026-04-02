@@ -134,13 +134,19 @@ export function AppThemeSetting() {
               aria-pressed={isActive}
             >
               <span className="flex items-start justify-between gap-3">
-                <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[color:var(--surface-muted)] text-current">
+                <span
+                  className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl ${
+                    isActive
+                      ? "border border-white/20 bg-white/15 text-[color:var(--foreground)]"
+                      : "bg-[color:var(--surface-muted)] text-current"
+                  }`}
+                >
                   <Icon className="h-4 w-4" strokeWidth={2.2} />
                 </span>
                 <span
                   className={`rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${
                     isActive
-                      ? "bg-black/10 text-current"
+                      ? "border border-white/20 bg-white/15 text-[color:var(--foreground)]"
                       : "bg-[color:var(--surface-muted)] text-[color:var(--text-soft)]"
                   }`}
                 >

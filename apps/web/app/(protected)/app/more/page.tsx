@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import {
   ArrowLeftRight,
   ArrowUpRight,
@@ -6,32 +7,16 @@ import {
   Bell,
   CreditCard,
   Repeat2,
-  Settings,
   Sparkles,
   Tags,
   UsersRound,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { AppBadge } from "@/components/ui/app-badge";
-import { AppButtonLink } from "@/components/ui/app-button";
+import { AppButton, AppButtonLink } from "@/components/ui/app-button";
 import { AppSurface } from "@/components/ui/app-surface";
 import { getAppSession } from "@/lib/auth/session";
 import { fetchNotifications } from "@/lib/notifications";
-
-function getWorkspaceTypeLabel(type?: string | null) {
-  switch (type) {
-    case "COUPLE":
-      return "Couple";
-    case "FAMILY":
-      return "Family";
-    case "ROOMMATE":
-      return "Roommate";
-    case "PERSONAL":
-      return "Personal";
-    default:
-      return "No workspace";
-  }
-}
 
 const QUICK_LINKS = [
   {
@@ -61,12 +46,6 @@ const QUICK_LINKS = [
 ] as const;
 
 const MANAGEMENT_LINKS = [
-  {
-    href: "/app/settings",
-    label: "Settings",
-    description: "Profile and workspace setup.",
-    icon: Settings,
-  },
   {
     href: "/app/settings/accounts",
     label: "Accounts",
@@ -103,25 +82,28 @@ function MoreMenuCard({
   actionLabel: string;
 }) {
   return (
-    <AppSurface padding="md" tone={tone}>
+    <Link
+      href={href}
+      className={`block rounded-[1.75rem] border px-5 py-5 shadow-[var(--surface-shadow)] transition hover:-translate-y-0.5 ${
+        tone === "muted"
+          ? "border-[color:var(--surface-border)] bg-[color:var(--surface-muted)] text-[color:var(--foreground)]"
+          : "border-[color:var(--surface-border)] bg-[color:var(--surface)] text-[color:var(--foreground)]"
+      }`}
+    >
       <div className="flex items-start justify-between gap-4">
-        <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[color:var(--selection-bg)] text-[color:var(--selection-fg)] shadow-[var(--selection-shadow)]">
-          <Icon className="h-5 w-5" strokeWidth={2.2} />
+        <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[color:var(--selection-bg)] text-[color:var(--selection-fg)] shadow-[var(--selection-shadow)]">
+          <Icon className="h-4 w-4" strokeWidth={2.2} />
         </span>
-        <AppBadge tone="subtle">Menu</AppBadge>
+        <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[color:var(--surface-soft)] text-[color:var(--text-soft)]">
+          <ArrowUpRight className="h-4 w-4" strokeWidth={2.2} />
+        </span>
       </div>
-      <h2 className="mt-4 text-base font-semibold text-slate-950">{label}</h2>
-      <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
-      <AppButtonLink
-        href={href}
-        tone="secondary"
-        size="sm"
-        className="mt-4 w-full gap-2"
-      >
-        <ArrowUpRight className="h-4 w-4" strokeWidth={2.2} />
+      <h2 className="mt-3 text-sm font-semibold text-slate-950 sm:text-base">{label}</h2>
+      <p className="mt-1 text-xs leading-5 text-slate-600 sm:mt-2 sm:text-sm sm:leading-6">{description}</p>
+      <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 sm:mt-4 sm:text-xs">
         {actionLabel}
-      </AppButtonLink>
-    </AppSurface>
+      </p>
+    </Link>
   );
 }
 
@@ -150,39 +132,23 @@ export default async function MorePage() {
               <Sparkles className="h-5 w-5" strokeWidth={2.2} />
             </span>
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
-              More
+              Manage
             </p>
             <h1 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">
-              Mobile shortcuts and workspace tools
+              Settings and tools
             </h1>
             <p className="mt-2 max-w-2xl text-sm text-slate-500">
-              Keep the main navigation focused on daily budgeting. Secondary
-              tools live here with clearer visual cues.
+              Budget tabs stay focused. Account and secondary tools live here.
             </p>
           </div>
-          <AppBadge tone={unreadCount > 0 ? "success" : "subtle"}>
-            {unreadCount > 0 ? `${unreadCount} unread` : "All caught up"}
-          </AppBadge>
-        </div>
-      </AppSurface>
-
-      <AppSurface padding="md">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="text-sm font-medium text-slate-500">Current workspace</p>
-            <h2 className="mt-2 text-xl font-semibold text-slate-950">
-              {session.currentWorkspace?.name ?? "No workspace selected"}
-            </h2>
-            <p className="mt-2 text-sm text-slate-500">
-              {getWorkspaceTypeLabel(session.currentWorkspace?.type)} ·{" "}
-              {session.currentWorkspace?.memberRole ?? "Member"} ·{" "}
-              {session.currentWorkspace?.baseCurrency ?? "CAD"}
-            </p>
+          <div className="flex items-center gap-2">
+            <AppBadge tone={unreadCount > 0 ? "success" : "subtle"}>
+              {unreadCount > 0 ? `${unreadCount} unread` : "All caught up"}
+            </AppBadge>
+            <AppButtonLink href="/app/settings" tone="secondary" size="sm">
+              Open settings
+            </AppButtonLink>
           </div>
-          <AppBadge tone="subtle">
-            {session.workspaces.length} workspace
-            {session.workspaces.length === 1 ? "" : "s"}
-          </AppBadge>
         </div>
       </AppSurface>
 
@@ -192,7 +158,7 @@ export default async function MorePage() {
             Quick links
           </p>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
           {QUICK_LINKS.map((item) => (
             <MoreMenuCard
               key={item.href}
@@ -200,7 +166,7 @@ export default async function MorePage() {
               label={item.label}
               description={item.description}
               icon={item.icon}
-              actionLabel={`Open ${item.label}`}
+              actionLabel="Open"
             />
           ))}
         </div>
@@ -212,7 +178,7 @@ export default async function MorePage() {
             Management
           </p>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-2 gap-3 xl:grid-cols-3">
           {MANAGEMENT_LINKS.map((item) => (
             <MoreMenuCard
               key={item.href}
@@ -221,10 +187,27 @@ export default async function MorePage() {
               description={item.description}
               icon={item.icon}
               tone="muted"
-              actionLabel={`Go to ${item.label}`}
+              actionLabel="Open"
             />
           ))}
         </div>
+
+        <AppSurface padding="md" tone="muted">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold text-slate-950">Session</p>
+              <p className="mt-1 text-sm text-slate-500">
+                Sign out lives with the rest of the account tools.
+              </p>
+            </div>
+            <form action="/auth/sign-out" method="post">
+              <input type="hidden" name="redirectTo" value="/sign-in" />
+              <AppButton type="submit" tone="secondary" size="sm">
+                Sign out
+              </AppButton>
+            </form>
+          </div>
+        </AppSurface>
       </section>
     </div>
   );

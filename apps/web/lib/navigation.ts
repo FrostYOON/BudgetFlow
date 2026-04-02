@@ -2,6 +2,7 @@ import {
   ArrowLeftRight,
   Bell,
   LayoutDashboard,
+  Menu,
   PiggyBank,
   Repeat2,
   Settings,
@@ -18,11 +19,11 @@ export interface AppNavigationItem {
   matchers?: string[];
 }
 
-export const APP_SIDEBAR_NAVIGATION: AppNavigationItem[] = [
+export const APP_SIDEBAR_PRIMARY_NAVIGATION: AppNavigationItem[] = [
   {
     href: "/app/dashboard",
     label: "Dashboard",
-    description: "Overview and month health",
+    description: "Month overview",
     shortLabel: "Home",
     icon: LayoutDashboard,
     matchers: ["/app/dashboard"],
@@ -30,7 +31,7 @@ export const APP_SIDEBAR_NAVIGATION: AppNavigationItem[] = [
   {
     href: "/app/transactions",
     label: "Transactions",
-    description: "Daily money movement",
+    description: "Daily entries",
     shortLabel: "Spend",
     icon: Wallet,
     matchers: ["/app/transactions"],
@@ -38,7 +39,7 @@ export const APP_SIDEBAR_NAVIGATION: AppNavigationItem[] = [
   {
     href: "/app/settlements",
     label: "Settlements",
-    description: "Shared balances and transfers",
+    description: "Shared balances",
     shortLabel: "Settle",
     icon: ArrowLeftRight,
     matchers: ["/app/settlements"],
@@ -46,15 +47,18 @@ export const APP_SIDEBAR_NAVIGATION: AppNavigationItem[] = [
   {
     href: "/app/budgets",
     label: "Budgets",
-    description: "Monthly plan and targets",
+    description: "Monthly plan",
     shortLabel: "Plan",
     icon: PiggyBank,
     matchers: ["/app/budgets"],
   },
+];
+
+export const APP_SIDEBAR_UTILITY_NAVIGATION: AppNavigationItem[] = [
   {
     href: "/app/recurring",
     label: "Recurring",
-    description: "Automation and run history",
+    description: "Scheduled entries",
     shortLabel: "Auto",
     icon: Repeat2,
     matchers: ["/app/recurring"],
@@ -62,7 +66,7 @@ export const APP_SIDEBAR_NAVIGATION: AppNavigationItem[] = [
   {
     href: "/app/notifications",
     label: "Notifications",
-    description: "Alerts and household updates",
+    description: "Unread updates",
     shortLabel: "Alerts",
     icon: Bell,
     matchers: ["/app/notifications"],
@@ -70,23 +74,28 @@ export const APP_SIDEBAR_NAVIGATION: AppNavigationItem[] = [
   {
     href: "/app/settings",
     label: "Settings",
-    description: "Account and workspace setup",
+    description: "Account and workspace",
     shortLabel: "You",
     icon: Settings,
     matchers: ["/app/settings"],
   },
 ];
 
+export const APP_SIDEBAR_NAVIGATION: AppNavigationItem[] = [
+  ...APP_SIDEBAR_PRIMARY_NAVIGATION,
+  ...APP_SIDEBAR_UTILITY_NAVIGATION,
+];
+
 export const APP_MOBILE_NAVIGATION: AppNavigationItem[] = [
-  APP_SIDEBAR_NAVIGATION[0],
-  APP_SIDEBAR_NAVIGATION[1],
-  APP_SIDEBAR_NAVIGATION[3],
+  APP_SIDEBAR_PRIMARY_NAVIGATION[0],
+  APP_SIDEBAR_PRIMARY_NAVIGATION[1],
+  APP_SIDEBAR_PRIMARY_NAVIGATION[3],
   {
     href: "/app/more",
-    label: "More",
-    description: "Secondary tools and management",
-    shortLabel: "More",
-    icon: Settings,
+    label: "Manage",
+    description: "Settings and tools",
+    shortLabel: "Manage",
+    icon: Menu,
     matchers: [
       "/app/more",
       "/app/settlements",
