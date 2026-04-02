@@ -18,6 +18,7 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 
 RUN pnpm prisma:generate && pnpm --filter @budgetflow/api build
+RUN pnpm --filter @budgetflow/api deploy --prod /prod/api
 
 FROM node:22-alpine AS runner
 
@@ -28,14 +29,10 @@ ENV PORT=3000
 
 RUN addgroup -S budgetflow && adduser -S budgetflow -G budgetflow
 
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/apps/api/package.json ./apps/api/package.json
-COPY --from=builder /app/apps/api/dist ./apps/api/dist
-COPY --from=builder /app/packages/database/package.json ./packages/database/package.json
-COPY --from=builder /app/packages/database/generated ./packages/database/generated
+COPY --from=builder /prod/api ./
 
 USER budgetflow
 
 EXPOSE 3000
 
-CMD ["node", "apps/api/dist/main.js"]
+CMD ["node", "dist/main.js"]
