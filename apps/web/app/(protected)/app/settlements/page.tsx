@@ -5,6 +5,7 @@ import { AppBadge } from "@/components/ui/app-badge";
 import { AppButton, AppButtonLink } from "@/components/ui/app-button";
 import { AppMetricSurface, AppSurface } from "@/components/ui/app-surface";
 import { getAppSession } from "@/lib/auth/session";
+import { getDateDisplayLocale, getNumberDisplayLocale } from "@/lib/display-locale";
 import {
   formatCurrency,
   formatMonthLabel,
@@ -108,7 +109,8 @@ export default async function SettlementsPage({
   const prev = getPreviousMonth(requestedPeriod.year, requestedPeriod.month);
   const next = getNextMonth(requestedPeriod.year, requestedPeriod.month);
   const currency = currentWorkspace.baseCurrency;
-  const locale = session.user.locale === "ko-KR" ? "ko-KR" : "en-CA";
+  const locale = getNumberDisplayLocale(session.user.locale);
+  const dateLocale = getDateDisplayLocale();
   const monthLabel = formatMonthLabel(requestedPeriod.year, requestedPeriod.month);
   const isPersonalWorkspace = currentWorkspace.type === "PERSONAL";
   const hasSharedSettlement =
@@ -365,7 +367,7 @@ export default async function SettlementsPage({
                         {transfer.fromName} → {transfer.toName}
                       </p>
                       <p className="mt-1 text-sm text-slate-500">
-                        {new Date(transfer.settledAt).toLocaleDateString(locale)}
+                        {new Date(transfer.settledAt).toLocaleDateString(dateLocale)}
                         {transfer.memo ? ` · ${transfer.memo}` : ""}
                       </p>
                     </div>
@@ -410,7 +412,7 @@ export default async function SettlementsPage({
                           "Shared expense"}
                       </p>
                       <p className="mt-1 text-sm text-slate-500">
-                        {formatDateLabel(transaction.transactionDate, locale)} ·{" "}
+                        {formatDateLabel(transaction.transactionDate, dateLocale)} ·{" "}
                         {transaction.paidByUserName ?? "Unknown payer"}
                       </p>
                     </div>

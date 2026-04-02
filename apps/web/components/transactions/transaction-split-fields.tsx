@@ -172,7 +172,7 @@ export function TransactionSplitFields({
               </p>
             </div>
 
-            <div className="flex rounded-full bg-white p-1 shadow-sm">
+            <div className="flex rounded-full border border-[color:var(--surface-border)] bg-[color:var(--surface)] p-1 shadow-[var(--surface-shadow)]">
               {(["EQUAL", "FIXED"] as SplitMode[]).map((mode) => {
                 const active = splitMode === mode;
 
@@ -183,8 +183,8 @@ export function TransactionSplitFields({
                     onClick={() => setSplitMode(mode)}
                     className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
                       active
-                        ? "bg-emerald-500 text-slate-950"
-                        : "text-slate-500"
+                        ? "bg-[color:var(--selection-bg)] text-[color:var(--selection-fg)] shadow-[var(--selection-shadow)]"
+                        : "text-[color:var(--text-muted)] hover:bg-[color:var(--surface-muted)] hover:text-[color:var(--foreground)]"
                     }`}
                   >
                     {mode === "EQUAL" ? "Equal" : "Custom"}

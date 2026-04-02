@@ -260,10 +260,15 @@ export function DashboardTransactionCalendar({
   const router = useRouter();
   const reduceMotion = useReducedMotion();
   const [isPending, startNavigation] = useTransition();
-  const daySummaries = buildDaySummaries(transactions);
-  const [selectedDate, setSelectedDate] = useState(
-    getDefaultSelectedDate(year, month, daySummaries),
+  const daySummaries = useMemo(
+    () => buildDaySummaries(transactions),
+    [transactions],
   );
+  const defaultSelectedDate = useMemo(
+    () => getDefaultSelectedDate(year, month, daySummaries),
+    [daySummaries, month, year],
+  );
+  const [selectedDate, setSelectedDate] = useState(defaultSelectedDate);
   const [holidayContext] = useState<HolidayContext>(() => {
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const localeHint =
@@ -301,6 +306,10 @@ export function DashboardTransactionCalendar({
       isCancelled = true;
     };
   }, [calendarYears, holidayContext]);
+
+  useEffect(() => {
+    setSelectedDate(defaultSelectedDate);
+  }, [defaultSelectedDate]);
 
   const selectedSummary =
     daySummaries.get(selectedDate) ??
@@ -344,8 +353,8 @@ export function DashboardTransactionCalendar({
 
   return (
     <LazyMotion features={domAnimation}>
-      <section className="overflow-hidden rounded-[2rem] border border-slate-900/8 bg-[linear-gradient(180deg,#fffdf8_0%,#ffffff_34%,#f8fafc_100%)] px-4 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6">
-      <div className="flex flex-col gap-4 border-b border-slate-900/8 pb-5">
+      <section className="overflow-hidden rounded-[2rem] border border-[color:var(--surface-border)] bg-[color:var(--surface)] px-4 py-5 shadow-[var(--surface-shadow)] sm:px-6">
+      <div className="flex flex-col gap-4 border-b border-[color:var(--surface-border)] pb-5">
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
@@ -356,13 +365,13 @@ export function DashboardTransactionCalendar({
             </h2>
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 rounded-full border border-slate-200 bg-white/90 p-1 shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
+            <div className="flex items-center gap-1 rounded-full border border-[color:var(--surface-border)] bg-[color:var(--surface-soft)] p-1 shadow-[var(--surface-shadow)]">
               <button
                 type="button"
                 aria-label="Go to previous month"
                 onClick={() => navigateToMonth(previousHref)}
                 disabled={isPending}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full text-base font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 disabled:cursor-wait disabled:opacity-50"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full text-base font-semibold text-[color:var(--text-soft)] transition hover:bg-[color:var(--surface-muted)] hover:text-[color:var(--foreground)] disabled:cursor-wait disabled:opacity-50"
               >
                 ←
               </button>
@@ -371,7 +380,7 @@ export function DashboardTransactionCalendar({
                 aria-label="Go to next month"
                 onClick={() => navigateToMonth(nextHref)}
                 disabled={isPending}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full text-base font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 disabled:cursor-wait disabled:opacity-50"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full text-base font-semibold text-[color:var(--text-soft)] transition hover:bg-[color:var(--surface-muted)] hover:text-[color:var(--foreground)] disabled:cursor-wait disabled:opacity-50"
               >
                 →
               </button>
@@ -403,21 +412,21 @@ export function DashboardTransactionCalendar({
             handleCalendarDragEnd(info.offset.x, info.velocity.x)
           }
           initial={
-            reduceMotion ? { opacity: 0 } : { opacity: 0, x: 20, filter: "blur(6px)" }
+            reduceMotion ? { opacity: 0 } : { opacity: 0, x: 16 }
           }
           animate={
-            reduceMotion ? { opacity: 1 } : { opacity: 1, x: 0, filter: "blur(0px)" }
+            reduceMotion ? { opacity: 1 } : { opacity: 1, x: 0 }
           }
           exit={
-            reduceMotion ? { opacity: 0 } : { opacity: 0, x: -14, filter: "blur(4px)" }
+            reduceMotion ? { opacity: 0 } : { opacity: 0, x: -10 }
           }
           transition={{
             type: "spring",
-            stiffness: 180,
-            damping: 24,
+            stiffness: 220,
+            damping: 28,
             mass: 0.9,
           }}
-          whileDrag={reduceMotion ? undefined : { scale: 0.992 }}
+          whileDrag={reduceMotion ? undefined : { scale: 0.997 }}
           className="mt-3 grid cursor-grab grid-cols-7 gap-2 active:cursor-grabbing"
         >
           {calendarDays.map((day) => {
@@ -438,7 +447,7 @@ export function DashboardTransactionCalendar({
             "min-h-[106px] rounded-[1.35rem] border px-2.5 py-2.5 text-left transition sm:min-h-[116px]";
 
           if (isSelected) {
-            className += " border-slate-950 bg-slate-950 text-white shadow-[0_16px_24px_rgba(15,23,42,0.18)]";
+            className += " border-[color:var(--selection-bg)] bg-[color:var(--selection-bg)] text-[color:var(--selection-fg)] shadow-[var(--selection-shadow)]";
           } else if (day.inCurrentMonth) {
             className += ` ${tone.cellClassName} text-slate-950 hover:-translate-y-0.5 hover:border-slate-300`;
           } else {
@@ -465,8 +474,8 @@ export function DashboardTransactionCalendar({
               })}
               aria-pressed={isSelected}
               onClick={() => setSelectedDate(day.dateKey)}
-              whileTap={{ scale: 0.975 }}
-              transition={{ type: "spring", stiffness: 520, damping: 32 }}
+              whileTap={reduceMotion ? undefined : { scale: 0.988 }}
+              transition={{ type: "spring", stiffness: 460, damping: 32 }}
               className={className}
             >
               <div className="flex items-start justify-between gap-2">
@@ -477,7 +486,7 @@ export function DashboardTransactionCalendar({
                   {day.isToday ? (
                     <span
                       className={`h-1.5 w-1.5 rounded-full ${
-                        isSelected ? "bg-emerald-300" : "bg-emerald-500"
+                        isSelected ? "bg-[color:var(--selection-fg)]" : "bg-emerald-500"
                       }`}
                     />
                   ) : null}
@@ -487,7 +496,7 @@ export function DashboardTransactionCalendar({
                   <span
                     className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
                       isSelected
-                        ? "bg-white/15 text-white"
+                        ? "bg-black/10 text-[color:var(--selection-fg)]"
                         : "bg-slate-950/6 text-slate-700"
                     }`}
                   >
@@ -549,32 +558,7 @@ export function DashboardTransactionCalendar({
         </m.div>
       </AnimatePresence>
 
-      <AnimatePresence mode="wait" initial={false}>
-        <m.div
-          key={selectedDate}
-          initial={
-            reduceMotion
-              ? { opacity: 0 }
-              : { opacity: 0, y: 14, scale: 0.985, filter: "blur(6px)" }
-          }
-          animate={
-            reduceMotion
-              ? { opacity: 1 }
-              : { opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }
-          }
-          exit={
-            reduceMotion
-              ? { opacity: 0 }
-              : { opacity: 0, y: -10, scale: 0.99, filter: "blur(4px)" }
-          }
-          transition={{
-            type: "spring",
-            stiffness: 210,
-            damping: 24,
-            mass: 0.92,
-          }}
-          className="mt-5 rounded-[1.6rem] border border-slate-900/8 bg-white/90 px-4 py-4 shadow-[0_12px_32px_rgba(15,23,42,0.06)]"
-        >
+      <div className="mt-5 rounded-[1.6rem] border border-[color:var(--surface-border)] bg-[color:var(--surface-soft)] px-4 py-4 shadow-[var(--surface-shadow)]">
           <div className="flex items-start justify-between gap-3">
             <div>
               <h3 className="text-base font-semibold text-slate-950">
@@ -590,7 +574,7 @@ export function DashboardTransactionCalendar({
                   </AppBadge>
                 ) : null}
                 {holidayContext.timeZone ? (
-                  <span className="rounded-full bg-sky-100 px-2.5 py-1 text-[11px] font-semibold text-sky-800">
+                <span className="rounded-full bg-[color:var(--surface-muted)] px-2.5 py-1 text-[11px] font-semibold text-[color:var(--text-soft)]">
                     {holidayContext.timeZone}
                   </span>
                 ) : null}
@@ -618,7 +602,7 @@ export function DashboardTransactionCalendar({
           </div>
 
           <div className="mt-4 grid gap-2 sm:grid-cols-3">
-            <div className="rounded-[1.1rem] bg-slate-50 px-3 py-3">
+            <div className="rounded-[1.1rem] bg-[color:var(--surface-muted)] px-3 py-3">
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
                 Expense
               </p>
@@ -626,7 +610,7 @@ export function DashboardTransactionCalendar({
                 {formatCurrency(selectedSummary.expense, currency, locale)}
               </p>
             </div>
-            <div className="rounded-[1.1rem] bg-slate-50 px-3 py-3">
+            <div className="rounded-[1.1rem] bg-[color:var(--surface-muted)] px-3 py-3">
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
                 Income
               </p>
@@ -634,7 +618,7 @@ export function DashboardTransactionCalendar({
                 {formatCurrency(selectedSummary.income, currency, locale)}
               </p>
             </div>
-            <div className="rounded-[1.1rem] bg-slate-50 px-3 py-3">
+            <div className="rounded-[1.1rem] bg-[color:var(--surface-muted)] px-3 py-3">
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
                 Activity
               </p>
@@ -652,7 +636,7 @@ export function DashboardTransactionCalendar({
               selectedSummary.transactions.map((transaction) => (
                 <article
                   key={transaction.id}
-                  className="rounded-[1.2rem] border border-slate-900/8 bg-slate-50 px-4 py-3"
+                  className="rounded-[1.2rem] border border-[color:var(--surface-border)] bg-[color:var(--surface-muted)] px-4 py-3"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -669,10 +653,10 @@ export function DashboardTransactionCalendar({
                   </div>
 
                   <div className="mt-3 flex flex-wrap gap-2">
-                    <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700">
+                    <span className="rounded-full bg-[color:var(--surface)] px-2.5 py-1 text-[11px] font-semibold text-[color:var(--text-soft)]">
                       {transaction.type}
                     </span>
-                    <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700">
+                    <span className="rounded-full bg-[color:var(--surface)] px-2.5 py-1 text-[11px] font-semibold text-[color:var(--text-soft)]">
                       {transaction.visibility}
                     </span>
                   </div>
@@ -680,8 +664,7 @@ export function DashboardTransactionCalendar({
               ))
             )}
           </div>
-        </m.div>
-      </AnimatePresence>
+      </div>
       </section>
     </LazyMotion>
   );

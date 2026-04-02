@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   APP_SIDEBAR_NAVIGATION,
+  type AppNavigationItem,
   isNavigationItemActive,
 } from "@/lib/navigation";
 
@@ -13,51 +14,62 @@ export function AppSidebarNav() {
 
   return (
     <LazyMotion features={domAnimation}>
-      <nav className="space-y-2">
-        {APP_SIDEBAR_NAVIGATION.map((item) => {
-          const isActive = isNavigationItemActive(pathname, item);
-
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`relative block rounded-2xl px-4 py-3 ${
-                isActive
-                  ? "text-white"
-                  : "text-slate-600 hover:text-slate-950"
-              }`}
-            >
-              {isActive ? (
-                <m.span
-                  layoutId="sidebar-nav-active"
-                  transition={{
-                    type: "spring",
-                    stiffness: 360,
-                    damping: 30,
-                    mass: 0.85,
-                  }}
-                  className="absolute inset-0 rounded-2xl bg-slate-950 shadow-[0_14px_30px_rgba(15,23,42,0.16)]"
-                />
-              ) : null}
-
-              <m.span
-                whileHover={!isActive ? { x: 6 } : undefined}
-                transition={{ type: "spring", stiffness: 420, damping: 28 }}
-                className="relative z-10 block"
-              >
-                <p className="text-sm font-semibold">{item.label}</p>
-                <p
-                  className={`mt-1 text-xs ${
-                    isActive ? "text-slate-300" : "text-slate-500"
-                  }`}
-                >
-                  {item.description}
-                </p>
-              </m.span>
-            </Link>
-          );
-        })}
+      <nav className="space-y-1.5">
+        {APP_SIDEBAR_NAVIGATION.map((item) => (
+          <SidebarNavLink key={item.href} item={item} pathname={pathname} />
+        ))}
       </nav>
     </LazyMotion>
+  );
+}
+
+function SidebarNavLink({
+  item,
+  pathname,
+}: {
+  item: AppNavigationItem;
+  pathname: string;
+}) {
+  const isActive = isNavigationItemActive(pathname, item);
+  const Icon = item.icon;
+
+  return (
+    <Link
+      href={item.href}
+      className={`relative flex min-w-0 items-center gap-3 rounded-[1.1rem] px-3.5 py-3 ${
+        isActive
+          ? "text-[color:var(--selection-fg)]"
+          : "text-[color:var(--text-soft)] hover:text-[color:var(--foreground)]"
+      }`}
+    >
+      {isActive ? (
+        <m.span
+          layoutId="sidebar-nav-active"
+          transition={{
+            type: "spring",
+            stiffness: 360,
+            damping: 30,
+            mass: 0.85,
+          }}
+          className="absolute inset-0 rounded-[1.1rem] bg-[color:var(--selection-bg)] shadow-[var(--selection-shadow)]"
+        />
+      ) : null}
+
+      <m.span
+        transition={{ type: "spring", stiffness: 420, damping: 28 }}
+        className="relative z-10 flex min-w-0 items-center gap-3"
+      >
+        <span
+          className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
+            isActive
+              ? "border border-[color:var(--surface-border)] bg-[color:var(--surface-soft)] text-[color:var(--foreground)] shadow-sm"
+              : "bg-[color:var(--surface-muted)] text-[color:var(--text-soft)]"
+          }`}
+        >
+          <Icon className="h-4 w-4" strokeWidth={2.2} />
+        </span>
+        <span className="truncate text-sm font-semibold">{item.label}</span>
+      </m.span>
+    </Link>
   );
 }

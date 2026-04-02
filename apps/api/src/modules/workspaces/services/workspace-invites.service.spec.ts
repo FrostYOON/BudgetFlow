@@ -67,7 +67,6 @@ describe('WorkspaceInvitesService', () => {
 
   it('createInvite should create an invite after owner check', async () => {
     prisma.user.findUnique.mockResolvedValue(null);
-    prisma.workspaceMember.findUnique.mockResolvedValue(null);
     prisma.workspaceInvite.findFirst.mockResolvedValue(null);
     prisma.workspaceInvite.create.mockResolvedValue({
       id: 'invite-1',
@@ -88,6 +87,7 @@ describe('WorkspaceInvitesService', () => {
       'workspace-1',
       'owner-1',
     );
+    expect(prisma.workspaceMember.findUnique).not.toHaveBeenCalled();
     expect(result.email).toBe('jisu@example.com');
   });
 

@@ -1,8 +1,77 @@
 @import "tailwindcss";
 
 :root {
+  color-scheme: light;
   --background: #f4f6f2;
   --foreground: #0f172a;
+  --shell-bg: #eef2ef;
+  --shell-header-bg: rgba(238, 242, 239, 0.9);
+  --surface: #ffffff;
+  --surface-soft: rgba(255, 255, 255, 0.82);
+  --surface-muted: #f8fafc;
+  --surface-border: rgba(15, 23, 42, 0.1);
+  --surface-shadow: 0 12px 30px rgba(15, 23, 42, 0.045);
+  --text-muted: #64748b;
+  --text-soft: #475569;
+  --hero-surface: linear-gradient(
+    145deg,
+    rgba(236, 253, 245, 0.96),
+    rgba(255, 255, 255, 1) 58%,
+    rgba(241, 245, 249, 0.92)
+  );
+  --hero-panel: rgba(255, 255, 255, 0.9);
+  --hero-card: #0f172a;
+  --hero-card-fg: #ffffff;
+  --app-shell-bg: radial-gradient(circle at top, rgba(16, 185, 129, 0.12), transparent 24%),
+    linear-gradient(180deg, #f7faf8 0%, #e8eef0 100%);
+  --app-panel: rgba(255, 255, 255, 0.72);
+  --app-dock-bg: rgba(248, 250, 252, 0.88);
+  --app-dock-border: rgba(148, 163, 184, 0.28);
+  --landing-bg: radial-gradient(circle at top, #f3fbf7, transparent 42%),
+    linear-gradient(180deg, #f8fbfa 0%, #eef2ef 100%);
+  --success-surface: #ecfdf5;
+  --success-border: #a7f3d0;
+  --danger-surface: #fff1f2;
+  --danger-border: #fecdd3;
+  --selection-bg: #10b981;
+  --selection-hover-bg: #059669;
+  --selection-fg: #032016;
+  --selection-muted: rgba(16, 185, 129, 0.14);
+  --selection-shadow: 0 10px 24px rgba(16, 185, 129, 0.18);
+  --button-primary-bg: var(--selection-bg);
+  --button-primary-hover-bg: var(--selection-hover-bg);
+  --button-primary-border: var(--selection-bg);
+  --button-primary-fg: var(--selection-fg);
+  --button-primary-shadow: var(--selection-shadow);
+  --button-secondary-bg: #f8fafc;
+  --button-secondary-hover-bg: #eff6ff;
+  --button-secondary-border: #cbd5e1;
+  --button-secondary-hover-border: #94a3b8;
+  --button-secondary-fg: #0f172a;
+  --button-secondary-hover-fg: #0f172a;
+  --button-secondary-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
+  --button-success-bg: #059669;
+  --button-success-hover-bg: #047857;
+  --button-success-border: #047857;
+  --button-success-fg: #ffffff;
+  --button-success-shadow: 0 8px 20px rgba(5, 150, 105, 0.2);
+  --button-danger-bg: #fff1f2;
+  --button-danger-hover-bg: #ffe4e6;
+  --button-danger-border: #fecdd3;
+  --button-danger-hover-border: #fda4af;
+  --button-danger-fg: #be123c;
+  --button-danger-hover-fg: #9f1239;
+  --button-danger-shadow: 0 8px 20px rgba(244, 63, 94, 0.08);
+  --badge-default-bg: #0f172a;
+  --badge-default-fg: #ffffff;
+  --badge-subtle-bg: #e2e8f0;
+  --badge-subtle-fg: #475569;
+  --badge-success-bg: #d1fae5;
+  --badge-success-fg: #065f46;
+  --badge-danger-bg: #ffe4e6;
+  --badge-danger-fg: #9f1239;
+  --badge-warning-bg: #fef3c7;
+  --badge-warning-fg: #92400e;
 }
 
 @theme inline {
@@ -13,10 +82,142 @@
     "SFMono-Regular", "SF Mono", Consolas, "Liberation Mono", monospace;
 }
 
+:root[data-color-mode="dark"] {
+  color-scheme: dark;
+  --background: #08111d;
+  --foreground: #e8eef7;
+  --shell-bg: #08111d;
+  --shell-header-bg: rgba(8, 17, 29, 0.9);
+  --surface: #0f1a28;
+  --surface-soft: rgba(12, 22, 34, 0.86);
+  --surface-muted: #122031;
+  --surface-border: rgba(148, 163, 184, 0.18);
+  --surface-shadow: 0 12px 32px rgba(2, 6, 23, 0.32);
+  --text-muted: #94a3b8;
+  --text-soft: #cbd5e1;
+  --hero-surface: linear-gradient(
+    145deg,
+    rgba(11, 25, 37, 0.98),
+    rgba(15, 26, 40, 0.98) 58%,
+    rgba(18, 32, 49, 0.96)
+  );
+  --hero-panel: rgba(15, 26, 40, 0.92);
+  --hero-card: #e8eef7;
+  --hero-card-fg: #08111d;
+  --app-shell-bg: radial-gradient(circle at top, rgba(52, 211, 153, 0.2), transparent 26%),
+    linear-gradient(180deg, #07111d 0%, #091320 100%);
+  --app-panel: rgba(8, 17, 29, 0.78);
+  --app-dock-bg: rgba(8, 17, 29, 0.88);
+  --app-dock-border: rgba(71, 85, 105, 0.46);
+  --landing-bg: radial-gradient(circle at top, rgba(16, 185, 129, 0.18), transparent 36%),
+    linear-gradient(180deg, #08111d 0%, #0b1420 100%);
+  --success-surface: #0f2d28;
+  --success-border: #1f5f52;
+  --danger-surface: #32141d;
+  --danger-border: #5b2230;
+  --selection-bg: #34d399;
+  --selection-hover-bg: #6ee7b7;
+  --selection-fg: #03130f;
+  --selection-muted: rgba(52, 211, 153, 0.16);
+  --selection-shadow: 0 10px 24px rgba(16, 185, 129, 0.16);
+  --button-primary-bg: var(--selection-bg);
+  --button-primary-hover-bg: var(--selection-hover-bg);
+  --button-primary-border: var(--selection-bg);
+  --button-primary-fg: var(--selection-fg);
+  --button-primary-shadow: var(--selection-shadow);
+  --button-secondary-bg: #18293d;
+  --button-secondary-hover-bg: #213449;
+  --button-secondary-border: #35506a;
+  --button-secondary-hover-border: #4f6a83;
+  --button-secondary-fg: #f8fbff;
+  --button-secondary-hover-fg: #f8fbff;
+  --button-secondary-shadow: 0 6px 18px rgba(2, 6, 23, 0.24);
+  --button-success-bg: #10b981;
+  --button-success-hover-bg: #34d399;
+  --button-success-border: #10b981;
+  --button-success-fg: #03130f;
+  --button-success-shadow: 0 8px 20px rgba(16, 185, 129, 0.16);
+  --button-danger-bg: #34131d;
+  --button-danger-hover-bg: #441927;
+  --button-danger-border: #5b2230;
+  --button-danger-hover-border: #7f3347;
+  --button-danger-fg: #fecdd3;
+  --button-danger-hover-fg: #ffe4e6;
+  --button-danger-shadow: 0 8px 20px rgba(2, 6, 23, 0.25);
+  --badge-default-bg: #e8eef7;
+  --badge-default-fg: #08111d;
+  --badge-subtle-bg: #17283d;
+  --badge-subtle-fg: #cbd5e1;
+  --badge-success-bg: #10372f;
+  --badge-success-fg: #9df0cf;
+  --badge-danger-bg: #3b1620;
+  --badge-danger-fg: #fecdd3;
+  --badge-warning-bg: #402c10;
+  --badge-warning-fg: #fcd34d;
+}
+
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0f172a;
-    --foreground: #edf2f7;
+  :root:not([data-color-mode]) {
+    color-scheme: dark;
+    --background: #08111d;
+    --foreground: #e8eef7;
+    --shell-bg: #08111d;
+    --shell-header-bg: rgba(8, 17, 29, 0.9);
+    --surface: #0f1a28;
+    --surface-soft: rgba(12, 22, 34, 0.86);
+    --surface-muted: #122031;
+    --surface-border: rgba(148, 163, 184, 0.18);
+    --surface-shadow: 0 12px 32px rgba(2, 6, 23, 0.32);
+    --text-muted: #94a3b8;
+    --text-soft: #cbd5e1;
+    --app-shell-bg: radial-gradient(circle at top, rgba(52, 211, 153, 0.2), transparent 26%),
+      linear-gradient(180deg, #07111d 0%, #091320 100%);
+    --app-panel: rgba(8, 17, 29, 0.78);
+    --app-dock-bg: rgba(8, 17, 29, 0.88);
+    --app-dock-border: rgba(71, 85, 105, 0.46);
+    --success-surface: #0f2d28;
+    --success-border: #1f5f52;
+    --danger-surface: #32141d;
+    --danger-border: #5b2230;
+    --selection-bg: #34d399;
+    --selection-hover-bg: #6ee7b7;
+    --selection-fg: #03130f;
+    --selection-muted: rgba(52, 211, 153, 0.16);
+    --selection-shadow: 0 10px 24px rgba(16, 185, 129, 0.16);
+    --button-primary-bg: var(--selection-bg);
+    --button-primary-hover-bg: var(--selection-hover-bg);
+    --button-primary-border: var(--selection-bg);
+    --button-primary-fg: var(--selection-fg);
+    --button-primary-shadow: var(--selection-shadow);
+    --button-secondary-bg: #18293d;
+    --button-secondary-hover-bg: #213449;
+    --button-secondary-border: #35506a;
+    --button-secondary-hover-border: #4f6a83;
+    --button-secondary-fg: #f8fbff;
+    --button-secondary-hover-fg: #f8fbff;
+    --button-secondary-shadow: 0 6px 18px rgba(2, 6, 23, 0.24);
+    --button-success-bg: #10b981;
+    --button-success-hover-bg: #34d399;
+    --button-success-border: #10b981;
+    --button-success-fg: #03130f;
+    --button-success-shadow: 0 8px 20px rgba(16, 185, 129, 0.16);
+    --button-danger-bg: #34131d;
+    --button-danger-hover-bg: #441927;
+    --button-danger-border: #5b2230;
+    --button-danger-hover-border: #7f3347;
+    --button-danger-fg: #fecdd3;
+    --button-danger-hover-fg: #ffe4e6;
+    --button-danger-shadow: 0 8px 20px rgba(2, 6, 23, 0.25);
+    --badge-default-bg: #e8eef7;
+    --badge-default-fg: #08111d;
+    --badge-subtle-bg: #17283d;
+    --badge-subtle-fg: #cbd5e1;
+    --badge-success-bg: #10372f;
+    --badge-success-fg: #9df0cf;
+    --badge-danger-bg: #3b1620;
+    --badge-danger-fg: #fecdd3;
+    --badge-warning-bg: #402c10;
+    --badge-warning-fg: #fcd34d;
   }
 }
 
@@ -32,6 +233,100 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+}
+
+:root[data-color-mode="dark"] .bg-white {
+  background-color: #0f1a28;
+}
+
+:root[data-color-mode="dark"] .bg-white\/70 {
+  background-color: rgba(15, 26, 40, 0.72);
+}
+
+:root[data-color-mode="dark"] .bg-white\/80,
+:root[data-color-mode="dark"] .bg-white\/85,
+:root[data-color-mode="dark"] .bg-white\/90,
+:root[data-color-mode="dark"] .bg-white\/92 {
+  background-color: rgba(15, 26, 40, 0.88);
+}
+
+:root[data-color-mode="dark"] .bg-slate-50,
+:root[data-color-mode="dark"] .bg-slate-50\/70,
+:root[data-color-mode="dark"] .bg-slate-50\/80,
+:root[data-color-mode="dark"] .bg-slate-50\/85 {
+  background-color: #122031;
+}
+
+:root[data-color-mode="dark"] .bg-slate-100 {
+  background-color: #17283d;
+}
+
+:root[data-color-mode="dark"] .text-slate-950 {
+  color: #e8eef7;
+}
+
+:root[data-color-mode="dark"] .text-slate-900 {
+  color: #dbe6f5;
+}
+
+:root[data-color-mode="dark"] .text-slate-800,
+:root[data-color-mode="dark"] .text-slate-700,
+:root[data-color-mode="dark"] .text-slate-600 {
+  color: #cbd5e1;
+}
+
+:root[data-color-mode="dark"] .text-slate-500,
+:root[data-color-mode="dark"] .text-slate-400 {
+  color: #94a3b8;
+}
+
+:root[data-color-mode="dark"] .border-slate-200,
+:root[data-color-mode="dark"] .border-slate-300,
+:root[data-color-mode="dark"] .border-slate-900\/8,
+:root[data-color-mode="dark"] .border-slate-900\/12 {
+  border-color: rgba(148, 163, 184, 0.18);
+}
+
+:root[data-color-mode="dark"] .bg-emerald-50,
+:root[data-color-mode="dark"] .bg-emerald-50\/80,
+:root[data-color-mode="dark"] .bg-emerald-50\/90,
+:root[data-color-mode="dark"] .bg-emerald-100 {
+  background-color: #10372f;
+}
+
+:root[data-color-mode="dark"] .text-emerald-700,
+:root[data-color-mode="dark"] .text-emerald-800,
+:root[data-color-mode="dark"] .text-emerald-900 {
+  color: #9df0cf;
+}
+
+:root[data-color-mode="dark"] .border-emerald-100,
+:root[data-color-mode="dark"] .border-emerald-200,
+:root[data-color-mode="dark"] .border-emerald-700 {
+  border-color: #1f5f52;
+}
+
+:root[data-color-mode="dark"] .bg-rose-50,
+:root[data-color-mode="dark"] .bg-rose-100 {
+  background-color: #34131d;
+}
+
+:root[data-color-mode="dark"] .text-rose-700,
+:root[data-color-mode="dark"] .text-rose-800 {
+  color: #fecdd3;
+}
+
+:root[data-color-mode="dark"] .border-rose-200,
+:root[data-color-mode="dark"] .border-rose-400 {
+  border-color: #7f3347;
+}
+
+:root[data-color-mode="dark"] .bg-amber-100 {
+  background-color: #402c10;
+}
+
+:root[data-color-mode="dark"] .text-amber-800 {
+  color: #fcd34d;
 }
 
 a {

@@ -183,15 +183,16 @@ export async function createRecurringTransaction(input: {
   startDate: string;
   endDate?: string;
 }) {
+  const { accessToken, workspaceId, ...payload } = input;
   const response = await fetch(
-    `${getApiBaseUrl()}/workspaces/${input.workspaceId}/recurring-transactions`,
+    `${getApiBaseUrl()}/workspaces/${workspaceId}/recurring-transactions`,
     {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${input.accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(input),
+      body: JSON.stringify(payload),
       cache: "no-store",
     },
   );
@@ -224,15 +225,16 @@ export async function updateRecurringTransaction(input: {
   endDate?: string;
   isActive: boolean;
 }) {
+  const { accessToken, workspaceId, recurringTransactionId, ...payload } = input;
   const response = await fetch(
-    `${getApiBaseUrl()}/workspaces/${input.workspaceId}/recurring-transactions/${input.recurringTransactionId}`,
+    `${getApiBaseUrl()}/workspaces/${workspaceId}/recurring-transactions/${recurringTransactionId}`,
     {
       method: "PATCH",
       headers: {
-        Authorization: `Bearer ${input.accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(input),
+      body: JSON.stringify(payload),
       cache: "no-store",
     },
   );

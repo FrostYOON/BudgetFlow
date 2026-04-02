@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppButtonLink } from "@/components/ui/app-button";
 import { getAppSession } from "@/lib/auth/session";
 
 export default async function JoinWorkspacePage({
@@ -27,26 +27,29 @@ export default async function JoinWorkspacePage({
 
           <div className="mt-8 space-y-3">
             {session ? (
-              <Link
+              <AppButtonLink
                 href={next}
-                className="inline-flex w-full items-center justify-center rounded-full bg-emerald-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300"
+                tone="success"
+                className="w-full"
               >
                 Join workspace
-              </Link>
+              </AppButtonLink>
             ) : (
               <>
-                <Link
+                <AppButtonLink
                   href={`/sign-in?next=${encodeURIComponent(next)}`}
-                  className="inline-flex w-full items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                  tone="primary"
+                  className="w-full"
                 >
                   Sign in to join
-                </Link>
-                <Link
+                </AppButtonLink>
+                <AppButtonLink
                   href={`/sign-up?next=${encodeURIComponent(next)}`}
-                  className="inline-flex w-full items-center justify-center rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+                  tone="secondary"
+                  className="w-full"
                 >
                   Create account
-                </Link>
+                </AppButtonLink>
               </>
             )}
           </div>

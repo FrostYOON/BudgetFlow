@@ -5,6 +5,8 @@ import {
   AUTH_REFRESH_COOKIE_NAME,
 } from "@/lib/auth/constants";
 
+const POST_REDIRECT_STATUS = 303;
+
 export async function POST(request: NextRequest) {
   const redirectTo = String(
     (await request.formData()).get("redirectTo") ?? "/sign-in",
@@ -17,7 +19,7 @@ export async function POST(request: NextRequest) {
 
   const redirectUrl = new URL(redirectTo, request.url);
   redirectUrl.searchParams.set("toast", "signed_out");
-  const response = NextResponse.redirect(redirectUrl);
+  const response = NextResponse.redirect(redirectUrl, POST_REDIRECT_STATUS);
 
   response.cookies.set(AUTH_ACCESS_COOKIE_NAME, "", {
     httpOnly: true,

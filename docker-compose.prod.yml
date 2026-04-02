@@ -1,0 +1,51 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    image: budgetflow-api:latest
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      API_PREFIX: ${API_PREFIX:-api/v1}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_ACCESS_EXPIRES_IN_SECONDS: ${JWT_ACCESS_EXPIRES_IN_SECONDS:-3600}
+      JWT_REFRESH_EXPIRES_IN_SECONDS: ${JWT_REFRESH_EXPIRES_IN_SECONDS:-2592000}
+      AUTH_REFRESH_COOKIE_NAME: ${AUTH_REFRESH_COOKIE_NAME:-budgetflow_refresh_token}
+      AUTH_REFRESH_COOKIE_DOMAIN: ${AUTH_REFRESH_COOKIE_DOMAIN}
+      AUTH_REFRESH_COOKIE_SAME_SITE: ${AUTH_REFRESH_COOKIE_SAME_SITE:-lax}
+      AUTH_REFRESH_COOKIE_SECURE: ${AUTH_REFRESH_COOKIE_SECURE:-true}
+      AUTH_EXPOSE_REFRESH_TOKEN_IN_RESPONSE: ${AUTH_EXPOSE_REFRESH_TOKEN_IN_RESPONSE:-false}
+      TRUST_PROXY: ${TRUST_PROXY:-true}
+      PASSWORD_HASH_SALT_ROUNDS: ${PASSWORD_HASH_SALT_ROUNDS:-10}
+      RECURRING_EXECUTION_SCHEDULER_ENABLED: ${RECURRING_EXECUTION_SCHEDULER_ENABLED:-false}
+      RECURRING_EXECUTION_CRON: ${RECURRING_EXECUTION_CRON:-5,20,35,50 * * * *}
+      RECURRING_FAILURE_NOTIFICATION_WEBHOOK_URL: ${RECURRING_FAILURE_NOTIFICATION_WEBHOOK_URL:-}
+      RECURRING_FAILURE_NOTIFICATION_THROTTLE_MINUTES: ${RECURRING_FAILURE_NOTIFICATION_THROTTLE_MINUTES:-60}
+    ports:
+      - "${API_PORT:-3000}:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/${API_PREFIX:-api/v1} >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    image: budgetflow-web:latest
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      BUDGETFLOW_API_URL: ${BUDGETFLOW_API_URL:-http://api:3000/api/v1}
+    ports:
+      - "${WEB_PORT:-3001}:3001"

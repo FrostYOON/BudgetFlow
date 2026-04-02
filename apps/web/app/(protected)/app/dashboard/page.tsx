@@ -1,4 +1,13 @@
 import { redirect } from "next/navigation";
+import {
+  ArrowLeft,
+  ArrowRight,
+  ArrowLeftRight,
+  BarChart3,
+  PiggyBank,
+  Plus,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { DashboardTransactionCalendar } from "@/components/dashboard/dashboard-transaction-calendar";
 import {
   Reveal,
@@ -9,6 +18,7 @@ import { AppBadge } from "@/components/ui/app-badge";
 import { AppButtonLink } from "@/components/ui/app-button";
 import { AppMetricSurface, AppSurface } from "@/components/ui/app-surface";
 import { getAppSession } from "@/lib/auth/session";
+import { getDateDisplayLocale, getNumberDisplayLocale } from "@/lib/display-locale";
 import {
   fetchWorkspaceDashboard,
   formatCurrency,
@@ -71,12 +81,62 @@ export default async function DashboardPage({
   const prev = getPreviousMonth(dashboard.period.year, dashboard.period.month);
   const next = getNextMonth(dashboard.period.year, dashboard.period.month);
   const currency = session.currentWorkspace.baseCurrency;
-  const locale = session.user.locale === "ko-KR" ? "ko-KR" : "en-CA";
+  const isPersonalWorkspace = session.currentWorkspace.type === "PERSONAL";
+  const numberLocale = getNumberDisplayLocale(session.user.locale);
+  const dateLocale = getDateDisplayLocale();
   const settlementsHref = `/app/settlements?year=${dashboard.period.year}&month=${dashboard.period.month}`;
   const reportsHref = `/app/reports?year=${dashboard.period.year}&month=${dashboard.period.month}`;
+  const budgetsHref = `/app/budgets?year=${dashboard.period.year}&month=${dashboard.period.month}`;
   const composeTransactionHref = `/app/transactions?year=${dashboard.period.year}&month=${dashboard.period.month}&type=EXPENSE&visibility=ALL&compose=1`;
   const visibleInsights = dashboard.insights.slice(0, 3);
   const hiddenInsightsCount = Math.max(dashboard.insights.length - visibleInsights.length, 0);
+  const monthTransactionCount = monthlyTransactions.items.length;
+  const primaryActions: Array<{
+    href: string;
+    icon: LucideIcon;
+    label: string;
+    tone: "primary" | "secondary" | "success";
+  }> = isPersonalWorkspace
+    ? [
+        {
+          href: composeTransactionHref,
+          icon: Plus,
+          label: "Add entry",
+          tone: "primary",
+        },
+        {
+          href: budgetsHref,
+          icon: PiggyBank,
+          label: "Budget",
+          tone: "success",
+        },
+        {
+          href: reportsHref,
+          icon: BarChart3,
+          label: "Report",
+          tone: "secondary",
+        },
+      ]
+    : [
+        {
+          href: composeTransactionHref,
+          icon: Plus,
+          label: "Add entry",
+          tone: "primary",
+        },
+        {
+          href: settlementsHref,
+          icon: ArrowLeftRight,
+          label: "Settle",
+          tone: "secondary",
+        },
+        {
+          href: reportsHref,
+          icon: BarChart3,
+          label: "Report",
+          tone: "secondary",
+        },
+      ];
 
   const budgetUsedPct =
     Number(dashboard.summary.monthlyBudget) > 0
@@ -92,40 +152,36 @@ export default async function DashboardPage({
     <div className="space-y-8">
       <Reveal delay={0.02}>
         <AppSurface padding="lg">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
                 Dashboard
               </p>
-              <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+              <h1 className="mt-3 hidden text-3xl font-semibold tracking-tight text-slate-950 lg:block">
                 {session.currentWorkspace.name}
               </h1>
-              <p className="mt-3 text-sm text-slate-500">
-                {formatMonthLabel(dashboard.period.year, dashboard.period.month)}
-              </p>
+              <h1 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950 lg:hidden">
+                Monthly overview
+              </h1>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <AppBadge tone="default" className="px-4 py-2 text-sm font-medium lg:hidden">
+                  {formatMonthLabel(dashboard.period.year, dashboard.period.month)}
+                </AppBadge>
+                <AppBadge tone="subtle">
+                  {isPersonalWorkspace ? "Personal" : "Shared"}
+                </AppBadge>
+              </div>
             </div>
 
             <div className="hidden items-center gap-3 text-sm lg:flex">
               <AppButtonLink
-                href={settlementsHref}
-                tone="success"
-                size="sm"
-              >
-                Settlements
-              </AppButtonLink>
-              <AppButtonLink
-                href={reportsHref}
-                tone="secondary"
-                size="sm"
-              >
-                Report
-              </AppButtonLink>
-              <AppButtonLink
                 href={`/app/dashboard?year=${prev.year}&month=${prev.month}`}
                 tone="secondary"
                 size="sm"
+                className="gap-2"
               >
-                Previous
+                <ArrowLeft className="h-4 w-4" strokeWidth={2.2} />
+                Prev
               </AppButtonLink>
               <AppBadge tone="default" className="px-4 py-2 text-sm font-medium">
                 {formatMonthLabel(dashboard.period.year, dashboard.period.month)}
@@ -134,38 +190,54 @@ export default async function DashboardPage({
                 href={`/app/dashboard?year=${next.year}&month=${next.month}`}
                 tone="secondary"
                 size="sm"
+                className="gap-2"
               >
                 Next
+                <ArrowRight className="h-4 w-4" strokeWidth={2.2} />
               </AppButtonLink>
             </div>
           </div>
 
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:hidden">
-            <AppButtonLink href={composeTransactionHref} tone="primary" className="w-full">
-              Add transaction
+          <div className="mt-5 grid grid-cols-3 gap-2.5 sm:gap-3">
+            {primaryActions.map((action) => {
+              const Icon = action.icon;
+
+              return (
+                <AppButtonLink
+                  key={action.href}
+                  href={action.href}
+                  tone={action.tone}
+                  className="w-full flex-col gap-2 rounded-[1.15rem] px-3 py-3 text-center sm:flex-row sm:justify-start sm:gap-3 sm:rounded-[1.35rem] sm:px-4 sm:py-4 sm:text-left"
+                >
+                  <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-black/10 sm:h-10 sm:w-10 sm:rounded-2xl">
+                    <Icon className="h-4 w-4" strokeWidth={2.2} />
+                  </span>
+                  <span className="text-xs font-semibold sm:text-sm">{action.label}</span>
+                </AppButtonLink>
+              );
+            })}
+          </div>
+
+          <div className="mt-4 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 lg:hidden">
+            <AppButtonLink
+              href={`/app/dashboard?year=${prev.year}&month=${prev.month}`}
+              tone="secondary"
+              className="w-full gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" strokeWidth={2.2} />
+              Prev
             </AppButtonLink>
-            <AppButtonLink href={settlementsHref} tone="secondary" className="w-full">
-              View settlements
+            <AppBadge tone="default" className="justify-center px-4 py-2 text-sm font-medium">
+              {formatMonthLabel(dashboard.period.year, dashboard.period.month)}
+            </AppBadge>
+            <AppButtonLink
+              href={`/app/dashboard?year=${next.year}&month=${next.month}`}
+              tone="secondary"
+              className="w-full gap-2"
+            >
+              Next
+              <ArrowRight className="h-4 w-4" strokeWidth={2.2} />
             </AppButtonLink>
-            <AppButtonLink href={reportsHref} tone="secondary" className="w-full">
-              Monthly report
-            </AppButtonLink>
-            <div className="flex gap-3">
-              <AppButtonLink
-                href={`/app/dashboard?year=${prev.year}&month=${prev.month}`}
-                tone="secondary"
-                className="flex-1"
-              >
-                Prev
-              </AppButtonLink>
-              <AppButtonLink
-                href={`/app/dashboard?year=${next.year}&month=${next.month}`}
-                tone="secondary"
-                className="flex-1"
-              >
-                Next
-              </AppButtonLink>
-            </div>
           </div>
         </AppSurface>
       </Reveal>
@@ -188,7 +260,7 @@ export default async function DashboardPage({
             {formatCurrency(
               dashboard.summary.remainingBudget,
               currency,
-              locale,
+              numberLocale,
             )}
           </p>
           </AppMetricSurface>
@@ -196,16 +268,26 @@ export default async function DashboardPage({
 
         <StaggerItem>
           <AppMetricSurface>
-          <p className="text-sm text-slate-500">Shared spend</p>
+          <p className="text-sm text-slate-500">
+            {isPersonalWorkspace ? "Total expense" : "Shared spend"}
+          </p>
           <p className="mt-3 text-4xl font-semibold tracking-tight text-slate-950">
-            {formatCurrency(dashboard.summary.sharedExpense, currency, locale)}
+            {formatCurrency(
+              isPersonalWorkspace
+                ? dashboard.summary.totalExpense
+                : dashboard.summary.sharedExpense,
+              currency,
+              numberLocale,
+            )}
           </p>
           <p className="mt-3 text-sm text-slate-500">
-            Personal spend{" "}
+            {isPersonalWorkspace ? "Income " : "Personal spend "}
             {formatCurrency(
-              dashboard.summary.personalExpense,
+              isPersonalWorkspace
+                ? dashboard.summary.totalIncome
+                : dashboard.summary.personalExpense,
               currency,
-              locale,
+              numberLocale,
             )}
           </p>
           </AppMetricSurface>
@@ -215,14 +297,14 @@ export default async function DashboardPage({
           <AppMetricSurface className="hidden sm:block">
           <p className="text-sm text-slate-500">Monthly budget</p>
           <p className="mt-3 text-4xl font-semibold tracking-tight text-slate-950">
-            {formatCurrency(dashboard.summary.monthlyBudget, currency, locale)}
+            {formatCurrency(dashboard.summary.monthlyBudget, currency, numberLocale)}
           </p>
           <p className="mt-3 text-sm text-slate-500">
             Allocated{" "}
             {formatCurrency(
               dashboard.summary.allocatedBudget,
               currency,
-              locale,
+              numberLocale,
             )}
           </p>
           </AppMetricSurface>
@@ -230,13 +312,15 @@ export default async function DashboardPage({
 
         <StaggerItem>
           <AppMetricSurface className="hidden sm:block">
-          <p className="text-sm text-slate-500">Open insights</p>
+          <p className="text-sm text-slate-500">
+            {isPersonalWorkspace ? "Transactions this month" : "Open insights"}
+          </p>
           <p className="mt-3 text-4xl font-semibold tracking-tight text-slate-950">
-            {dashboard.insights.length}
+            {isPersonalWorkspace ? monthTransactionCount : dashboard.insights.length}
           </p>
           <p className="mt-3 text-sm text-slate-500">
-            Top expense{" "}
-            {formatCurrency(dashboard.summary.totalExpense, currency, locale)}
+            {isPersonalWorkspace ? "Recent activity " : "Top expense "}
+            {formatCurrency(dashboard.summary.totalExpense, currency, numberLocale)}
           </p>
           </AppMetricSurface>
         </StaggerItem>
@@ -262,7 +346,7 @@ export default async function DashboardPage({
                 Monthly budget
               </p>
               <p className="mt-2 text-lg font-semibold text-slate-950">
-                {formatCurrency(dashboard.summary.monthlyBudget, currency, locale)}
+                {formatCurrency(dashboard.summary.monthlyBudget, currency, numberLocale)}
               </p>
             </div>
             <div className="rounded-2xl bg-white px-4 py-4">
@@ -277,133 +361,210 @@ export default async function DashboardPage({
         </AppSurface>
       </Reveal>
 
-      <Reveal delay={0.12}>
-        <AppSurface padding="lg" className="lg:hidden">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h2 className="text-lg font-semibold text-slate-950">
-                Shared settlement
-              </h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Check balances and suggested transfers from the settlements page.
-              </p>
-            </div>
-            <AppBadge tone="success">
-              {formatCurrency(
-                dashboard.settlement.totalSharedExpense,
-                currency,
-                locale,
-              )}
-            </AppBadge>
-          </div>
-
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <div className="rounded-2xl bg-slate-50 px-4 py-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-                People involved
-              </p>
-              <p className="mt-2 text-lg font-semibold text-slate-950">
-                {dashboard.settlement.balances.length}
-              </p>
-            </div>
-            <div className="rounded-2xl bg-slate-50 px-4 py-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-                Suggested transfers
-              </p>
-              <p className="mt-2 text-lg font-semibold text-slate-950">
-                {dashboard.settlement.suggestedTransfers.length}
-              </p>
-            </div>
-          </div>
-
-          <AppButtonLink href={settlementsHref} tone="secondary" className="mt-4 w-full">
-            Open settlements
-          </AppButtonLink>
-        </AppSurface>
-      </Reveal>
-
-      <Reveal delay={0.14}>
-        <AppSurface padding="lg" className="hidden lg:block">
-          <div className="flex items-center justify-between gap-3 border-b border-slate-900/8 pb-4">
-            <div>
-              <h2 className="text-lg font-semibold text-slate-950">
-                Shared settlement
-              </h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Based on shared expense splits this month.
-              </p>
-            </div>
-            <AppBadge tone="success">
-              {formatCurrency(
-                dashboard.settlement.totalSharedExpense,
-                currency,
-                locale,
-              )}
-            </AppBadge>
-          </div>
-
-          <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-            <div className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                Balances
-              </p>
-              {dashboard.settlement.balances.map((balance) => {
-                const isPositive = Number(balance.netAmount) >= 0;
-                return (
-                  <div
-                    key={balance.userId}
-                    className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-4"
-                  >
-                    <p className="text-sm font-semibold text-slate-950">
-                      {balance.name}
-                    </p>
-                    <p
-                      className={`text-sm font-semibold ${
-                        isPositive ? "text-emerald-700" : "text-rose-600"
-                      }`}
-                    >
-                      {isPositive ? "+" : ""}
-                      {formatCurrency(balance.netAmount, currency, locale)}
-                    </p>
-                  </div>
-                );
-              })}
+      {isPersonalWorkspace ? (
+        <Reveal delay={0.12}>
+          <AppSurface padding="lg">
+            <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-900/8 pb-4">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-950">
+                  Personal focus
+                </h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  Keep daily entry, monthly budget, and report review close together.
+                </p>
+              </div>
+              <AppBadge tone="success">
+                {monthTransactionCount} transaction{monthTransactionCount === 1 ? "" : "s"}
+              </AppBadge>
             </div>
 
-            <div className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                Suggested transfers
-              </p>
-              {dashboard.settlement.suggestedTransfers.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm text-slate-500">
-                  Everyone is settled for this month.
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-2xl bg-slate-50 px-4 py-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                  Budget remaining
+                </p>
+                <p className="mt-2 text-lg font-semibold text-slate-950">
+                  {formatCurrency(
+                    dashboard.summary.remainingBudget,
+                    currency,
+                    numberLocale,
+                  )}
+                </p>
+              </div>
+              <div className="rounded-2xl bg-slate-50 px-4 py-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                  Income logged
+                </p>
+                <p className="mt-2 text-lg font-semibold text-slate-950">
+                  {formatCurrency(
+                    dashboard.summary.totalIncome,
+                    currency,
+                    numberLocale,
+                  )}
+                </p>
+              </div>
+              <div className="rounded-2xl bg-slate-50 px-4 py-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                  Expense logged
+                </p>
+                <p className="mt-2 text-lg font-semibold text-slate-950">
+                  {formatCurrency(
+                    dashboard.summary.totalExpense,
+                    currency,
+                    numberLocale,
+                  )}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-5 flex flex-wrap gap-3">
+              <AppButtonLink href={composeTransactionHref} tone="primary" size="sm" className="gap-2">
+                <Plus className="h-4 w-4" strokeWidth={2.2} />
+                Add entry
+              </AppButtonLink>
+              <AppButtonLink href={budgetsHref} tone="secondary" size="sm" className="gap-2">
+                <PiggyBank className="h-4 w-4" strokeWidth={2.2} />
+                Budget
+              </AppButtonLink>
+              <AppButtonLink href={reportsHref} tone="secondary" size="sm" className="gap-2">
+                <BarChart3 className="h-4 w-4" strokeWidth={2.2} />
+                Report
+              </AppButtonLink>
+            </div>
+          </AppSurface>
+        </Reveal>
+      ) : (
+        <>
+          <Reveal delay={0.12}>
+            <AppSurface padding="lg" className="lg:hidden">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-950">
+                    Shared settlement
+                  </h2>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Check balances and suggested transfers from the settlements page.
+                  </p>
                 </div>
-              ) : (
-                dashboard.settlement.suggestedTransfers.map((transfer) => (
-                  <div
-                    key={`${transfer.fromUserId}-${transfer.toUserId}`}
-                    className="rounded-2xl border border-slate-900/8 px-4 py-4"
-                  >
-                    <p className="text-sm font-semibold text-slate-950">
-                      {transfer.fromName} → {transfer.toName}
-                    </p>
-                    <p className="mt-1 text-sm text-slate-500">
-                      {formatCurrency(transfer.amount, currency, locale)}
-                    </p>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </AppSurface>
-      </Reveal>
+                <AppBadge tone="success">
+                  {formatCurrency(
+                    dashboard.settlement.totalSharedExpense,
+                    currency,
+                    numberLocale,
+                  )}
+                </AppBadge>
+              </div>
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <div className="rounded-2xl bg-slate-50 px-4 py-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                    People involved
+                  </p>
+                  <p className="mt-2 text-lg font-semibold text-slate-950">
+                    {dashboard.settlement.balances.length}
+                  </p>
+                </div>
+                <div className="rounded-2xl bg-slate-50 px-4 py-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                    Suggested transfers
+                  </p>
+                  <p className="mt-2 text-lg font-semibold text-slate-950">
+                    {dashboard.settlement.suggestedTransfers.length}
+                  </p>
+                </div>
+              </div>
+
+              <AppButtonLink href={settlementsHref} tone="secondary" className="mt-4 w-full gap-2">
+                <ArrowLeftRight className="h-4 w-4" strokeWidth={2.2} />
+                Open settlements
+              </AppButtonLink>
+            </AppSurface>
+          </Reveal>
+
+          <Reveal delay={0.14}>
+            <AppSurface padding="lg" className="hidden lg:block">
+              <div className="flex items-center justify-between gap-3 border-b border-slate-900/8 pb-4">
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-950">
+                    Shared settlement
+                  </h2>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Based on shared expense splits this month.
+                  </p>
+                </div>
+                <AppBadge tone="success">
+                  {formatCurrency(
+                    dashboard.settlement.totalSharedExpense,
+                    currency,
+                    numberLocale,
+                  )}
+                </AppBadge>
+              </div>
+
+              <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                    Balances
+                  </p>
+                  {dashboard.settlement.balances.map((balance) => {
+                    const isPositive = Number(balance.netAmount) >= 0;
+                    return (
+                      <div
+                        key={balance.userId}
+                        className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-4"
+                      >
+                        <p className="text-sm font-semibold text-slate-950">
+                          {balance.name}
+                        </p>
+                        <p
+                          className={`text-sm font-semibold ${
+                            isPositive ? "text-emerald-700" : "text-rose-600"
+                          }`}
+                        >
+                          {isPositive ? "+" : ""}
+                          {formatCurrency(balance.netAmount, currency, numberLocale)}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                    Suggested transfers
+                  </p>
+                  {dashboard.settlement.suggestedTransfers.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm text-slate-500">
+                      Everyone is settled for this month.
+                    </div>
+                  ) : (
+                    dashboard.settlement.suggestedTransfers.map((transfer) => (
+                      <div
+                        key={`${transfer.fromUserId}-${transfer.toUserId}`}
+                        className="rounded-2xl border border-slate-900/8 px-4 py-4"
+                      >
+                        <p className="text-sm font-semibold text-slate-950">
+                          {transfer.fromName} → {transfer.toName}
+                        </p>
+                        <p className="mt-1 text-sm text-slate-500">
+                          {formatCurrency(transfer.amount, currency, numberLocale)}
+                        </p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </AppSurface>
+          </Reveal>
+        </>
+      )}
 
       <section className="grid gap-8 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
         <div className="space-y-8">
           <Reveal delay={0.04}>
             <DashboardTransactionCalendar
               currency={currency}
-              locale={locale}
+              locale={dateLocale}
               month={dashboard.period.month}
               nextHref={`/app/dashboard?year=${next.year}&month=${next.month}`}
               previousHref={`/app/dashboard?year=${prev.year}&month=${prev.month}`}
@@ -442,7 +603,7 @@ export default async function DashboardPage({
                       </p>
                     </div>
                     <p className="text-sm font-semibold text-slate-950">
-                      {formatCurrency(category.amount, currency, locale)}
+                      {formatCurrency(category.amount, currency, numberLocale)}
                     </p>
                   </div>
                 ))
@@ -479,7 +640,7 @@ export default async function DashboardPage({
                       </p>
                     </div>
                     <p className="text-sm font-semibold text-slate-950">
-                      {formatCurrency(transaction.amount, currency, locale)}
+                      {formatCurrency(transaction.amount, currency, numberLocale)}
                     </p>
                   </div>
                 ))
@@ -539,7 +700,7 @@ export default async function DashboardPage({
                   {formatCurrency(
                     dashboard.summary.totalIncome,
                     currency,
-                    locale,
+                    numberLocale,
                   )}
                 </span>
               </div>
@@ -549,7 +710,7 @@ export default async function DashboardPage({
                   {formatCurrency(
                     dashboard.summary.totalExpense,
                     currency,
-                    locale,
+                    numberLocale,
                   )}
                 </span>
               </div>
@@ -559,7 +720,7 @@ export default async function DashboardPage({
                   {formatCurrency(
                     dashboard.summary.allocatedBudget,
                     currency,
-                    locale,
+                    numberLocale,
                   )}
                 </span>
               </div>
@@ -569,7 +730,7 @@ export default async function DashboardPage({
                   {formatCurrency(
                     dashboard.summary.unallocatedBudget,
                     currency,
-                    locale,
+                    numberLocale,
                   )}
                 </span>
               </div>

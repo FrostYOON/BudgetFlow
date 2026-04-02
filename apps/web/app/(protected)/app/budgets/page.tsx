@@ -69,7 +69,7 @@ function getQuickStatClassName(tone: QuickStatTone) {
     case "white":
       return "border-white/70 bg-white/90 text-slate-950";
     default:
-      return "border-slate-200 bg-slate-950 text-white";
+      return "border-[color:var(--selection-bg)] bg-[color:var(--selection-bg)] text-[color:var(--selection-fg)]";
   }
 }
 
@@ -118,7 +118,7 @@ function BudgetMobileSectionSummary({
   return (
     <div className="flex items-center justify-between gap-4">
       <div className="flex min-w-0 items-center gap-3">
-        <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-950 text-white">
+        <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--selection-bg)] text-[color:var(--selection-fg)] shadow-[var(--selection-shadow)]">
           <Icon className="h-4 w-4" strokeWidth={2.2} />
         </span>
         <div className="min-w-0">
@@ -205,11 +205,11 @@ export default async function BudgetsPage({
       <Reveal delay={0.02}>
         <AppSurface
           padding="lg"
-          className="overflow-hidden border-emerald-100 bg-[linear-gradient(145deg,rgba(236,253,245,0.96),rgba(255,255,255,1)_58%,rgba(241,245,249,0.92))]"
+          className="overflow-hidden border-[color:var(--success-border)] bg-[image:var(--hero-surface)]"
         >
           <div className="flex items-start justify-between gap-4">
             <div>
-              <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-slate-950 text-white shadow-[0_12px_30px_rgba(15,23,42,0.16)]">
+              <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[color:var(--selection-bg)] text-[color:var(--selection-fg)] shadow-[var(--selection-shadow)]">
                 <PiggyBank className="h-5 w-5" strokeWidth={2.2} />
               </span>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
@@ -247,7 +247,7 @@ export default async function BudgetsPage({
           </div>
 
           <div className="mt-6 grid gap-4 lg:grid-cols-[1.35fr_0.85fr]">
-            <div className="space-y-4 rounded-[1.75rem] border border-white/80 bg-white/90 p-5 shadow-[0_18px_40px_rgba(15,23,42,0.06)] backdrop-blur">
+            <div className="space-y-4 rounded-[1.75rem] border border-[color:var(--surface-border)] bg-[color:var(--hero-panel)] p-5 shadow-[var(--surface-shadow)] backdrop-blur">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-sm font-medium text-slate-500">Monthly total</p>
@@ -266,8 +266,14 @@ export default async function BudgetsPage({
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-[1.25rem] bg-slate-950 px-4 py-4 text-white">
-                  <p className="text-xs uppercase tracking-[0.2em] text-white/65">
+                <div
+                  className="rounded-[1.25rem] px-4 py-4"
+                  style={{
+                    backgroundColor: "var(--hero-card)",
+                    color: "var(--hero-card-fg)",
+                  }}
+                >
+                  <p className="text-xs uppercase tracking-[0.2em]" style={{ opacity: 0.7 }}>
                     Remaining
                   </p>
                   <p className="mt-2 text-2xl font-semibold tracking-tight">
@@ -297,7 +303,7 @@ export default async function BudgetsPage({
             </div>
 
             <div className="hidden gap-3 lg:grid">
-              <article className="rounded-[1.5rem] border border-slate-200 bg-white/85 px-4 py-4">
+              <article className="rounded-[1.5rem] border border-[color:var(--surface-border)] bg-[color:var(--hero-panel)] px-4 py-4">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-medium text-slate-500">Allocated</p>
                   <p className="text-sm font-semibold text-slate-950">
@@ -315,7 +321,7 @@ export default async function BudgetsPage({
                 </p>
               </article>
 
-              <article className="rounded-[1.5rem] border border-emerald-100 bg-emerald-50/80 px-4 py-4">
+              <article className="rounded-[1.5rem] border border-[color:var(--success-border)] bg-[color:var(--success-surface)] px-4 py-4">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-medium text-emerald-800">Spent</p>
                   <p className="text-sm font-semibold text-emerald-900">

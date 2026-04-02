@@ -19,6 +19,8 @@ const ONTARIO_TIME_ZONES = new Set([
   "America/Rainy_River",
 ]);
 
+const holidayMapCache = new Map<string, Promise<Map<string, HolidayInfo>>>();
+
 function normalizeLocale(locale?: string | null) {
   return locale?.toLowerCase() ?? "";
 }
@@ -108,32 +110,50 @@ export async function loadHolidayMap({
     return holidayMap;
   }
 
-  const { default: Holidays } = await import("date-holidays");
-  const holidays =
-    context.region === "KR"
-      ? new Holidays("KR", {
-          languages: [context.language],
-          timezone: context.timeZone ?? undefined,
-          types: ["public", "bank"],
-        })
-      : new Holidays("CA", "ON", {
-          languages: [context.language],
-          timezone: context.timeZone ?? undefined,
-          types: ["public", "bank"],
-        });
+  const cacheKey = JSON.stringify({
+    language: context.language,
+    region: context.region,
+    timeZone: context.timeZone,
+    years,
+  });
 
-  for (const year of years) {
-    for (const holiday of holidays.getHolidays(year, context.language)) {
-      const dateKey = holiday.start.toISOString().slice(0, 10);
-
-      if (!holidayMap.has(dateKey)) {
-        holidayMap.set(dateKey, {
-          name: holiday.name,
-          shortName: toShortHolidayName(holiday.name),
-        });
-      }
-    }
+  const cached = holidayMapCache.get(cacheKey);
+  if (cached) {
+    return new Map(await cached);
   }
 
-  return holidayMap;
+  const loadPromise = (async () => {
+    const { default: Holidays } = await import("date-holidays");
+    const holidays =
+      context.region === "KR"
+        ? new Holidays("KR", {
+            languages: [context.language],
+            timezone: context.timeZone ?? undefined,
+            types: ["public", "bank"],
+          })
+        : new Holidays("CA", "ON", {
+            languages: [context.language],
+            timezone: context.timeZone ?? undefined,
+            types: ["public", "bank"],
+          });
+
+    for (const year of years) {
+      for (const holiday of holidays.getHolidays(year, context.language)) {
+        const dateKey = holiday.start.toISOString().slice(0, 10);
+
+        if (!holidayMap.has(dateKey)) {
+          holidayMap.set(dateKey, {
+            name: holiday.name,
+            shortName: toShortHolidayName(holiday.name),
+          });
+        }
+      }
+    }
+
+    return holidayMap;
+  })();
+
+  holidayMapCache.set(cacheKey, loadPromise);
+
+  return new Map(await loadPromise);
 }

@@ -24,6 +24,9 @@ The highest-priority current work is mobile-first UX refinement and delivery-pla
 
 - delivery execution plan: [docs/DELIVERY_EXECUTION_PLAN.md](/Users/yoon-yongseol/WorkSpace/BudgetFlow/docs/DELIVERY_EXECUTION_PLAN.md)
 - product direction: [docs/PRODUCT_PLAN.md](/Users/yoon-yongseol/WorkSpace/BudgetFlow/docs/PRODUCT_PLAN.md)
+- user onboarding guide: [docs/USER_ONBOARDING_GUIDE.md](/Users/yoon-yongseol/WorkSpace/BudgetFlow/docs/USER_ONBOARDING_GUIDE.md)
+- user onboarding guide (ko): [docs/USER_ONBOARDING_GUIDE.ko.md](/Users/yoon-yongseol/WorkSpace/BudgetFlow/docs/USER_ONBOARDING_GUIDE.ko.md)
+- latest verification report: [docs/FEATURE_VERIFICATION_2026_03_31.md](/Users/yoon-yongseol/WorkSpace/BudgetFlow/docs/FEATURE_VERIFICATION_2026_03_31.md)
 
 ## Quick Start
 
@@ -112,3 +115,5 @@ BudgetFlow tracks active engineering work with GitHub Issues and GitHub Projects
 - current execution plan: [docs/DELIVERY_EXECUTION_PLAN.md](/Users/yoon-yongseol/WorkSpace/BudgetFlow/docs/DELIVERY_EXECUTION_PLAN.md)
 - issue and PR templates: [.github](/Users/yoon-yongseol/WorkSpace/BudgetFlow/.github)
 - deployment checklist: [docs/DEPLOYMENT_RELEASE_CHECKLIST.md](/Users/yoon-yongseol/WorkSpace/BudgetFlow/docs/DEPLOYMENT_RELEASE_CHECKLIST.md)
+- Vercel + Railway guide: [docs/DEPLOY_VERCEL_RAILWAY.md](/Users/yoon-yongseol/WorkSpace/BudgetFlow/docs/DEPLOY_VERCEL_RAILWAY.md)
+- self-hosted Docker guide: [docs/DEPLOY_SELF_HOSTED_COMPOSE.md](/Users/yoon-yongseol/WorkSpace/BudgetFlow/docs/DEPLOY_SELF_HOSTED_COMPOSE.md)

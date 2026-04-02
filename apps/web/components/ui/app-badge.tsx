@@ -9,15 +9,15 @@ function joinClasses(...values: Array<string | false | null | undefined>) {
 function getToneClassName(tone: BadgeTone) {
   switch (tone) {
     case "subtle":
-      return "bg-slate-100 text-slate-600";
+      return "bg-[color:var(--badge-subtle-bg)] text-[color:var(--badge-subtle-fg)]";
     case "success":
-      return "bg-emerald-100 text-emerald-800";
+      return "bg-[color:var(--badge-success-bg)] text-[color:var(--badge-success-fg)]";
     case "danger":
-      return "bg-rose-100 text-rose-800";
+      return "bg-[color:var(--badge-danger-bg)] text-[color:var(--badge-danger-fg)]";
     case "warning":
-      return "bg-amber-100 text-amber-800";
+      return "bg-[color:var(--badge-warning-bg)] text-[color:var(--badge-warning-fg)]";
     default:
-      return "bg-slate-950 text-white";
+      return "bg-[color:var(--badge-default-bg)] text-[color:var(--badge-default-fg)]";
   }
 }
 

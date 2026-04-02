@@ -11,13 +11,13 @@ function joinClasses(...values: Array<string | false | null | undefined>) {
 function getToneClassName(tone: ButtonTone) {
   switch (tone) {
     case "secondary":
-      return "border border-slate-300 text-slate-700 hover:border-slate-950 hover:text-slate-950";
+      return "border border-[color:var(--button-secondary-border)] bg-[color:var(--button-secondary-bg)] text-[color:var(--button-secondary-fg)] shadow-[var(--button-secondary-shadow)] hover:border-[color:var(--button-secondary-hover-border)] hover:bg-[color:var(--button-secondary-hover-bg)] hover:text-[color:var(--button-secondary-hover-fg)]";
     case "success":
-      return "bg-emerald-400 text-slate-950 hover:bg-emerald-300";
+      return "border border-[color:var(--button-success-border)] bg-[color:var(--button-success-bg)] text-[color:var(--button-success-fg)] shadow-[var(--button-success-shadow)] hover:bg-[color:var(--button-success-hover-bg)]";
     case "danger":
-      return "border border-rose-200 text-rose-700 hover:border-rose-400 hover:text-rose-800";
+      return "border border-[color:var(--button-danger-border)] bg-[color:var(--button-danger-bg)] text-[color:var(--button-danger-fg)] shadow-[var(--button-danger-shadow)] hover:border-[color:var(--button-danger-hover-border)] hover:bg-[color:var(--button-danger-hover-bg)] hover:text-[color:var(--button-danger-hover-fg)]";
     default:
-      return "bg-slate-950 text-white hover:bg-slate-800";
+      return "border border-[color:var(--button-primary-border)] bg-[color:var(--button-primary-bg)] text-[color:var(--button-primary-fg)] shadow-[var(--button-primary-shadow)] hover:bg-[color:var(--button-primary-hover-bg)]";
   }
 }
 
@@ -29,7 +29,7 @@ function getSizeClassName(size: ButtonSize) {
 
 function getBaseClassName(tone: ButtonTone, size: ButtonSize, className?: string) {
   return joinClasses(
-    "inline-flex items-center justify-center rounded-full font-semibold transition active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white",
+    "inline-flex items-center justify-center gap-2 rounded-full font-semibold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-55 disabled:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--background)]",
     getToneClassName(tone),
     getSizeClassName(size),
     className,

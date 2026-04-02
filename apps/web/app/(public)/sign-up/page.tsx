@@ -40,7 +40,7 @@ export default async function SignUpPage({
                 required
                 minLength={2}
                 autoComplete="name"
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-emerald-500"
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-400/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f4f6f2]"
                 placeholder="Minji"
               />
             </label>
@@ -54,7 +54,7 @@ export default async function SignUpPage({
                 type="email"
                 required
                 autoComplete="email"
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-emerald-500"
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-400/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f4f6f2]"
                 placeholder="minji@example.com"
               />
             </label>
@@ -69,7 +69,7 @@ export default async function SignUpPage({
                 required
                 minLength={8}
                 autoComplete="new-password"
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-emerald-500"
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-400/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f4f6f2]"
                 placeholder="StrongPassword123!"
               />
             </label>

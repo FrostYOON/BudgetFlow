@@ -11,6 +11,7 @@ import { AppButton, AppButtonLink } from "@/components/ui/app-button";
 import { AppMetricSurface, AppSurface } from "@/components/ui/app-surface";
 import { fetchFinancialAccounts, type FinancialAccount } from "@/lib/accounts";
 import { getAppSession } from "@/lib/auth/session";
+import { getDateDisplayLocale, getNumberDisplayLocale } from "@/lib/display-locale";
 import { fetchWorkspaceMembers, type WorkspaceMemberSummary } from "@/lib/settings";
 import {
   fetchWorkspaceCategories,
@@ -155,6 +156,22 @@ function getPanelState(value?: string) {
   return value === "1";
 }
 
+function formatDateInputValue(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function getFilterChipClassName(active: boolean) {
+  return `inline-flex items-center justify-center rounded-full border px-4 py-2 text-sm font-semibold transition active:scale-[0.98] ${
+    active
+      ? "border-[color:var(--selection-bg)] bg-[color:var(--selection-bg)] text-[color:var(--selection-fg)] shadow-[var(--selection-shadow)]"
+      : "border-[color:var(--button-secondary-border)] bg-[color:var(--button-secondary-bg)] text-[color:var(--button-secondary-fg)] shadow-[var(--button-secondary-shadow)] hover:border-[color:var(--button-secondary-hover-border)] hover:bg-[color:var(--button-secondary-hover-bg)] hover:text-[color:var(--button-secondary-hover-fg)]"
+  }`;
+}
+
 function getDefaultTransactionDate(
   requestedPeriod: { year: number; month: number },
   monthRange: { from: string; to: string },
@@ -165,7 +182,7 @@ function getDefaultTransactionDate(
     requestedPeriod.month === now.getMonth() + 1;
 
   if (isCurrentMonth) {
-    return now.toISOString().slice(0, 10);
+    return formatDateInputValue(now);
   }
 
   return monthRange.from;
@@ -729,7 +746,8 @@ export default async function TransactionsPage({
     }),
   ]);
 
-  const locale = session.user.locale === "ko-KR" ? "ko-KR" : "en-CA";
+  const locale = getNumberDisplayLocale(session.user.locale);
+  const dateLocale = getDateDisplayLocale();
   const prev = getPreviousMonth(requestedPeriod.year, requestedPeriod.month);
   const next = getNextMonth(requestedPeriod.year, requestedPeriod.month);
   const baseHref = buildTransactionsHref({
@@ -939,8 +957,8 @@ export default async function TransactionsPage({
           </AppButtonLink>
         </div>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:hidden">
-          <AppButtonLink href={composeHref} tone="primary" className="w-full">
+        <div className="mt-5 grid grid-cols-2 gap-3 xl:hidden">
+          <AppButtonLink href={composeHref} tone="primary" className="col-span-2 w-full">
             Add entry
           </AppButtonLink>
           <AppButtonLink href={filtersHref} tone="secondary" className="w-full">
@@ -950,7 +968,7 @@ export default async function TransactionsPage({
             Import CSV
           </AppButtonLink>
           {showMobileBackToList ? (
-            <AppButtonLink href={baseHref} tone="secondary" className="w-full">
+            <AppButtonLink href={baseHref} tone="secondary" className="col-span-2 w-full">
               Back to list
             </AppButtonLink>
           ) : null}
@@ -1045,9 +1063,9 @@ export default async function TransactionsPage({
         </Reveal>
       ) : null}
 
-      <StaggerReveal className="grid gap-3 sm:grid-cols-2">
+      <StaggerReveal className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         <StaggerItem>
-          <AppMetricSurface>
+          <AppMetricSurface className="min-h-[124px]">
           <p className="text-sm text-slate-500">Income</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
             {formatCurrency(
@@ -1059,7 +1077,7 @@ export default async function TransactionsPage({
           </AppMetricSurface>
         </StaggerItem>
         <StaggerItem>
-          <AppMetricSurface>
+          <AppMetricSurface className="min-h-[124px]">
           <p className="text-sm text-slate-500">Expense</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
             {formatCurrency(
@@ -1071,7 +1089,7 @@ export default async function TransactionsPage({
           </AppMetricSurface>
         </StaggerItem>
         <StaggerItem>
-          <AppMetricSurface>
+          <AppMetricSurface className="min-h-[124px]">
           <p className="text-sm text-slate-500">Shared</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
             {formatCurrency(
@@ -1083,7 +1101,7 @@ export default async function TransactionsPage({
           </AppMetricSurface>
         </StaggerItem>
         <StaggerItem>
-          <AppMetricSurface>
+          <AppMetricSurface className="min-h-[124px]">
           <p className="text-sm text-slate-500">Personal</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
             {formatCurrency(
@@ -1238,11 +1256,7 @@ export default async function TransactionsPage({
                   type: item.value as "INCOME" | "EXPENSE" | "ALL",
                   visibility,
                 })}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  active
-                    ? "bg-emerald-500 text-slate-950"
-                    : "border border-slate-300 bg-white text-slate-700 hover:border-slate-950 hover:text-slate-950"
-                }`}
+                className={getFilterChipClassName(active)}
               >
                 {item.label}
               </Link>
@@ -1272,11 +1286,7 @@ export default async function TransactionsPage({
                   type,
                   visibility: item.value as "SHARED" | "PERSONAL" | "ALL",
                 })}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  active
-                    ? "bg-slate-950 text-white"
-                    : "border border-slate-300 bg-white text-slate-700 hover:border-slate-950 hover:text-slate-950"
-                }`}
+                className={getFilterChipClassName(active)}
               >
                 {item.label}
               </Link>
@@ -1299,7 +1309,7 @@ export default async function TransactionsPage({
             <section key={date} className="space-y-3">
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
-                  {formatDateLabel(date, locale)}
+                  {formatDateLabel(date, dateLocale)}
                 </h2>
                 <span className="text-xs text-slate-400">{items.length}</span>
               </div>
@@ -1354,12 +1364,9 @@ export default async function TransactionsPage({
                             value={transaction.id}
                           />
                           <input type="hidden" name="returnTo" value={baseHref} />
-                          <button
-                            type="submit"
-                            className="rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:border-rose-400 hover:text-rose-800 active:scale-[0.98]"
-                          >
+                          <AppButton type="submit" tone="danger" size="sm">
                             Delete
-                          </button>
+                          </AppButton>
                         </form>
                         <AppButtonLink
                           href={buildViewHref(baseHref, transaction.id)}
@@ -1368,12 +1375,13 @@ export default async function TransactionsPage({
                         >
                           View
                         </AppButtonLink>
-                        <Link
+                        <AppButtonLink
                           href={buildEditHref(baseHref, transaction.id)}
-                          className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950 active:scale-[0.98]"
+                          tone="secondary"
+                          size="sm"
                         >
                           Edit
-                        </Link>
+                        </AppButtonLink>
                       </div>
                     </div>
                   </article>
