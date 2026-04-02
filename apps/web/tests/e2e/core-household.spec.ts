@@ -114,7 +114,10 @@ test("sign up, use personal workspace, then add shared workspace", async ({ page
   await page.locator('input[name="confirmNextPassword"]').fill(`${password}-wrong`);
   await page.getByRole("button", { name: "Change password" }).click();
   await expect(page).toHaveURL(/\/app\/settings/);
-  await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  await page
+    .locator('form[action="/auth/sign-out"]')
+    .first()
+    .evaluate((form: HTMLFormElement) => form.requestSubmit());
 
   await expect(page).toHaveURL(/\/sign-in/);
 

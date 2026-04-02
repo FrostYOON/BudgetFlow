@@ -52,7 +52,7 @@ function applyTheme(theme: ThemePreference) {
   root.dataset.colorMode = colorMode;
 }
 
-export function AppThemeSetting() {
+function useThemePreference() {
   const [theme, setTheme] = useState<ThemePreference>(() => getStoredTheme());
 
   useEffect(() => {
@@ -71,6 +71,49 @@ export function AppThemeSetting() {
     return () => media.removeEventListener("change", handleChange);
   }, [theme]);
 
+  const updateTheme = (nextTheme: ThemePreference) => {
+    setTheme(nextTheme);
+    window.localStorage.setItem(STORAGE_KEY, nextTheme);
+    applyTheme(nextTheme);
+  };
+
+  return { theme, updateTheme };
+}
+
+export function AppThemeQuickToggle() {
+  const { theme, updateTheme } = useThemePreference();
+
+  return (
+    <div className="inline-flex items-center gap-1 rounded-full border border-[color:var(--surface-border)] bg-[color:var(--surface-soft)] p-1 shadow-[var(--surface-shadow)]">
+      {THEME_OPTIONS.map((option) => {
+        const Icon = option.icon;
+        const isActive = theme === option.value;
+
+        return (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => updateTheme(option.value)}
+            className={`inline-flex h-9 w-9 items-center justify-center rounded-full transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--background)] ${
+              isActive
+                ? "bg-[color:var(--selection-bg)] text-[color:var(--selection-fg)] shadow-[var(--selection-shadow)]"
+                : "text-[color:var(--text-soft)] hover:bg-[color:var(--surface-muted)] hover:text-[color:var(--foreground)]"
+            }`}
+            aria-label={`Switch theme to ${option.label}`}
+            aria-pressed={isActive}
+            title={option.label}
+          >
+            <Icon className="h-4 w-4" strokeWidth={2.2} />
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+export function AppThemeSetting() {
+  const { theme, updateTheme } = useThemePreference();
+
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-3">
@@ -82,11 +125,7 @@ export function AppThemeSetting() {
             <button
               key={option.value}
               type="button"
-              onClick={() => {
-                setTheme(option.value);
-                window.localStorage.setItem(STORAGE_KEY, option.value);
-                applyTheme(option.value);
-              }}
+              onClick={() => updateTheme(option.value)}
               className={`rounded-[1.35rem] border px-4 py-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--background)] ${
                 isActive
                   ? "border-[color:var(--selection-bg)] bg-[color:var(--selection-bg)] text-[color:var(--selection-fg)] shadow-[var(--selection-shadow)]"
