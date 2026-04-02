@@ -28,6 +28,12 @@ export class UsersService {
     });
   }
 
+  async findByName(name: string): Promise<User | null> {
+    return this.prisma.user.findFirst({
+      where: { name },
+    });
+  }
+
   async findByAuthIdentity(
     provider: AuthIdentityProvider,
     providerSubject: string,
@@ -59,6 +65,12 @@ export class UsersService {
 
     if (existingUser) {
       throw new ConflictException('Email is already in use.');
+    }
+
+    const existingNameUser = await this.findByName(input.name);
+
+    if (existingNameUser) {
+      throw new ConflictException('Name is already in use.');
     }
 
     return this.prisma.user.create({
@@ -122,6 +134,14 @@ export class UsersService {
 
     if (!hasChanges) {
       throw new BadRequestException('At least one profile field is required.');
+    }
+
+    if (input.name !== undefined) {
+      const existingNameUser = await this.findByName(input.name);
+
+      if (existingNameUser && existingNameUser.id !== userId) {
+        throw new ConflictException('Name is already in use.');
+      }
     }
 
     const user = await this.prisma.user.update({

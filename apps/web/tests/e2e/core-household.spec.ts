@@ -24,6 +24,7 @@ test("sign up, use personal workspace, then add shared workspace", async ({ page
   const unique = Date.now();
   const email = `budgetflow-e2e-${unique}@example.com`;
   const password = `BudgetFlow!${unique}`;
+  const userName = `Playwright User ${unique}`;
   const householdName = "Playwright Home";
   const transactionMemo = "Weekly groceries";
   const now = new Date();
@@ -34,9 +35,10 @@ test("sign up, use personal workspace, then add shared workspace", async ({ page
 
   await page.goto("/sign-up");
 
-  await page.getByLabel("Name").fill("Playwright User");
+  await page.getByLabel("Name").fill(userName);
   await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill(password);
+  await page.locator('input[name="password"]').fill(password);
+  await page.locator('input[name="confirmPassword"]').fill(password);
   await page.getByRole("button", { name: "Create account" }).click();
 
   await expect(page).toHaveURL(/\/app\/dashboard/);

@@ -1,4 +1,4 @@
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, ConflictException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../../core/database/prisma.service';
 import { UsersService } from './users.service';
@@ -7,6 +7,7 @@ describe('UsersService', () => {
   let service: UsersService;
   let prisma: {
     user: {
+      findFirst: jest.Mock;
       findUnique: jest.Mock;
       create: jest.Mock;
       update: jest.Mock;
@@ -16,6 +17,7 @@ describe('UsersService', () => {
   beforeEach(async () => {
     prisma = {
       user: {
+        findFirst: jest.fn(),
         findUnique: jest.fn(),
         create: jest.fn(),
         update: jest.fn(),
@@ -36,6 +38,10 @@ describe('UsersService', () => {
   });
 
   it('updateProfile should update the current user profile', async () => {
+    prisma.user.findFirst.mockResolvedValue({
+      id: 'user-1',
+      name: 'Minji',
+    });
     prisma.user.update.mockResolvedValue({
       id: 'user-1',
       email: 'minji@example.com',
@@ -71,5 +77,49 @@ describe('UsersService', () => {
     await expect(service.updateProfile('user-1', {})).rejects.toBeInstanceOf(
       BadRequestException,
     );
+  });
+
+  it('create should reject duplicate email addresses', async () => {
+    prisma.user.findUnique.mockResolvedValue({
+      id: 'user-1',
+      email: 'minji@example.com',
+    });
+
+    await expect(
+      service.create({
+        email: 'minji@example.com',
+        passwordHash: 'hash',
+        name: 'Minji',
+      }),
+    ).rejects.toBeInstanceOf(ConflictException);
+  });
+
+  it('create should reject duplicate names', async () => {
+    prisma.user.findUnique.mockResolvedValue(null);
+    prisma.user.findFirst.mockResolvedValue({
+      id: 'user-2',
+      name: 'Minji',
+    });
+
+    await expect(
+      service.create({
+        email: 'minji@example.com',
+        passwordHash: 'hash',
+        name: 'Minji',
+      }),
+    ).rejects.toBeInstanceOf(ConflictException);
+  });
+
+  it('updateProfile should reject duplicate names owned by another user', async () => {
+    prisma.user.findFirst.mockResolvedValue({
+      id: 'user-2',
+      name: 'Minji',
+    });
+
+    await expect(
+      service.updateProfile('user-1', {
+        name: 'Minji',
+      }),
+    ).rejects.toBeInstanceOf(ConflictException);
   });
 });

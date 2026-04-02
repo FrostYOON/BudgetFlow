@@ -12,6 +12,25 @@ import {
 
 const POST_REDIRECT_STATUS = 303;
 
+function buildSignInUrl(
+  requestUrl: string,
+  input: {
+    email: string;
+    error: string;
+    redirectTo: string;
+  },
+) {
+  const url = new URL("/sign-in", requestUrl);
+  url.searchParams.set("next", input.redirectTo);
+  url.searchParams.set("error", input.error);
+
+  if (input.email) {
+    url.searchParams.set("email", input.email);
+  }
+
+  return url;
+}
+
 export async function POST(request: NextRequest) {
   const existingWorkspaceId =
     request.cookies.get(CURRENT_WORKSPACE_COOKIE_NAME)?.value ?? null;
@@ -20,9 +39,35 @@ export async function POST(request: NextRequest) {
   const password = String(formData.get("password") ?? "");
   const redirectTo = String(formData.get("redirectTo") ?? "/app/dashboard");
 
-  if (!email || !password) {
+  if (!email && !password) {
     return NextResponse.redirect(
-      new URL(`/sign-in?error=missing_fields&next=${encodeURIComponent(redirectTo)}`, request.url),
+      buildSignInUrl(request.url, {
+        email,
+        error: "sign_in_missing_email_and_password",
+        redirectTo,
+      }),
+      POST_REDIRECT_STATUS,
+    );
+  }
+
+  if (!email) {
+    return NextResponse.redirect(
+      buildSignInUrl(request.url, {
+        email,
+        error: "sign_in_missing_email",
+        redirectTo,
+      }),
+      POST_REDIRECT_STATUS,
+    );
+  }
+
+  if (!password) {
+    return NextResponse.redirect(
+      buildSignInUrl(request.url, {
+        email,
+        error: "sign_in_missing_password",
+        redirectTo,
+      }),
       POST_REDIRECT_STATUS,
     );
   }
@@ -55,7 +100,11 @@ export async function POST(request: NextRequest) {
     return response;
   } catch {
     return NextResponse.redirect(
-      new URL(`/sign-in?error=invalid_credentials&next=${encodeURIComponent(redirectTo)}`, request.url),
+      buildSignInUrl(request.url, {
+        email,
+        error: "invalid_credentials",
+        redirectTo,
+      }),
       POST_REDIRECT_STATUS,
     );
   }
